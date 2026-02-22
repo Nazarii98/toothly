@@ -55,6 +55,14 @@ export interface AppData {
   customStatuses: CustomStatus[];
 }
 
+/** Format for exported profile (backup/restore) */
+export interface ExportedProfile {
+  version: number;
+  profileName: string;
+  exportedAt: string; // ISO
+  data: AppData;
+}
+
 export function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace("#", "");
   const r = parseInt(h.substring(0, 2), 16);

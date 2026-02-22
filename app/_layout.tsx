@@ -34,7 +34,7 @@ const headerOptions = {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
+      <StatusBar style="auto" />
       <Stack screenOptions={headerOptions}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -48,6 +48,10 @@ export default function RootLayout() {
         <Stack.Screen
           name="statuses"
           options={{ title: "Керування статусами" }}
+        />
+        <Stack.Screen
+          name="profiles"
+          options={{ title: "Профіль", headerBackTitle: "Назад" }}
         />
         <Stack.Screen
           name="add-record"

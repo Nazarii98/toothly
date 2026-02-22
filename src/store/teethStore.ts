@@ -36,6 +36,35 @@ export function clearDataCache(): void {
   cached = null;
 }
 
+/** Load data for a specific profile (for export). Does not update cache. */
+export async function loadDataForProfile(profileId: string): Promise<AppData> {
+  try {
+    const raw = await AsyncStorage.getItem(storageKey(profileId));
+    if (raw) {
+      const parsed = JSON.parse(raw) as AppData;
+      const teeth = { ...getDefaultData().teeth, ...parsed.teeth };
+      ALL_TOOTH_IDS.forEach((id) => {
+        if (!teeth[id]) teeth[id] = defaultToothRecord(id);
+        if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
+      });
+      return {
+        teeth,
+        globalProcedures: parsed.globalProcedures ?? [],
+        customStatuses: parsed.customStatuses ?? [],
+      };
+    }
+  } catch (_) {}
+  return getDefaultData();
+}
+
+/** Save data for a specific profile (for import). Does not update cache. */
+export async function saveDataForProfile(
+  profileId: string,
+  data: AppData,
+): Promise<void> {
+  await AsyncStorage.setItem(storageKey(profileId), JSON.stringify(data));
+}
+
 export async function loadData(): Promise<AppData> {
   const profileId = await ensureCurrentProfileId();
   if (cached && cached.profileId === profileId) return cached.data;
