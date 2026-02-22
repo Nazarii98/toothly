@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   badge: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     backgroundColor: '#2d5a4a',
     alignItems: 'center',
     justifyContent: 'center',
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 160,
-    borderRadius: 10,
+    borderRadius: 14,
     marginTop: 10,
     backgroundColor: '#e0e0e0',
   },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     bottom: 100,
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 32,
     backgroundColor: '#2d5a4a',
     alignItems: 'center',
     justifyContent: 'center',

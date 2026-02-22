@@ -124,61 +124,59 @@ export default function ChartScreen() {
         visible={popupTooth !== null}
         onClose={() => setPopupTooth(null)}
       >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Зуб {popupTooth} —{" "}
-                {popupTooth ? (TOOTH_NAMES[popupTooth[1]] ?? "") : ""}
-              </Text>
-              <Pressable onPress={() => setPopupTooth(null)} hitSlop={12}>
-                <Text style={styles.modalDone}>Готово</Text>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>
+            Зуб {popupTooth} —{" "}
+            {popupTooth ? (TOOTH_NAMES[popupTooth[1]] ?? "") : ""}
+          </Text>
+          <Pressable onPress={() => setPopupTooth(null)} hitSlop={12}>
+            <Text style={styles.modalDone}>Готово</Text>
+          </Pressable>
+        </View>
+        <View style={styles.statusList}>
+          {[
+            ["", "Не встановлено"] as [string, string],
+            ...statusMaps.options,
+          ].map(([value, label]) => {
+            const currentStatus = popupTooth
+              ? teethStatuses[popupTooth]
+              : undefined;
+            const isSelected = (currentStatus ?? "") === value;
+            const color =
+              value === ""
+                ? "#999"
+                : (statusMaps.borderColors[value] ?? "#999");
+            return (
+              <Pressable
+                key={value || "empty"}
+                style={({ pressed }) => [
+                  styles.statusOption,
+                  isSelected && styles.statusOptionSelected,
+                  pressed && styles.statusOptionPressed,
+                ]}
+                onPress={() => handleStatusSelect(value as ToothStatus)}
+              >
+                <View style={[styles.statusDot, { backgroundColor: color }]} />
+                <Text
+                  style={[
+                    styles.statusText,
+                    isSelected && styles.statusTextSelected,
+                  ]}
+                >
+                  {label}
+                </Text>
+                {isSelected && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={22}
+                    color="#2d5a4a"
+                    style={styles.statusCheck}
+                  />
+                )}
               </Pressable>
-            </View>
-            <View style={styles.statusList}>
-              {[
-                ["", "Не встановлено"] as [string, string],
-                ...statusMaps.options,
-              ].map(([value, label]) => {
-                const currentStatus = popupTooth
-                  ? teethStatuses[popupTooth]
-                  : undefined;
-                const isSelected = (currentStatus ?? "") === value;
-                const color =
-                  value === ""
-                    ? "#999"
-                    : (statusMaps.borderColors[value] ?? "#999");
-                return (
-                  <Pressable
-                    key={value || "empty"}
-                    style={({ pressed }) => [
-                      styles.statusOption,
-                      isSelected && styles.statusOptionSelected,
-                      pressed && styles.statusOptionPressed,
-                    ]}
-                    onPress={() => handleStatusSelect(value as ToothStatus)}
-                  >
-                    <View
-                      style={[styles.statusDot, { backgroundColor: color }]}
-                    />
-                    <Text
-                      style={[
-                        styles.statusText,
-                        isSelected && styles.statusTextSelected,
-                      ]}
-                    >
-                      {label}
-                    </Text>
-                    {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={22}
-                        color="#2d5a4a"
-                        style={styles.statusCheck}
-                      />
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
+            );
+          })}
+        </View>
       </GlassModal>
     </View>
   );
@@ -196,7 +194,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: "rgba(255,255,255,0.85)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -216,7 +214,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: "rgba(255,255,255,0.85)",
     alignItems: "center",
     justifyContent: "center",

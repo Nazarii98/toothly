@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 4,
     shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     backgroundColor: "#eef5f1",
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 12,
   },
   importFileBtnText: {
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     backgroundColor: "#f5f8f6",
-    borderRadius: 12,
+    borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 14,
     fontSize: 15,
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
   },
   importInput: {
     backgroundColor: "#f5f8f6",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 12,
     fontSize: 13,
     color: "#1a3d32",
@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     backgroundColor: "#2d5a4a",
-    borderRadius: 12,
+    borderRadius: 16,
     minWidth: 120,
     alignItems: "center",
   },

@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     shadowColor: "#1a3d32",
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   cardRowIcon: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 14,
     backgroundColor: "#eef5f1",
     alignItems: "center",
     justifyContent: "center",
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: "#f0f5f2",
   },
   chipDot: {
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
 
   input: {
     backgroundColor: "#f5f8f6",
-    borderRadius: 12,
+    borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 14,
     fontSize: 15,
@@ -360,12 +360,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 20,
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: "#f5f8f6",
   },
   imagePlaceholderText: { fontSize: 14, color: "#8a9a90", fontWeight: "500" },
   imagePreview: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
     backgroundColor: "#e0e0e0",
   },
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingVertical: 16,
     backgroundColor: "#2d5a4a",
-    borderRadius: 14,
+    borderRadius: 18,
     alignItems: "center",
     shadowColor: "#2d5a4a",
     shadowOffset: { width: 0, height: 4 },

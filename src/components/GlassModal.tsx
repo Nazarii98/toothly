@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   cardCenter: {
-    borderRadius: 20,
+    borderRadius: 32,
     width: "100%",
     maxWidth: 360,
   },
   cardBottom: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     width: "100%",
     padding: 24,
     paddingBottom: 40,

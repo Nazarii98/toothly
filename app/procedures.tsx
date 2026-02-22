@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     margin: 16,
     paddingVertical: 14,
     backgroundColor: "#2d5a4a",
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: "center",
   },
   pressed: { opacity: 0.85 },
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   list: { padding: 16, paddingTop: 0 },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   typeChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: "#e8f0ec",
     marginRight: 8,
   },

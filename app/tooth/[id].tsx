@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f5f8f6",
-    borderRadius: 14,
+    borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 16,
     gap: 12,
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2d5a4a",
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 14,
+    borderRadius: 18,
   },
   emptyCtaText: {
     fontSize: 15,

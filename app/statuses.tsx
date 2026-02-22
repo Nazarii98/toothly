@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   addForm: {
     marginTop: 16,
     backgroundColor: "#fff",
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     borderColor: "#d0dcd6",
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10,
+    borderRadius: 14,
     padding: 12,
     fontSize: 16,
     backgroundColor: "#fafafa",
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   colorOption: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 2,
     borderColor: "transparent",
   },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor: "#2d5a4a",
-    borderRadius: 10,
+    borderRadius: 14,
   },
   pressed: { opacity: 0.85 },
   saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },

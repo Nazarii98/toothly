@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: "hidden",
     shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
