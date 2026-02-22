@@ -1,8 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AppData, ToothId, ToothChange, ToothRecord, ToothStatus, GlobalProcedure, CustomStatus } from '../types';
-import { ALL_TOOTH_IDS } from '../types';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type {
+  AppData,
+  ToothId,
+  ToothChange,
+  ToothRecord,
+  ToothStatus,
+  GlobalProcedure,
+  CustomStatus,
+} from "../types";
+import { ALL_TOOTH_IDS } from "../types";
 
-const STORAGE_KEY = '@teeth_manager_data';
+const STORAGE_KEY = "@teeth_manager_data";
 
 const defaultToothRecord = (toothId: ToothId): ToothRecord => ({
   toothId,
@@ -31,7 +39,11 @@ export async function loadData(): Promise<AppData> {
         if (!teeth[id]) teeth[id] = defaultToothRecord(id);
         if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
       });
-      cached = { teeth, globalProcedures: parsed.globalProcedures ?? [], customStatuses: parsed.customStatuses ?? [] };
+      cached = {
+        teeth,
+        globalProcedures: parsed.globalProcedures ?? [],
+        customStatuses: parsed.customStatuses ?? [],
+      };
       return cached!;
     }
   } catch (_) {}
@@ -50,7 +62,7 @@ export function getToothRecord(data: AppData, toothId: ToothId): ToothRecord {
 
 export async function addToothChange(
   toothId: ToothId,
-  change: Omit<ToothChange, 'id' | 'toothId'>
+  change: Omit<ToothChange, "id" | "toothId">,
 ): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
@@ -68,7 +80,7 @@ export async function addToothChange(
 export async function updateToothChange(
   toothId: ToothId,
   changeId: string,
-  updates: Partial<Omit<ToothChange, 'id' | 'toothId'>>
+  updates: Partial<Omit<ToothChange, "id" | "toothId">>,
 ): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
@@ -79,7 +91,10 @@ export async function updateToothChange(
   await saveData(data);
 }
 
-export async function deleteToothChange(toothId: ToothId, changeId: string): Promise<void> {
+export async function deleteToothChange(
+  toothId: ToothId,
+  changeId: string,
+): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
   record.changes = record.changes.filter((c) => c.id !== changeId);
@@ -88,7 +103,7 @@ export async function deleteToothChange(toothId: ToothId, changeId: string): Pro
 }
 
 export async function addGlobalProcedure(
-  procedure: Omit<GlobalProcedure, 'id'>
+  procedure: Omit<GlobalProcedure, "id">,
 ): Promise<void> {
   const data = await loadData();
   const entry: GlobalProcedure = {
@@ -105,7 +120,10 @@ export async function deleteGlobalProcedure(id: string): Promise<void> {
   await saveData(data);
 }
 
-export async function setToothStatus(toothId: ToothId, status: ToothStatus): Promise<void> {
+export async function setToothStatus(
+  toothId: ToothId,
+  status: ToothStatus,
+): Promise<void> {
   const data = await loadData();
   const old = getToothRecord(data, toothId);
   data.teeth[toothId] = {
@@ -121,7 +139,9 @@ export async function getCachedData(): Promise<AppData | null> {
   return loadData();
 }
 
-export async function addCustomStatus(status: Omit<CustomStatus, 'id'>): Promise<CustomStatus> {
+export async function addCustomStatus(
+  status: Omit<CustomStatus, "id">,
+): Promise<CustomStatus> {
   const data = await loadData();
   const entry: CustomStatus = {
     ...status,

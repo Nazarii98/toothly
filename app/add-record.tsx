@@ -269,6 +269,14 @@ export default function AddRecordModal() {
                         }
                         style={[styles.chip, active && styles.chipActive]}
                       >
+                        <View
+                          style={[
+                            styles.chipDot,
+                            {
+                              backgroundColor: active ? "#fff" : "#2d5a4a",
+                            },
+                          ]}
+                        />
                         <Text
                           style={[
                             styles.chipText,
@@ -288,15 +296,14 @@ export default function AddRecordModal() {
                       <Pressable
                         key={value}
                         onPress={() => setCategory(value)}
-                        style={[
-                          styles.chip,
-                          active && { backgroundColor: dotColor },
-                        ]}
+                        style={[styles.chip, active && styles.chipActive]}
                       >
                         <View
                           style={[
                             styles.chipDot,
-                            { backgroundColor: active ? "#fff" : dotColor },
+                            {
+                              backgroundColor: active ? "#fff" : dotColor,
+                            },
                           ]}
                         />
                         <Text

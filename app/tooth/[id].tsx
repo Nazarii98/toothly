@@ -111,7 +111,7 @@ export default function ToothDetailScreen() {
         options={{
           title: `Зуб ${toothId}`,
           headerRight: () => (
-            <Pressable onPress={openAdd} hitSlop={8} style={{}}>
+            <Pressable onPress={openAdd} hitSlop={8}>
               <Ionicons name="add" size={36} color="#2d5a4a" />
             </Pressable>
           ),
@@ -131,19 +131,24 @@ export default function ToothDetailScreen() {
           </View>
 
           <View style={styles.statusSection}>
-            <Text style={styles.statusTitle}>Статус зуба</Text>
-            <Pressable
-              style={styles.dropdown}
-              onPress={() => setPickerVisible(true)}
-            >
-              <View style={styles.dropdownLeft}>
-                <View
-                  style={[styles.dot, { backgroundColor: currentStatusColor }]}
-                />
-                <Text style={styles.dropdownText}>{currentStatusLabel}</Text>
-              </View>
-              <Ionicons name="chevron-down" size={20} color="#666" />
-            </Pressable>
+            <View style={styles.statusSectionHeader}>
+              <Text style={styles.statusTitle}>Статус зуба</Text>
+              <Pressable
+                style={styles.dropdown}
+                onPress={() => setPickerVisible(true)}
+              >
+                <View style={styles.dropdownLeft}>
+                  <View
+                    style={[
+                      styles.dot,
+                      { backgroundColor: currentStatusColor },
+                    ]}
+                  />
+                  <Text style={styles.dropdownText}>{currentStatusLabel}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#666" />
+              </Pressable>
+            </View>
             <Modal
               visible={pickerVisible}
               transparent
@@ -214,16 +219,28 @@ export default function ToothDetailScreen() {
                       },
                     )}
                   </View>
+                  <View style={styles.statusSectionFooter}>
+                    <Pressable
+                      style={styles.manageBtn}
+                      hitSlop={12}
+                      onPress={() => {
+                        router.push("/statuses");
+                        setPickerVisible(false);
+                      }}
+                    >
+                      <Ionicons
+                        name="settings-outline"
+                        size={16}
+                        color="#5a7a6a"
+                      />
+                      <Text style={styles.manageBtnText}>
+                        Керувати статусами
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
               </Pressable>
             </Modal>
-            <Pressable
-              style={styles.manageBtn}
-              onPress={() => router.push("/statuses")}
-            >
-              <Ionicons name="settings-outline" size={16} color="#5a7a6a" />
-              <Text style={styles.manageBtnText}>Керувати статусами</Text>
-            </Pressable>
           </View>
 
           {record && record.changes.length === 0 ? (
@@ -305,13 +322,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e0e8e4",
   },
+  statusSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  statusSectionFooter: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e8e4",
+  },
   statusTitle: {
     fontSize: 15,
     fontWeight: "700",
     color: "#1a3d32",
-    marginBottom: 10,
   },
   dropdown: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -381,7 +410,6 @@ const styles = StyleSheet.create({
     color: "#2d5a4a",
   },
   statusList: {
-    paddingVertical: 8,
     paddingHorizontal: 12,
   },
   statusOption: {
@@ -420,8 +448,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingVertical: 12,
-    marginTop: 8,
   },
   manageBtnText: {
     fontSize: 14,
