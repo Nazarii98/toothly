@@ -107,8 +107,12 @@ export default function ToothDetailScreen() {
           title: `Зуб ${toothId}`,
           headerBackTitle: "Назад",
           headerRight: () => (
-            <Pressable onPress={openAdd} hitSlop={8}>
-              <Ionicons name="add" size={36} color="#2d5a4a" />
+            <Pressable
+              onPress={openAdd}
+              hitSlop={8}
+              style={styles.headerAddBtn}
+            >
+              <Ionicons name="add" size={26} color="#fff" />
             </Pressable>
           ),
         }}
@@ -326,6 +330,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#f2f6f4" },
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20 },
+  headerAddBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   statusCard: {
     backgroundColor: "#fff",
     borderRadius: 20,

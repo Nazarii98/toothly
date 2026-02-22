@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   Pressable,
   Alert,
   Platform,
+  Image,
 } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +15,7 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import * as ImagePicker from "expo-image-picker";
 import {
   loadData,
   getToothRecord,
@@ -34,6 +35,7 @@ export default function EditRecordScreen() {
   const [status, setStatus] = useState<ToothChange["status"]>("other");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
   const [loaded, setLoaded] = useState(false);
 
@@ -47,10 +49,19 @@ export default function EditRecordScreen() {
         setNotes(change.notes ?? "");
         setStatus(change.status ?? "other");
         setDate(new Date(change.date));
+        setImageUri(change.imageUri ?? null);
         setLoaded(true);
       }
     });
   }, [toothId, changeId]);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) setImageUri(result.assets[0].uri);
+  };
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === "android") setShowDatePicker(false);
@@ -68,6 +79,7 @@ export default function EditRecordScreen() {
       notes: notes.trim() || undefined,
       status,
       date: date.toISOString(),
+      imageUri: imageUri ?? undefined,
     });
     router.back();
   };
@@ -113,7 +125,10 @@ export default function EditRecordScreen() {
                   <Pressable
                     key={value}
                     onPress={() => setStatus(value as ToothChange["status"])}
-                    style={[styles.chip, active && { backgroundColor: dotColor }]}
+                    style={[
+                      styles.chip,
+                      active && { backgroundColor: dotColor },
+                    ]}
                   >
                     <View
                       style={[
@@ -121,7 +136,9 @@ export default function EditRecordScreen() {
                         { backgroundColor: active ? "#fff" : dotColor },
                       ]}
                     />
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    <Text
+                      style={[styles.chipText, active && styles.chipTextActive]}
+                    >
                       {label}
                     </Text>
                   </Pressable>
@@ -148,6 +165,44 @@ export default function EditRecordScreen() {
               multiline
               placeholderTextColor="#b0bab4"
             />
+          </View>
+
+          {/* ── Photo ── */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Фото</Text>
+            {imageUri ? (
+              <View style={styles.imagePreview}>
+                <Image source={{ uri: imageUri }} style={styles.previewImg} />
+                <View style={styles.imageActions}>
+                  <Pressable style={styles.imageActionBtn} onPress={pickImage}>
+                    <Ionicons
+                      name="swap-horizontal"
+                      size={16}
+                      color="#2d5a4a"
+                    />
+                    <Text style={styles.imageActionText}>Змінити</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.imageActionBtn}
+                    onPress={() => setImageUri(null)}
+                  >
+                    <Ionicons name="trash-outline" size={16} color="#c0392b" />
+                    <Text
+                      style={[styles.imageActionText, { color: "#c0392b" }]}
+                    >
+                      Видалити
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable style={styles.imagePlaceholder} onPress={pickImage}>
+                <Ionicons name="camera-outline" size={24} color="#8a9a90" />
+                <Text style={styles.imagePlaceholderText}>
+                  Обрати з галереї
+                </Text>
+              </Pressable>
+            )}
           </View>
 
           {/* ── Date ── */}
@@ -200,7 +255,10 @@ export default function EditRecordScreen() {
 
           {/* ── Save ── */}
           <Pressable
-            style={({ pressed }) => [styles.saveBtn, pressed && styles.saveBtnPressed]}
+            style={({ pressed }) => [
+              styles.saveBtn,
+              pressed && styles.saveBtnPressed,
+            ]}
             onPress={save}
           >
             <Text style={styles.saveBtnText}>Зберегти</Text>
@@ -296,6 +354,32 @@ const styles = StyleSheet.create({
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
 
+  imagePlaceholder: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 20,
+    borderRadius: 12,
+    backgroundColor: "#f5f8f6",
+  },
+  imagePlaceholderText: { fontSize: 14, color: "#8a9a90", fontWeight: "500" },
+  imagePreview: {
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#e0e0e0",
+  },
+  previewImg: { width: "100%", height: 200 },
+  imageActions: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 24,
+    paddingVertical: 10,
+    backgroundColor: "#f5f8f6",
+  },
+  imageActionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
+  imageActionText: { fontSize: 13, color: "#2d5a4a", fontWeight: "500" },
+
   saveBtn: {
     marginTop: 4,
     paddingVertical: 16,
@@ -309,5 +393,10 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveBtnPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-  saveBtnText: { color: "#fff", fontSize: 17, fontWeight: "700", letterSpacing: 0.3 },
+  saveBtnText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
 });
