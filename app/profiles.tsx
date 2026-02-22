@@ -189,7 +189,7 @@ export default function ProfilesScreen() {
       await Share.share({ message, title });
       setExportModalVisible(false);
       setExportPassword("");
-    } catch (e) {
+    } catch {
       Alert.alert("Помилка", "Не вдалося експортувати профіль.");
     } finally {
       setExporting(false);
@@ -314,17 +314,14 @@ export default function ProfilesScreen() {
                     onPress={() => handleSelectProfile(p.id)}
                   >
                     <View style={styles.profileInfo}>
-                      <Text style={styles.profileName}>{p.name}</Text>
                       {currentId === p.id && (
-                        <View style={styles.currentBadge}>
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={18}
-                            color="#2d5a4a"
-                          />
-                          <Text style={styles.currentBadgeText}>Обрано</Text>
-                        </View>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={18}
+                          color="#2d5a4a"
+                        />
                       )}
+                      <Text style={styles.profileName}>{p.name}</Text>
                     </View>
                   </Pressable>
                   {profiles.length > 1 && (
@@ -392,7 +389,7 @@ export default function ProfilesScreen() {
               onPress={() => setAdding(true)}
             >
               <Ionicons name="add-circle-outline" size={22} color="#2d5a4a" />
-              <Text style={styles.addProfileBtnText}>Додати профіль</Text>
+              <Text style={styles.addProfileBtnText}>Додати профівль</Text>
             </Pressable>
           )}
         </View>
@@ -401,7 +398,7 @@ export default function ProfilesScreen() {
         <View style={styles.card}>
           <Pressable
             style={styles.actionRow}
-            onPress={handleExport}
+            onPress={handleExportOpen}
             disabled={exporting}
           >
             {exporting ? (
@@ -438,6 +435,54 @@ export default function ProfilesScreen() {
       </ScrollView>
 
       <Modal
+        visible={exportModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setExportModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Експорт профілю</Text>
+            <Text style={styles.modalHint}>
+              Введіть пароль, щоб зашифрувати дані. Або залиште порожнім для
+              експорту без шифрування.
+            </Text>
+            <TextInput
+              style={styles.passwordInput}
+              value={exportPassword}
+              onChangeText={setExportPassword}
+              placeholder="Пароль (необов'язково)"
+              placeholderTextColor="#8a9a90"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.modalBtnSecondary}
+                onPress={() => {
+                  setExportModalVisible(false);
+                  setExportPassword("");
+                }}
+              >
+                <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalBtnPrimary}
+                onPress={handleExport}
+                disabled={exporting}
+              >
+                {exporting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalBtnPrimaryText}>Експортувати</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
         visible={importVisible}
         transparent
         animationType="slide"
@@ -456,18 +501,34 @@ export default function ProfilesScreen() {
             <TextInput
               style={styles.importInput}
               value={importJson}
-              onChangeText={setImportJson}
+              onChangeText={(text) => {
+                setImportJson(text);
+                setImportPassword("");
+              }}
               placeholder='{"version":1,"profileName":"...","data":{...}}'
               placeholderTextColor="#8a9a90"
               multiline
               numberOfLines={8}
             />
+            {importJson.trim().length > 0 &&
+              isEncryptedPayload(importJson.trim()) && (
+                <TextInput
+                  style={styles.passwordInput}
+                  value={importPassword}
+                  onChangeText={setImportPassword}
+                  placeholder="Пароль для розшифровки"
+                  placeholderTextColor="#8a9a90"
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              )}
             <View style={styles.modalActions}>
               <Pressable
                 style={styles.modalBtnSecondary}
                 onPress={() => {
                   setImportVisible(false);
                   setImportJson("");
+                  setImportPassword("");
                 }}
               >
                 <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
@@ -533,7 +594,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  profileInfo: { flex: 1 },
+  profileInfo: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4 },
   profileName: {
     fontSize: 16,
     fontWeight: "600",
@@ -666,6 +727,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: "#2d5a4a",
+  },
+  passwordInput: {
+    backgroundColor: "#f5f8f6",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: "#1a3d32",
+    marginBottom: 16,
   },
   importInput: {
     backgroundColor: "#f5f8f6",

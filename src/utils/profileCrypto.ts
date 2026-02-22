@@ -1,19 +1,24 @@
-import CryptoJS from "crypto-js";
+import { getRandomValues } from "expo-crypto";
 
-/**
- * Encrypts JSON string with AES using the given password.
- * Returns base64 string (salt + iv + ciphertext are handled by crypto-js).
- */
-export function encryptProfileJson(json: string, password: string): string {
-  const encrypted = CryptoJS.AES.encrypt(json, password).toString();
-  return encrypted;
+// Polyfill must run BEFORE crypto-js is loaded (it checks at init time)
+if (typeof globalThis.crypto === "undefined") {
+  (globalThis as any).crypto = {};
+}
+if (!globalThis.crypto.getRandomValues) {
+  (globalThis.crypto as any).getRandomValues = getRandomValues;
 }
 
-/**
- * Decrypts a string encrypted with encryptProfileJson.
- * Returns the original JSON string or null if password is wrong or data invalid.
- */
-export function decryptProfileJson(encrypted: string, password: string): string | null {
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const CryptoJS = require("crypto-js") as typeof import("crypto-js");
+
+export function encryptProfileJson(json: string, password: string): string {
+  return CryptoJS.AES.encrypt(json, password).toString();
+}
+
+export function decryptProfileJson(
+  encrypted: string,
+  password: string,
+): string | null {
   try {
     const decrypted = CryptoJS.AES.decrypt(encrypted, password);
     const str = decrypted.toString(CryptoJS.enc.Utf8);
