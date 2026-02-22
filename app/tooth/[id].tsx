@@ -7,6 +7,7 @@ import {
   Alert,
   ScrollView,
   Image,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -35,7 +36,7 @@ export default function ToothDetailScreen() {
 
   const [record, setRecord] = useState<ToothRecord | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const quadrant = toothId[0];
   const toothNum = toothId[1];
@@ -59,7 +60,7 @@ export default function ToothDetailScreen() {
   );
 
   const handleStatusChange = async (status: ToothStatus) => {
-    setStatusDropdownOpen(false);
+    setPickerVisible(false);
     await setToothStatus(toothId, status);
     refresh();
   };
@@ -130,75 +131,99 @@ export default function ToothDetailScreen() {
           </View>
 
           <View style={styles.statusSection}>
-            <View style={styles.statusSectionHeader}>
-              <Text style={styles.statusTitle}>Статус зуба</Text>
-              <Pressable
-                style={styles.dropdown}
-                onPress={() => setStatusDropdownOpen(!statusDropdownOpen)}
-              >
-                <View style={styles.dropdownLeft}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: currentStatusColor },
-                    ]}
-                  />
-                  <Text style={styles.dropdownText}>{currentStatusLabel}</Text>
-                </View>
-                <Ionicons
-                  name={statusDropdownOpen ? "chevron-up" : "chevron-down"}
-                  size={20}
-                  color="#666"
+            <Text style={styles.statusTitle}>Статус зуба</Text>
+            <Pressable
+              style={styles.dropdown}
+              onPress={() => setPickerVisible(true)}
+            >
+              <View style={styles.dropdownLeft}>
+                <View
+                  style={[styles.dot, { backgroundColor: currentStatusColor }]}
                 />
-              </Pressable>
-            </View>
-            {statusDropdownOpen && (
-              <View style={styles.dropdownList}>
-                {statusMaps.options.map(([value, label]) => {
-                  const isActive = currentStatus === value;
-                  const color = statusMaps.borderColors[value];
-                  return (
-                    <Pressable
-                      key={value}
-                      style={({ pressed }) => [
-                        styles.dropdownItem,
-                        isActive && styles.dropdownItemActive,
-                        pressed && styles.dropdownItemPressed,
-                      ]}
-                      onPress={() => handleStatusChange(value as ToothStatus)}
-                    >
-                      <View style={[styles.dot, { backgroundColor: color }]} />
-                      <Text
-                        style={[
-                          styles.dropdownItemText,
-                          isActive && styles.dropdownItemTextActive,
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                      {isActive && (
-                        <Ionicons
-                          name="checkmark"
-                          size={18}
-                          color="#2d5a4a"
-                          style={{ marginLeft: "auto" }}
-                        />
-                      )}
-                    </Pressable>
-                  );
-                })}
-                <Pressable
-                  style={styles.manageBtn}
-                  onPress={() => {
-                    setStatusDropdownOpen(false);
-                    router.push("/statuses");
-                  }}
-                >
-                  <Ionicons name="settings-outline" size={16} color="#5a7a6a" />
-                  <Text style={styles.manageBtnText}>Керувати статусами</Text>
-                </Pressable>
+                <Text style={styles.dropdownText}>{currentStatusLabel}</Text>
               </View>
-            )}
+              <Ionicons name="chevron-down" size={20} color="#666" />
+            </Pressable>
+            <Modal
+              visible={pickerVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setPickerVisible(false)}
+            >
+              <Pressable
+                style={styles.modalBackdrop}
+                onPress={() => setPickerVisible(false)}
+              >
+                <View
+                  style={styles.modalCard}
+                  onStartShouldSetResponder={() => true}
+                >
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Оберіть статус</Text>
+                    <Pressable
+                      onPress={() => setPickerVisible(false)}
+                      hitSlop={12}
+                    >
+                      <Text style={styles.modalDone}>Готово</Text>
+                    </Pressable>
+                  </View>
+                  <View style={styles.statusList}>
+                    {[["", "Не встановлено"], ...statusMaps.options].map(
+                      ([value, label]) => {
+                        const isSelected = (currentStatus ?? "") === value;
+                        const color =
+                          value === ""
+                            ? "#999"
+                            : (statusMaps.borderColors[value] ?? "#999");
+                        return (
+                          <Pressable
+                            key={value || "empty"}
+                            style={({ pressed }) => [
+                              styles.statusOption,
+                              isSelected && styles.statusOptionSelected,
+                              pressed && styles.statusOptionPressed,
+                            ]}
+                            onPress={() =>
+                              handleStatusChange(value as ToothStatus)
+                            }
+                          >
+                            <View
+                              style={[
+                                styles.statusOptionDot,
+                                { backgroundColor: color },
+                              ]}
+                            />
+                            <Text
+                              style={[
+                                styles.statusOptionText,
+                                isSelected && styles.statusOptionTextSelected,
+                              ]}
+                            >
+                              {label}
+                            </Text>
+                            {isSelected && (
+                              <Ionicons
+                                name="checkmark-circle"
+                                size={22}
+                                color="#2d5a4a"
+                                style={styles.statusOptionCheck}
+                              />
+                            )}
+                          </Pressable>
+                        );
+                      },
+                    )}
+                  </View>
+                </View>
+              </Pressable>
+            </Modal>
+            <Pressable
+              style={styles.manageBtn}
+              onPress={() => router.push("/statuses")}
+            >
+              <Ionicons name="settings-outline" size={16} color="#5a7a6a" />
+              <Text style={styles.manageBtnText}>Керувати статусами</Text>
+            </Pressable>
           </View>
 
           {record && record.changes.length === 0 ? (
@@ -280,11 +305,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e0e8e4",
   },
-  statusSectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
   statusTitle: {
     fontSize: 15,
     fontWeight: "700",
@@ -322,35 +342,78 @@ const styles = StyleSheet.create({
     color: "#1a3d32",
     fontWeight: "500",
   },
-  dropdownList: {
-    marginTop: 6,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#d0d8d4",
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  dropdownItem: {
-    flexDirection: "row",
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    width: "100%",
+    maxWidth: 340,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#e8ece8",
   },
-  dropdownItemActive: {
-    backgroundColor: "#e8f5ee",
-  },
-  dropdownItemPressed: {
-    backgroundColor: "#f0f5f2",
-  },
-  dropdownItemText: {
-    fontSize: 15,
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
     color: "#1a3d32",
   },
-  dropdownItemTextActive: {
+  modalDone: {
+    fontSize: 16,
     fontWeight: "600",
+    color: "#2d5a4a",
+  },
+  statusList: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  statusOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    gap: 12,
+  },
+  statusOptionSelected: {
+    backgroundColor: "#e8f5ee",
+  },
+  statusOptionPressed: {
+    backgroundColor: "#f0f5f2",
+  },
+  statusOptionDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  statusOptionText: {
+    flex: 1,
+    fontSize: 16,
+    color: "#3d5a4a",
+  },
+  statusOptionTextSelected: {
+    fontWeight: "600",
+    color: "#1a3d32",
+  },
+  statusOptionCheck: {
+    marginLeft: "auto",
   },
   manageBtn: {
     flexDirection: "row",
@@ -358,8 +421,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#d0d8d4",
+    marginTop: 8,
   },
   manageBtnText: {
     fontSize: 14,
