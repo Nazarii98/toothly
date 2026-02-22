@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Modal,
   TextInput,
   Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlassModal } from "../src/components/GlassModal";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   loadData,
@@ -134,65 +134,66 @@ export default function GlobalProceduresScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Нова процедура</Text>
-            <Text style={styles.label}>Тип</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.typeRow}
+      <GlassModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        position="bottom"
+        animationType="slide"
+      >
+        <Text style={styles.modalTitle}>Нова процедура</Text>
+        <Text style={styles.label}>Тип</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.typeRow}
+        >
+          {TYPE_OPTIONS.map(([value, label]) => (
+            <Pressable
+              key={value}
+              onPress={() => setFormType(value as GlobalProcedure["type"])}
+              style={[
+                styles.typeChip,
+                formType === value && styles.typeChipActive,
+              ]}
             >
-              {TYPE_OPTIONS.map(([value, label]) => (
-                <Pressable
-                  key={value}
-                  onPress={() => setFormType(value as GlobalProcedure["type"])}
-                  style={[
-                    styles.typeChip,
-                    formType === value && styles.typeChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.typeChipText,
-                      formType === value && styles.typeChipTextActive,
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-            <TextInput
-              style={styles.input}
-              placeholder="Назва (опційно)"
-              value={formTitle}
-              onChangeText={setFormTitle}
-              placeholderTextColor="#888"
-            />
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Нотатки"
-              value={formNotes}
-              onChangeText={setFormNotes}
-              multiline
-              placeholderTextColor="#888"
-            />
-            <View style={styles.modalActions}>
-              <Pressable
-                onPress={() => setModalVisible(false)}
-                style={styles.cancelBtn}
+              <Text
+                style={[
+                  styles.typeChipText,
+                  formType === value && styles.typeChipTextActive,
+                ]}
               >
-                <Text style={styles.cancelBtnText}>Скасувати</Text>
-              </Pressable>
-              <Pressable onPress={save} style={styles.saveBtn}>
-                <Text style={styles.saveBtnText}>Зберегти</Text>
-              </Pressable>
-            </View>
-          </View>
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <TextInput
+          style={styles.input}
+          placeholder="Назва (опційно)"
+          value={formTitle}
+          onChangeText={setFormTitle}
+          placeholderTextColor="#888"
+        />
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          placeholder="Нотатки"
+          value={formNotes}
+          onChangeText={setFormNotes}
+          multiline
+          placeholderTextColor="#888"
+        />
+        <View style={styles.modalActions}>
+          <Pressable
+            onPress={() => setModalVisible(false)}
+            style={styles.cancelBtn}
+          >
+            <Text style={styles.cancelBtnText}>Скасувати</Text>
+          </Pressable>
+          <Pressable onPress={save} style={styles.saveBtn}>
+            <Text style={styles.saveBtnText}>Зберегти</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </GlassModal>
     </View>
   );
 }
@@ -249,18 +250,6 @@ const styles = StyleSheet.create({
   cardNotes: { fontSize: 14, color: "#3d5a4a", marginTop: 8 },
   deleteBtn: { marginTop: 12 },
   deleteBtnText: { fontSize: 14, color: "#a04040", fontWeight: "600" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modal: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 40,
-  },
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",

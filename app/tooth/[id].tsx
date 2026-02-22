@@ -7,9 +7,9 @@ import {
   Alert,
   ScrollView,
   Image,
-  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlassModal } from "../../src/components/GlassModal";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -144,98 +144,75 @@ export default function ToothDetailScreen() {
               <Text style={styles.statusTriggerText}>{currentStatusLabel}</Text>
               <Ionicons name="chevron-forward" size={18} color="#8a9a90" />
             </Pressable>
-            <Modal
+            <GlassModal
               visible={pickerVisible}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setPickerVisible(false)}
+              onClose={() => setPickerVisible(false)}
             >
-              <Pressable
-                style={styles.modalBackdrop}
-                onPress={() => setPickerVisible(false)}
-              >
-                <View
-                  style={styles.modalCard}
-                  onStartShouldSetResponder={() => true}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Оберіть статус</Text>
+                <Pressable onPress={() => setPickerVisible(false)} hitSlop={12}>
+                  <Text style={styles.modalDone}>Готово</Text>
+                </Pressable>
+              </View>
+              <View style={styles.statusList}>
+                {[["", "Не встановлено"], ...statusMaps.options].map(
+                  ([value, label]) => {
+                    const isSelected = (currentStatus ?? "") === value;
+                    const color =
+                      value === ""
+                        ? "#999"
+                        : (statusMaps.borderColors[value] ?? "#999");
+                    return (
+                      <Pressable
+                        key={value || "empty"}
+                        style={({ pressed }) => [
+                          styles.statusOption,
+                          isSelected && styles.statusOptionSelected,
+                          pressed && styles.statusOptionPressed,
+                        ]}
+                        onPress={() => handleStatusChange(value as ToothStatus)}
+                      >
+                        <View
+                          style={[
+                            styles.statusOptionDot,
+                            { backgroundColor: color },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.statusOptionText,
+                            isSelected && styles.statusOptionTextSelected,
+                          ]}
+                        >
+                          {label}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={22}
+                            color="#2d5a4a"
+                            style={styles.statusOptionCheck}
+                          />
+                        )}
+                      </Pressable>
+                    );
+                  },
+                )}
+              </View>
+              <View style={styles.statusSectionFooter}>
+                <Pressable
+                  style={styles.manageBtn}
+                  hitSlop={12}
+                  onPress={() => {
+                    router.push("/statuses");
+                    setPickerVisible(false);
+                  }}
                 >
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Оберіть статус</Text>
-                    <Pressable
-                      onPress={() => setPickerVisible(false)}
-                      hitSlop={12}
-                    >
-                      <Text style={styles.modalDone}>Готово</Text>
-                    </Pressable>
-                  </View>
-                  <View style={styles.statusList}>
-                    {[["", "Не встановлено"], ...statusMaps.options].map(
-                      ([value, label]) => {
-                        const isSelected = (currentStatus ?? "") === value;
-                        const color =
-                          value === ""
-                            ? "#999"
-                            : (statusMaps.borderColors[value] ?? "#999");
-                        return (
-                          <Pressable
-                            key={value || "empty"}
-                            style={({ pressed }) => [
-                              styles.statusOption,
-                              isSelected && styles.statusOptionSelected,
-                              pressed && styles.statusOptionPressed,
-                            ]}
-                            onPress={() =>
-                              handleStatusChange(value as ToothStatus)
-                            }
-                          >
-                            <View
-                              style={[
-                                styles.statusOptionDot,
-                                { backgroundColor: color },
-                              ]}
-                            />
-                            <Text
-                              style={[
-                                styles.statusOptionText,
-                                isSelected && styles.statusOptionTextSelected,
-                              ]}
-                            >
-                              {label}
-                            </Text>
-                            {isSelected && (
-                              <Ionicons
-                                name="checkmark-circle"
-                                size={22}
-                                color="#2d5a4a"
-                                style={styles.statusOptionCheck}
-                              />
-                            )}
-                          </Pressable>
-                        );
-                      },
-                    )}
-                  </View>
-                  <View style={styles.statusSectionFooter}>
-                    <Pressable
-                      style={styles.manageBtn}
-                      hitSlop={12}
-                      onPress={() => {
-                        router.push("/statuses");
-                        setPickerVisible(false);
-                      }}
-                    >
-                      <Ionicons
-                        name="settings-outline"
-                        size={16}
-                        color="#5a7a6a"
-                      />
-                      <Text style={styles.manageBtnText}>
-                        Керувати статусами
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </Pressable>
-            </Modal>
+                  <Ionicons name="settings-outline" size={16} color="#5a7a6a" />
+                  <Text style={styles.manageBtnText}>Керувати статусами</Text>
+                </Pressable>
+              </View>
+            </GlassModal>
           </View>
 
           <View style={styles.historySection}>
@@ -380,18 +357,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.3)",
     padding: 24,
   },
   modalCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(255,255,255,0.65)",
     borderRadius: 20,
     width: "100%",
     maxWidth: 360,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 12,
   },

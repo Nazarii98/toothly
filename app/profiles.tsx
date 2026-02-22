@@ -7,12 +7,12 @@ import {
   Pressable,
   Alert,
   TextInput,
-  Modal,
   Share,
   ActivityIndicator,
 } from "react-native";
 import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { GlassModal } from "../src/components/GlassModal";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
@@ -434,120 +434,110 @@ export default function ProfilesScreen() {
         </View>
       </ScrollView>
 
-      <Modal
+      <GlassModal
         visible={exportModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setExportModalVisible(false)}
+        onClose={() => setExportModalVisible(false)}
+        cardStyle={styles.modalCardPadded}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Експорт профілю</Text>
-            <Text style={styles.modalHint}>
-              Введіть пароль, щоб зашифрувати дані. Або залиште порожнім для
-              експорту без шифрування.
-            </Text>
+        <Text style={styles.modalTitle}>Експорт профілю</Text>
+        <Text style={styles.modalHint}>
+          Введіть пароль, щоб зашифрувати дані. Або залиште порожнім для
+          експорту без шифрування.
+        </Text>
+        <TextInput
+          style={styles.passwordInput}
+          value={exportPassword}
+          onChangeText={setExportPassword}
+          placeholder="Пароль (необов'язково)"
+          placeholderTextColor="#8a9a90"
+          secureTextEntry
+          autoCapitalize="none"
+        />
+        <View style={styles.modalActions}>
+          <Pressable
+            style={styles.modalBtnSecondary}
+            onPress={() => {
+              setExportModalVisible(false);
+              setExportPassword("");
+            }}
+          >
+            <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
+          </Pressable>
+          <Pressable
+            style={styles.modalBtnPrimary}
+            onPress={handleExport}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.modalBtnPrimaryText}>Експортувати</Text>
+            )}
+          </Pressable>
+        </View>
+      </GlassModal>
+
+      <GlassModal
+        visible={importVisible}
+        onClose={() => setImportVisible(false)}
+        cardStyle={styles.modalCardPadded}
+      >
+        <Text style={styles.modalTitle}>Імпорт профілю</Text>
+        <Text style={styles.modalHint}>
+          Вставте JSON з експорту або оберіть файл
+        </Text>
+        <Pressable style={styles.importFileBtn} onPress={handlePickFile}>
+          <Ionicons name="document-outline" size={20} color="#2d5a4a" />
+          <Text style={styles.importFileBtnText}>Обрати JSON-файл</Text>
+        </Pressable>
+        <TextInput
+          style={styles.importInput}
+          value={importJson}
+          onChangeText={(text) => {
+            setImportJson(text);
+            setImportPassword("");
+          }}
+          placeholder='{"version":1,"profileName":"...","data":{...}}'
+          placeholderTextColor="#8a9a90"
+          multiline
+          numberOfLines={8}
+        />
+        {importJson.trim().length > 0 &&
+          isEncryptedPayload(importJson.trim()) && (
             <TextInput
               style={styles.passwordInput}
-              value={exportPassword}
-              onChangeText={setExportPassword}
-              placeholder="Пароль (необов'язково)"
+              value={importPassword}
+              onChangeText={setImportPassword}
+              placeholder="Пароль для розшифровки"
               placeholderTextColor="#8a9a90"
               secureTextEntry
               autoCapitalize="none"
             />
-            <View style={styles.modalActions}>
-              <Pressable
-                style={styles.modalBtnSecondary}
-                onPress={() => {
-                  setExportModalVisible(false);
-                  setExportPassword("");
-                }}
-              >
-                <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
-              </Pressable>
-              <Pressable
-                style={styles.modalBtnPrimary}
-                onPress={handleExport}
-                disabled={exporting}
-              >
-                {exporting ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.modalBtnPrimaryText}>Експортувати</Text>
-                )}
-              </Pressable>
-            </View>
-          </View>
+          )}
+        <View style={styles.modalActions}>
+          <Pressable
+            style={styles.modalBtnSecondary}
+            onPress={() => {
+              setImportVisible(false);
+              setImportJson("");
+              setImportPassword("");
+            }}
+          >
+            <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
+          </Pressable>
+          <Pressable
+            style={styles.modalBtnPrimary}
+            onPress={handleImportApply}
+            disabled={importing || !importJson.trim()}
+          >
+            {importing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.modalBtnPrimaryText}>Імпортувати</Text>
+            )}
+          </Pressable>
         </View>
-      </Modal>
-
-      <Modal
-        visible={importVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setImportVisible(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Імпорт профілю</Text>
-            <Text style={styles.modalHint}>
-              Вставте JSON з експорту або оберіть файл
-            </Text>
-            <Pressable style={styles.importFileBtn} onPress={handlePickFile}>
-              <Ionicons name="document-outline" size={20} color="#2d5a4a" />
-              <Text style={styles.importFileBtnText}>Обрати JSON-файл</Text>
-            </Pressable>
-            <TextInput
-              style={styles.importInput}
-              value={importJson}
-              onChangeText={(text) => {
-                setImportJson(text);
-                setImportPassword("");
-              }}
-              placeholder='{"version":1,"profileName":"...","data":{...}}'
-              placeholderTextColor="#8a9a90"
-              multiline
-              numberOfLines={8}
-            />
-            {importJson.trim().length > 0 &&
-              isEncryptedPayload(importJson.trim()) && (
-                <TextInput
-                  style={styles.passwordInput}
-                  value={importPassword}
-                  onChangeText={setImportPassword}
-                  placeholder="Пароль для розшифровки"
-                  placeholderTextColor="#8a9a90"
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
-              )}
-            <View style={styles.modalActions}>
-              <Pressable
-                style={styles.modalBtnSecondary}
-                onPress={() => {
-                  setImportVisible(false);
-                  setImportJson("");
-                  setImportPassword("");
-                }}
-              >
-                <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
-              </Pressable>
-              <Pressable
-                style={styles.modalBtnPrimary}
-                onPress={handleImportApply}
-                disabled={importing || !importJson.trim()}
-              >
-                {importing ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.modalBtnPrimaryText}>Імпортувати</Text>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      </GlassModal>
     </>
   );
 }
@@ -690,15 +680,7 @@ const styles = StyleSheet.create({
     color: "#8a9a90",
     marginTop: 2,
   },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 24,
-  },
-  modalCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
+  modalCardPadded: {
     padding: 20,
     maxHeight: "80%",
   },

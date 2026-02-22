@@ -1,11 +1,13 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Modal } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { GlassModal } from "../../src/components/GlassModal";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { DentalChart } from "../../src/components/DentalChart";
 import { loadData, setToothStatus } from "../../src/store/teethStore";
+import { getProfiles, getCurrentProfileId } from "../../src/store/profileStore";
 import { buildStatusMaps, TOOTH_NAMES } from "../../src/types";
 import type { ToothId, ToothStatus, StatusMaps } from "../../src/types";
 
@@ -18,15 +20,22 @@ export default function ChartScreen() {
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
   const [showStatuses, setShowStatuses] = useState(true);
   const [popupTooth, setPopupTooth] = useState<ToothId | null>(null);
+  const [profileName, setProfileName] = useState("");
 
   const refresh = useCallback(async () => {
-    const data = await loadData();
+    const [data, profiles, currentId] = await Promise.all([
+      loadData(),
+      getProfiles(),
+      getCurrentProfileId(),
+    ]);
     const map: Record<ToothId, ToothStatus | undefined> = {};
     Object.values(data.teeth).forEach((r) => {
       if (r.currentStatus) map[r.toothId] = r.currentStatus;
     });
     setTeethStatuses(map);
     setStatusMaps(buildStatusMaps(data.customStatuses));
+    const current = profiles.find((p) => p.id === currentId);
+    setProfileName(current?.name ?? "");
   }, []);
 
   useFocusEffect(
@@ -56,6 +65,19 @@ export default function ChartScreen() {
 
   return (
     <View style={styles.container}>
+      {profileName ? (
+        <Pressable
+          style={[styles.profileBadge, { top: insets.top + 10 }]}
+          onPress={() => router.push("/profiles")}
+          hitSlop={6}
+        >
+          <Ionicons name="person-circle-outline" size={18} color="#2d5a4a" />
+          <Text style={styles.profileBadgeText} numberOfLines={1}>
+            {profileName}
+          </Text>
+        </Pressable>
+      ) : null}
+
       <Pressable
         onPress={() => setShowStatuses((v) => !v)}
         style={[styles.eyeBtn, { top: insets.top + 8 }]}
@@ -98,17 +120,10 @@ export default function ChartScreen() {
           : null}
       </View>
 
-      <Modal
+      <GlassModal
         visible={popupTooth !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPopupTooth(null)}
+        onClose={() => setPopupTooth(null)}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setPopupTooth(null)}
-        >
-          <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 Зуб {popupTooth} —{" "}
@@ -164,9 +179,7 @@ export default function ChartScreen() {
                 );
               })}
             </View>
-          </View>
-        </Pressable>
-      </Modal>
+      </GlassModal>
     </View>
   );
 }
@@ -174,6 +187,29 @@ export default function ChartScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", justifyContent: "center" },
   chartArea: { alignItems: "center" },
+  profileBadge: {
+    position: "absolute",
+    left: 16,
+    zIndex: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+    maxWidth: 180,
+  },
+  profileBadgeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1a3d32",
+  },
   eyeBtn: {
     position: "absolute",
     right: 16,
@@ -211,25 +247,6 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: "#444",
-  },
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 24,
-  },
-  modalCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    width: "100%",
-    maxWidth: 360,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 12,
   },
   modalHeader: {
     flexDirection: "row",
