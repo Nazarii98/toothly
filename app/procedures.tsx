@@ -85,7 +85,13 @@ export default function GlobalProceduresScreen() {
 
   return (
     <View style={styles.safe}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingTop: insets.top + 56, paddingBottom: insets.bottom + 20 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{
+          paddingTop: insets.top + 56,
+          paddingBottom: insets.bottom + 20,
+        }}
+      >
         <Text style={styles.title}>Глобальні процедури</Text>
         <Text style={styles.hint}>
           Наприклад: чистка, відбілювання, огляд усієї порожнини рота.

@@ -18,7 +18,14 @@ export interface ToothChange {
     | "other";
 }
 
-export type BuiltinStatus = 'healthy' | 'treatment' | 'cavity' | 'filled' | 'extracted' | 'crown' | 'other';
+export type BuiltinStatus =
+  | "healthy"
+  | "treatment"
+  | "cavity"
+  | "filled"
+  | "extracted"
+  | "crown"
+  | "other";
 export type ToothStatus = string;
 
 export interface ToothRecord {
@@ -49,7 +56,7 @@ export interface AppData {
 }
 
 export function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace('#', '');
+  const h = hex.replace("#", "");
   const r = parseInt(h.substring(0, 2), 16);
   const g = parseInt(h.substring(2, 4), 16);
   const b = parseInt(h.substring(4, 6), 16);
@@ -63,7 +70,9 @@ export interface StatusMaps {
   options: [string, string][];
 }
 
-export function buildStatusMaps(customStatuses: CustomStatus[] = []): StatusMaps {
+export function buildStatusMaps(
+  customStatuses: CustomStatus[] = [],
+): StatusMaps {
   const labels = { ...STATUS_LABELS };
   const colors = { ...STATUS_COLORS };
   const borderColors = { ...STATUS_BORDER_COLORS };
@@ -109,23 +118,23 @@ export const STATUS_LABELS: Record<string, string> = {
 };
 
 export const STATUS_COLORS: Record<string, string> = {
-  healthy: 'rgba(76, 175, 80, 0.4)',
-  treatment: 'rgba(255, 152, 0, 0.45)',
-  cavity: 'rgba(244, 67, 54, 0.4)',
-  filled: 'rgba(33, 150, 243, 0.4)',
-  extracted: 'rgba(117, 117, 117, 0.5)',
-  crown: 'rgba(156, 39, 176, 0.4)',
-  other: 'rgba(158, 158, 158, 0.3)',
+  healthy: "rgba(76, 175, 80, 0.4)",
+  treatment: "rgba(255, 152, 0, 0.45)",
+  cavity: "rgba(244, 67, 54, 0.4)",
+  filled: "rgba(33, 150, 243, 0.4)",
+  extracted: "rgba(117, 117, 117, 0.5)",
+  crown: "rgba(156, 39, 176, 0.4)",
+  other: "rgba(158, 158, 158, 0.3)",
 };
 
 export const STATUS_BORDER_COLORS: Record<string, string> = {
-  healthy: '#4CAF50',
-  treatment: '#FF9800',
-  cavity: '#F44336',
-  filled: '#2196F3',
-  extracted: '#757575',
-  crown: '#9C27B0',
-  other: '#9E9E9E',
+  healthy: "#4CAF50",
+  treatment: "#FF9800",
+  cavity: "#F44336",
+  filled: "#2196F3",
+  extracted: "#757575",
+  crown: "#9C27B0",
+  other: "#9E9E9E",
 };
 
 export const GLOBAL_PROCEDURE_TYPES: Record<string, string> = {
