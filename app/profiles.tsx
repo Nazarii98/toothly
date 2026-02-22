@@ -281,121 +281,164 @@ export default function ProfilesScreen() {
           Оберіть людину, чиї записи ви переглядаєте. Можна експортувати та
           імпортувати профіль разом з усіма даними.
         </Text>
-        <View style={styles.card}>
-          {profiles.map((p) => (
-            <View key={p.id} style={styles.profileRow}>
-              {editingId === p.id ? (
-                <View style={styles.editRow}>
-                  <TextInput
-                    style={styles.editInput}
-                    value={editName}
-                    onChangeText={setEditName}
-                    placeholder="Ім'я профілю"
-                    placeholderTextColor="#8a9a90"
-                    autoFocus
-                  />
-                  <Pressable onPress={handleSaveEdit} style={styles.editBtn}>
-                    <Ionicons name="checkmark" size={22} color="#2d5a4a" />
-                  </Pressable>
+        <View style={styles.profileList}>
+          {profiles.map((p) => {
+            const isActive = currentId === p.id;
+            const initial = (p.name[0] ?? "?").toUpperCase();
+
+            if (editingId === p.id) {
+              return (
+                <View key={p.id} style={styles.profileCard}>
+                  <View style={styles.editRow}>
+                    <TextInput
+                      style={styles.editInput}
+                      value={editName}
+                      onChangeText={setEditName}
+                      placeholder="Ім'я профілю"
+                      placeholderTextColor="#8a9a90"
+                      autoFocus
+                    />
+                    <Pressable
+                      onPress={handleSaveEdit}
+                      style={styles.editConfirm}
+                    >
+                      <Ionicons name="checkmark" size={20} color="#fff" />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setEditingId(null);
+                        setEditName("");
+                      }}
+                      style={styles.editCancel}
+                    >
+                      <Ionicons name="close" size={20} color="#6a7a70" />
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
+            return (
+              <Pressable
+                key={p.id}
+                style={[
+                  styles.profileCard,
+                  isActive && styles.profileCardActive,
+                ]}
+                onPress={() => handleSelectProfile(p.id)}
+              >
+                <View
+                  style={[
+                    styles.avatar,
+                    isActive ? styles.avatarActive : styles.avatarInactive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.avatarText,
+                      isActive && styles.avatarTextActive,
+                    ]}
+                  >
+                    {initial}
+                  </Text>
+                </View>
+                <View style={styles.profileInfo}>
+                  <Text
+                    style={[
+                      styles.profileName,
+                      isActive && styles.profileNameActive,
+                    ]}
+                  >
+                    {p.name}
+                  </Text>
+                  {isActive && (
+                    <Text style={styles.activeLabel}>Активний профіль</Text>
+                  )}
+                </View>
+                {isActive && (
+                  <Ionicons name="checkmark-circle" size={24} color="#2d5a4a" />
+                )}
+                {!isActive && profiles.length > 1 && (
+                  <View style={styles.profileActions}>
+                    <Pressable
+                      onPress={() => {
+                        setEditingId(p.id);
+                        setEditName(p.name);
+                      }}
+                      style={styles.iconBtn}
+                      hitSlop={8}
+                    >
+                      <Ionicons
+                        name="pencil-outline"
+                        size={16}
+                        color="#8a9a90"
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleDeleteProfile(p)}
+                      style={styles.iconBtn}
+                      hitSlop={8}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={16}
+                        color="#c06060"
+                      />
+                    </Pressable>
+                  </View>
+                )}
+                {isActive && profiles.length > 1 && (
                   <Pressable
                     onPress={() => {
-                      setEditingId(null);
-                      setEditName("");
+                      setEditingId(p.id);
+                      setEditName(p.name);
                     }}
-                    style={styles.editBtn}
+                    style={[styles.iconBtn, { marginLeft: 4 }]}
+                    hitSlop={8}
                   >
-                    <Ionicons name="close" size={22} color="#6a7a70" />
+                    <Ionicons name="pencil-outline" size={16} color="#5a7a6a" />
                   </Pressable>
-                </View>
-              ) : (
-                <>
-                  <Pressable
-                    style={styles.profileMain}
-                    onPress={() => handleSelectProfile(p.id)}
-                  >
-                    <View style={styles.profileInfo}>
-                      {currentId === p.id && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={18}
-                          color="#2d5a4a"
-                        />
-                      )}
-                      <Text style={styles.profileName}>{p.name}</Text>
-                    </View>
-                  </Pressable>
-                  {profiles.length > 1 && (
-                    <View style={styles.profileActions}>
-                      <Pressable
-                        onPress={() => {
-                          setEditingId(p.id);
-                          setEditName(p.name);
-                        }}
-                        style={styles.iconBtn}
-                        hitSlop={8}
-                      >
-                        <Ionicons
-                          name="pencil-outline"
-                          size={18}
-                          color="#5a7a6a"
-                        />
-                      </Pressable>
-                      <Pressable
-                        onPress={() => handleDeleteProfile(p)}
-                        style={styles.iconBtn}
-                        hitSlop={8}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={18}
-                          color="#a04040"
-                        />
-                      </Pressable>
-                    </View>
-                  )}
-                </>
-              )}
-            </View>
-          ))}
-          {adding ? (
-            <View style={styles.addRow}>
-              <TextInput
-                style={styles.addInput}
-                value={newName}
-                onChangeText={setNewName}
-                placeholder="Ім'я профілю"
-                placeholderTextColor="#8a9a90"
-                autoFocus
-              />
-              <Pressable
-                onPress={handleAddProfile}
-                style={styles.addConfirmBtn}
-              >
-                <Text style={styles.addConfirmText}>Додати</Text>
+                )}
               </Pressable>
-              <Pressable
-                onPress={() => {
-                  setAdding(false);
-                  setNewName("");
-                }}
-                style={styles.addCancelBtn}
-              >
-                <Ionicons name="close" size={22} color="#6a7a70" />
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable
-              style={styles.addProfileBtn}
-              onPress={() => setAdding(true)}
-            >
-              <Ionicons name="add-circle-outline" size={22} color="#2d5a4a" />
-              <Text style={styles.addProfileBtnText}>Додати профівль</Text>
-            </Pressable>
-          )}
+            );
+          })}
         </View>
 
+        {adding ? (
+          <View style={styles.addRow}>
+            <TextInput
+              style={styles.addInput}
+              value={newName}
+              onChangeText={setNewName}
+              placeholder="Ім'я нового профілю"
+              placeholderTextColor="#8a9a90"
+              autoFocus
+            />
+            <Pressable onPress={handleAddProfile} style={styles.addConfirmBtn}>
+              <Text style={styles.addConfirmText}>Додати</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setAdding(false);
+                setNewName("");
+              }}
+              style={styles.editCancel}
+            >
+              <Ionicons name="close" size={20} color="#6a7a70" />
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={styles.addProfileBtn}
+            onPress={() => setAdding(true)}
+          >
+            <Ionicons name="add" size={20} color="#fff" />
+            <Text style={styles.addProfileBtnText}>Додати профіль</Text>
+          </Pressable>
+        )}
+
         <Text style={styles.sectionLabel}>Експорт та імпорт</Text>
-        <View style={styles.card}>
+        <View style={styles.actionCard}>
           <Pressable
             style={styles.actionRow}
             onPress={handleExportOpen}
@@ -559,50 +602,72 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 10,
   },
-  card: {
+  profileList: {
+    gap: 10,
+  },
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 20,
-    padding: 4,
+    padding: 14,
+    gap: 14,
     shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
-  profileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 52,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e8ece8",
+  profileCardActive: {
+    backgroundColor: "#eef5f1",
+    borderWidth: 1.5,
+    borderColor: "#2d5a4a",
   },
-  profileMain: {
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarActive: {
+    backgroundColor: "#2d5a4a",
+  },
+  avatarInactive: {
+    backgroundColor: "#e0e8e4",
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#5a7a6a",
+  },
+  avatarTextActive: {
+    color: "#fff",
+  },
+  profileInfo: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
-  profileInfo: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4 },
   profileName: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1a3d32",
   },
-  currentBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+  profileNameActive: {
+    fontWeight: "700",
+  },
+  activeLabel: {
+    fontSize: 12,
+    color: "#5a7a6a",
     marginTop: 2,
   },
-  currentBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2d5a4a",
+  profileActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
   },
-  profileActions: { flexDirection: "row", alignItems: "center", gap: 4 },
-  iconBtn: { padding: 6 },
+  iconBtn: {
+    padding: 8,
+  },
   editRow: {
     flex: 1,
     flexDirection: "row",
@@ -612,52 +677,83 @@ const styles = StyleSheet.create({
   editInput: {
     flex: 1,
     backgroundColor: "#f5f8f6",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     fontSize: 15,
     color: "#1a3d32",
   },
-  editBtn: { padding: 4 },
+  editConfirm: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#2d5a4a",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  editCancel: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#e8ece8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   addRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    marginTop: 10,
   },
   addInput: {
     flex: 1,
-    backgroundColor: "#f5f8f6",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     fontSize: 15,
     color: "#1a3d32",
+    shadowColor: "#1a3d32",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   addConfirmBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
     backgroundColor: "#2d5a4a",
-    borderRadius: 10,
+    borderRadius: 14,
   },
   addConfirmText: {
     fontSize: 14,
     fontWeight: "600",
     color: "#fff",
   },
-  addCancelBtn: { padding: 4 },
   addProfileBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     paddingVertical: 14,
+    marginTop: 10,
+    backgroundColor: "#2d5a4a",
+    borderRadius: 16,
   },
   addProfileBtnText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#2d5a4a",
+    color: "#fff",
+  },
+  actionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 4,
+    shadowColor: "#1a3d32",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   actionRow: {
     flexDirection: "row",
