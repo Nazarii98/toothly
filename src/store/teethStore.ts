@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ensureCurrentProfileId } from "./profileStore";
 import type {
   AppData,
   ToothId,
@@ -10,7 +11,11 @@ import type {
 } from "../types";
 import { ALL_TOOTH_IDS } from "../types";
 
-const STORAGE_KEY = "@teeth_manager_data";
+const STORAGE_KEY_PREFIX = "@teeth_manager_data_";
+
+function storageKey(profileId: string): string {
+  return `${STORAGE_KEY_PREFIX}${profileId}`;
+}
 
 const defaultToothRecord = (toothId: ToothId): ToothRecord => ({
   toothId,
@@ -25,35 +30,42 @@ function getDefaultData(): AppData {
   return { teeth, globalProcedures: [], customStatuses: [] };
 }
 
-let cached: AppData | null = null;
+let cached: { profileId: string; data: AppData } | null = null;
+
+export function clearDataCache(): void {
+  cached = null;
+}
 
 export async function loadData(): Promise<AppData> {
-  if (cached) return cached;
+  const profileId = await ensureCurrentProfileId();
+  if (cached && cached.profileId === profileId) return cached.data;
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await AsyncStorage.getItem(storageKey(profileId));
     if (raw) {
       const parsed = JSON.parse(raw) as AppData;
-      // ensure all teeth exist
       const teeth = { ...getDefaultData().teeth, ...parsed.teeth };
       ALL_TOOTH_IDS.forEach((id) => {
         if (!teeth[id]) teeth[id] = defaultToothRecord(id);
         if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
       });
       cached = {
-        teeth,
-        globalProcedures: parsed.globalProcedures ?? [],
-        customStatuses: parsed.customStatuses ?? [],
+        profileId,
+        data: {
+          teeth,
+          globalProcedures: parsed.globalProcedures ?? [],
+          customStatuses: parsed.customStatuses ?? [],
+        },
       };
-      return cached!;
+      return cached.data;
     }
   } catch (_) {}
-  cached = getDefaultData();
-  return cached;
+  cached = { profileId, data: getDefaultData() };
+  return cached.data;
 }
 
 async function saveData(data: AppData): Promise<void> {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  cached = null;
+  if (!cached) return;
+  await AsyncStorage.setItem(storageKey(cached.profileId), JSON.stringify(data));
 }
 
 export function getToothRecord(data: AppData, toothId: ToothId): ToothRecord {
@@ -135,7 +147,7 @@ export async function setToothStatus(
 }
 
 export async function getCachedData(): Promise<AppData | null> {
-  if (cached) return cached;
+  if (cached) return cached.data;
   return loadData();
 }
 

@@ -27,6 +27,14 @@ export default function TabLayout() {
         />
         <Label>Історія</Label>
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="settings">
+        <Icon
+          sf={{ default: "gearshape", selected: "gearshape.fill" }}
+          androidSrc={<VectorIcon family={Ionicons} name="settings" />}
+        />
+        <Label>Налаштування</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
