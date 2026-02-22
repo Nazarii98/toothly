@@ -10,6 +10,7 @@ import {
   Image,
   Platform,
 } from "react-native";
+import { GlassModal } from "../src/components/GlassModal";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -140,117 +141,30 @@ export default function AddRecordModal() {
           keyboardOpeningTime={0}
         >
           {/* ── Target + Date card ── */}
-          <View style={styles.card}>
-            <View style={styles.cardRow}>
-              <View style={styles.cardRowIcon}>
-                <Ionicons
-                  name={locked ? "lock-closed" : "medical-outline"}
-                  size={18}
-                  color="#2d5a4a"
-                />
-              </View>
-              <View style={styles.cardRowBody}>
-                <Text style={styles.cardRowLabel}>Прив'язка</Text>
-                {locked ? (
-                  <Text style={styles.cardRowValue}>
-                    Зуб {toothShort(target as ToothId)}
-                  </Text>
-                ) : (
-                  <Pressable onPress={() => setPickerOpen((v) => !v)}>
-                    <View style={styles.inlineDropdown}>
-                      <Text style={styles.cardRowValue} numberOfLines={1}>
-                        {displayTarget}
-                      </Text>
-                      <Ionicons
-                        name={pickerOpen ? "chevron-up" : "chevron-down"}
-                        size={16}
-                        color="#8a9a90"
-                      />
-                    </View>
-                  </Pressable>
-                )}
-              </View>
+          <Pressable
+            style={[styles.card, styles.cardRow]}
+            onPress={locked ? undefined : () => setPickerOpen(true)}
+            disabled={locked}
+          >
+            <View style={styles.cardRowIcon}>
+              <Ionicons
+                name={locked ? "lock-closed" : "medical-outline"}
+                size={20}
+                color="#2d5a4a"
+              />
             </View>
-
-            {pickerOpen && (
-              <View style={styles.pickerSheet}>
-                <ScrollView nestedScrollEnabled style={styles.pickerScroll}>
-                  <Pressable
-                    style={[
-                      styles.pickerItem,
-                      target === GENERAL_KEY && styles.pickerItemActive,
-                    ]}
-                    onPress={() => {
-                      setTarget(GENERAL_KEY);
-                      setPickerOpen(false);
-                    }}
-                  >
-                    <Ionicons
-                      name="medical"
-                      size={15}
-                      color={target === GENERAL_KEY ? "#2d5a4a" : "#8a9a90"}
-                      style={{ marginRight: 10 }}
-                    />
-                    <Text
-                      style={[
-                        styles.pickerItemText,
-                        target === GENERAL_KEY && styles.pickerItemTextActive,
-                      ]}
-                    >
-                      Ротова порожнина (загальне)
-                    </Text>
-                    {target === GENERAL_KEY && (
-                      <Ionicons
-                        name="checkmark"
-                        size={15}
-                        color="#2d5a4a"
-                        style={{ marginLeft: "auto" }}
-                      />
-                    )}
-                  </Pressable>
-
-                  {QUADRANTS.map((q) => (
-                    <View key={q}>
-                      <Text style={styles.pickerGroup}>
-                        {QUADRANT_LABELS[q]}
-                      </Text>
-                      {ALL_TOOTH_IDS.filter((id) => id[0] === q).map((id) => (
-                        <Pressable
-                          key={id}
-                          style={[
-                            styles.pickerItem,
-                            target === id && styles.pickerItemActive,
-                          ]}
-                          onPress={() => {
-                            setTarget(id);
-                            setPickerOpen(false);
-                          }}
-                        >
-                          <Text style={styles.pickerToothNum}>{id}</Text>
-                          <Text
-                            style={[
-                              styles.pickerItemText,
-                              target === id && styles.pickerItemTextActive,
-                            ]}
-                          >
-                            {TOOTH_NAMES[id[1]] ?? ""}
-                          </Text>
-                          {target === id && (
-                            <Ionicons
-                              name="checkmark"
-                              size={15}
-                              color="#2d5a4a"
-                              style={{ marginLeft: "auto" }}
-                            />
-                          )}
-                        </Pressable>
-                      ))}
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
+            <View style={styles.cardRowBody}>
+              <Text style={styles.cardRowLabel}>Прив'язка</Text>
+              <Text style={styles.cardRowValue} numberOfLines={1}>
+                {locked
+                  ? `Зуб ${toothShort(target as ToothId)}`
+                  : displayTarget}
+              </Text>
+            </View>
+            {!locked && (
+              <Ionicons name="chevron-forward" size={22} color="#8a9a90" />
             )}
-          </View>
+          </Pressable>
 
           {/* ── Category card ── */}
           <View style={styles.card}>
@@ -438,6 +352,86 @@ export default function AddRecordModal() {
           </Pressable>
         </KeyboardAwareScrollView>
       </View>
+
+      <GlassModal visible={pickerOpen} onClose={() => setPickerOpen(false)}>
+        <View style={styles.pickerHeader}>
+          <Text style={styles.pickerTitle}>Прив'язка</Text>
+          <Pressable onPress={() => setPickerOpen(false)} hitSlop={12}>
+            <Text style={styles.pickerDone}>Готово</Text>
+          </Pressable>
+        </View>
+        <ScrollView style={styles.pickerScroll}>
+          <Pressable
+            style={[
+              styles.pickerItem,
+              target === GENERAL_KEY && styles.pickerItemActive,
+            ]}
+            onPress={() => {
+              setTarget(GENERAL_KEY);
+              setPickerOpen(false);
+            }}
+          >
+            <Ionicons
+              name="medical"
+              size={16}
+              color={target === GENERAL_KEY ? "#2d5a4a" : "#8a9a90"}
+            />
+            <Text
+              style={[
+                styles.pickerItemText,
+                target === GENERAL_KEY && styles.pickerItemTextActive,
+              ]}
+            >
+              Ротова порожнина (загальне)
+            </Text>
+            {target === GENERAL_KEY && (
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color="#2d5a4a"
+                style={{ marginLeft: "auto" }}
+              />
+            )}
+          </Pressable>
+
+          {QUADRANTS.map((q) => (
+            <View key={q}>
+              <Text style={styles.pickerGroup}>{QUADRANT_LABELS[q]}</Text>
+              {ALL_TOOTH_IDS.filter((id) => id[0] === q).map((id) => (
+                <Pressable
+                  key={id}
+                  style={[
+                    styles.pickerItem,
+                    target === id && styles.pickerItemActive,
+                  ]}
+                  onPress={() => {
+                    setTarget(id);
+                    setPickerOpen(false);
+                  }}
+                >
+                  <Text style={styles.pickerToothNum}>{id}</Text>
+                  <Text
+                    style={[
+                      styles.pickerItemText,
+                      target === id && styles.pickerItemTextActive,
+                    ]}
+                  >
+                    {TOOTH_NAMES[id[1]] ?? ""}
+                  </Text>
+                  {target === id && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#2d5a4a"
+                      style={{ marginLeft: "auto" }}
+                    />
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          ))}
+        </ScrollView>
+      </GlassModal>
     </>
   );
 }
@@ -466,7 +460,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     marginBottom: 12,
   },
-
   cardRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -494,48 +487,66 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1a3d32",
   },
-  inlineDropdown: {
+  pickerHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e8ece8",
   },
-
-  pickerSheet: {
-    marginTop: 10,
-    marginLeft: 48,
-    backgroundColor: "#fafcfb",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#e8eeea",
-    overflow: "hidden",
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a3d32",
   },
-  pickerScroll: { maxHeight: 260 },
+  pickerDone: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2d5a4a",
+  },
+  pickerScroll: {
+    maxHeight: 380,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
   pickerGroup: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     color: "#8a9a90",
     textTransform: "uppercase",
     letterSpacing: 0.4,
     paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 3,
+    paddingTop: 14,
+    paddingBottom: 4,
   },
   pickerItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 9,
+    paddingVertical: 12,
     paddingHorizontal: 12,
+    borderRadius: 14,
+    gap: 10,
   },
-  pickerItemActive: { backgroundColor: "#eaf3ed" },
+  pickerItemActive: {
+    backgroundColor: "#e8f5ee",
+  },
   pickerToothNum: {
-    width: 26,
-    fontSize: 12,
+    width: 28,
+    fontSize: 14,
     fontWeight: "700",
     color: "#2d5a4a",
-    marginRight: 6,
   },
-  pickerItemText: { fontSize: 13, color: "#3d5a4a" },
-  pickerItemTextActive: { fontWeight: "600", color: "#1a3d32" },
+  pickerItemText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#3d5a4a",
+  },
+  pickerItemTextActive: {
+    fontWeight: "600",
+    color: "#1a3d32",
+  },
 
   chipGrid: {
     flexDirection: "row",
