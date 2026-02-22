@@ -19,7 +19,7 @@ import {
   getToothRecord,
   setToothStatus,
 } from "../../src/store/teethStore";
-import { QUADRANT_LABELS, TOOTH_NAMES, buildStatusMaps } from "../../src/types";
+import { buildStatusMaps } from "../../src/types";
 import type {
   ToothId,
   ToothChange,
@@ -37,11 +37,6 @@ export default function ToothDetailScreen() {
   const [record, setRecord] = useState<ToothRecord | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
   const [pickerVisible, setPickerVisible] = useState(false);
-
-  const quadrant = toothId[0];
-  const toothNum = toothId[1];
-  const quadrantLabel = QUADRANT_LABELS[quadrant] ?? "";
-  const toothLabel = TOOTH_NAMES[toothNum] ?? `Зуб ${toothId}`;
 
   const refresh = useCallback(async () => {
     const data = await loadData();
@@ -110,6 +105,7 @@ export default function ToothDetailScreen() {
       <Stack.Screen
         options={{
           title: `Зуб ${toothId}`,
+          headerBackTitle: "Назад",
           headerRight: () => (
             <Pressable onPress={openAdd} hitSlop={8}>
               <Ionicons name="add" size={36} color="#2d5a4a" />
@@ -120,35 +116,30 @@ export default function ToothDetailScreen() {
       <View style={styles.safe}>
         <ScrollView
           style={styles.container}
-          contentContainerStyle={{
-            paddingTop: insets.top + 56,
-            paddingBottom: insets.bottom + 20,
-          }}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: insets.top + 60,
+              paddingBottom: insets.bottom + 24,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <Text style={styles.subtitle}>{quadrantLabel}</Text>
-            <Text style={styles.subtitle}>{toothLabel}</Text>
-          </View>
-
-          <View style={styles.statusSection}>
-            <View style={styles.statusSectionHeader}>
-              <Text style={styles.statusTitle}>Статус зуба</Text>
-              <Pressable
-                style={styles.dropdown}
-                onPress={() => setPickerVisible(true)}
-              >
-                <View style={styles.dropdownLeft}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: currentStatusColor },
-                    ]}
-                  />
-                  <Text style={styles.dropdownText}>{currentStatusLabel}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#666" />
-              </Pressable>
-            </View>
+          <View style={styles.statusCard}>
+            <Text style={styles.sectionLabel}>Поточний статус</Text>
+            <Pressable
+              style={styles.statusTrigger}
+              onPress={() => setPickerVisible(true)}
+            >
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: currentStatusColor },
+                ]}
+              />
+              <Text style={styles.statusTriggerText}>{currentStatusLabel}</Text>
+              <Ionicons name="chevron-forward" size={18} color="#8a9a90" />
+            </Pressable>
             <Modal
               visible={pickerVisible}
               transparent
@@ -243,63 +234,88 @@ export default function ToothDetailScreen() {
             </Modal>
           </View>
 
-          {record && record.changes.length === 0 ? (
-            <Text style={styles.empty}>
-              Історія змін порожня. Додайте перший запис.
-            </Text>
-          ) : (
-            <View style={styles.list}>
-              {record?.changes.map((c) => (
-                <View key={c.id} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>{c.title}</Text>
-                    <Text style={styles.cardDate}>{formatDate(c.date)}</Text>
-                  </View>
-                  {c.status && (
-                    <View style={styles.cardStatusRow}>
-                      <View
-                        style={[
-                          styles.dotSmall,
-                          {
-                            backgroundColor:
-                              statusMaps.borderColors[c.status] ?? "#999",
-                          },
-                        ]}
-                      />
-                      <Text style={styles.cardStatus}>
-                        {statusMaps.labels[c.status] ?? c.status}
+          <View style={styles.historySection}>
+            <Text style={styles.sectionLabel}>Історія змін</Text>
+            {record && record.changes.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={40}
+                  color="#b0c0b8"
+                />
+                <Text style={styles.emptyTitle}>Ще немає записів</Text>
+                <Text style={styles.emptyHint}>
+                  Додайте перший запис про лікування або огляд
+                </Text>
+                <Pressable style={styles.emptyCta} onPress={openAdd}>
+                  <Ionicons name="add" size={20} color="#fff" />
+                  <Text style={styles.emptyCtaText}>Додати запис</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.recordList}>
+                {record?.changes.map((c) => (
+                  <View key={c.id} style={styles.recordCard}>
+                    <View style={styles.recordCardTop}>
+                      <Text style={styles.recordTitle} numberOfLines={2}>
+                        {c.title}
+                      </Text>
+                      <Text style={styles.recordDate}>
+                        {formatDate(c.date)}
                       </Text>
                     </View>
-                  )}
-                  {c.notes ? (
-                    <Text style={styles.cardNotes}>{c.notes}</Text>
-                  ) : null}
-                  {c.imageUri && (
-                    <Image
-                      source={{ uri: c.imageUri }}
-                      style={styles.cardImage}
-                    />
-                  )}
-                  <View style={styles.cardActions}>
-                    <Pressable
-                      onPress={() => openEdit(c)}
-                      style={styles.cardBtn}
-                    >
-                      <Text style={styles.cardBtnText}>Редагувати</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => deleteChange(c)}
-                      style={styles.cardBtn}
-                    >
-                      <Text style={[styles.cardBtnText, styles.deleteBtnText]}>
-                        Видалити
+                    {c.status && (
+                      <View style={styles.recordBadge}>
+                        <View
+                          style={[
+                            styles.recordBadgeDot,
+                            {
+                              backgroundColor:
+                                statusMaps.borderColors[c.status] ?? "#999",
+                            },
+                          ]}
+                        />
+                        <Text style={styles.recordBadgeText}>
+                          {statusMaps.labels[c.status] ?? c.status}
+                        </Text>
+                      </View>
+                    )}
+                    {c.notes ? (
+                      <Text style={styles.recordNotes} numberOfLines={2}>
+                        {c.notes}
                       </Text>
-                    </Pressable>
+                    ) : null}
+                    {c.imageUri && (
+                      <Image
+                        source={{ uri: c.imageUri }}
+                        style={styles.recordImage}
+                      />
+                    )}
+                    <View style={styles.recordActions}>
+                      <Pressable
+                        onPress={() => openEdit(c)}
+                        style={styles.recordBtnEdit}
+                      >
+                        <Ionicons name="pencil" size={14} color="#2d5a4a" />
+                        <Text style={styles.recordBtnEditText}>Редагувати</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => deleteChange(c)}
+                        style={styles.recordBtnDelete}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={14}
+                          color="#a04040"
+                        />
+                        <Text style={styles.recordBtnDeleteText}>Видалити</Text>
+                      </Pressable>
+                    </View>
                   </View>
-                </View>
-              ))}
-            </View>
-          )}
+                ))}
+              </View>
+            )}
+          </View>
         </ScrollView>
       </View>
     </>
@@ -307,69 +323,47 @@ export default function ToothDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f0f5f2" },
+  safe: { flex: 1, backgroundColor: "#f2f6f4" },
   container: { flex: 1 },
-  header: {
-    padding: 20,
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e8e4",
-  },
-  toothId: { fontSize: 24, fontWeight: "700", color: "#1a3d32" },
-  subtitle: { fontSize: 14, color: "#5a7a6a", marginTop: 4 },
-  statusSection: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e8e4",
-  },
-  statusSectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  statusSectionFooter: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e8e4",
-  },
-  statusTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1a3d32",
-  },
-  dropdown: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  scrollContent: { paddingHorizontal: 20 },
+  statusCard: {
     backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#d0d8d4",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: "#1a3d32",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
   },
-  dropdownLeft: {
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#8a9a90",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  statusTrigger: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    backgroundColor: "#f5f8f6",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
   },
-  dot: {
+  statusDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
   },
-  dotSmall: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  dropdownText: {
+  statusTriggerText: {
+    flex: 1,
     fontSize: 16,
+    fontWeight: "600",
     color: "#1a3d32",
-    fontWeight: "500",
   },
   modalBackdrop: {
     flex: 1,
@@ -443,6 +437,12 @@ const styles = StyleSheet.create({
   statusOptionCheck: {
     marginLeft: "auto",
   },
+  statusSectionFooter: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#e8ece8",
+  },
   manageBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -454,54 +454,132 @@ const styles = StyleSheet.create({
     color: "#5a7a6a",
     fontWeight: "500",
   },
-  addBtn: {
-    margin: 16,
-    paddingVertical: 14,
-    backgroundColor: "#2d5a4a",
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  pressed: { opacity: 0.85 },
-  addBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  empty: {
-    textAlign: "center",
-    color: "#7a9a8a",
-    marginTop: 24,
-    paddingHorizontal: 24,
-  },
-  list: { padding: 16, paddingTop: 0 },
-  card: {
+  historySection: {},
+  emptyState: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#e0e8e4",
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    shadowColor: "#1a3d32",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
   },
-  cardHeader: {
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1a3d32",
+    marginTop: 12,
+  },
+  emptyHint: {
+    fontSize: 14,
+    color: "#7a9a8a",
+    marginTop: 4,
+    textAlign: "center",
+  },
+  emptyCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 20,
+    backgroundColor: "#2d5a4a",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+  },
+  emptyCtaText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  recordList: { gap: 12 },
+  recordCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 18,
+    shadowColor: "#1a3d32",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  recordCardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    gap: 12,
   },
-  cardTitle: { fontSize: 16, fontWeight: "600", color: "#1a3d32", flex: 1 },
-  cardDate: { fontSize: 12, color: "#7a9a8a" },
-  cardStatusRow: {
+  recordTitle: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1a3d32",
+    lineHeight: 22,
+  },
+  recordDate: {
+    fontSize: 12,
+    color: "#8a9a90",
+    fontWeight: "500",
+  },
+  recordBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginTop: 6,
+    marginTop: 8,
   },
-  cardStatus: { fontSize: 13, color: "#2d5a4a" },
-  cardNotes: { fontSize: 14, color: "#3d5a4a", marginTop: 8 },
-  cardImage: {
+  recordBadgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  recordBadgeText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#2d5a4a",
+  },
+  recordNotes: {
+    fontSize: 14,
+    color: "#5a6a5a",
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  recordImage: {
     width: "100%",
     height: 180,
-    borderRadius: 10,
-    marginTop: 10,
-    backgroundColor: "#e0e0e0",
+    borderRadius: 12,
+    marginTop: 12,
+    backgroundColor: "#e8ece8",
   },
-  cardActions: { flexDirection: "row", marginTop: 12, gap: 12 },
-  cardBtn: { paddingVertical: 6, paddingHorizontal: 12 },
-  cardBtnText: { fontSize: 14, color: "#2d5a4a", fontWeight: "600" },
-  deleteBtnText: { color: "#a04040" },
+  recordActions: {
+    flexDirection: "row",
+    marginTop: 12,
+    gap: 16,
+    alignItems: "center",
+  },
+  recordBtnEdit: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+  },
+  recordBtnEditText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#2d5a4a",
+  },
+  recordBtnDelete: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+  },
+  recordBtnDeleteText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#a04040",
+  },
 });

@@ -37,7 +37,10 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={headerOptions}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="tooth/[id]" />
+        <Stack.Screen
+          name="tooth/[id]"
+          options={{ headerBackTitle: "Назад" }}
+        />
         <Stack.Screen
           name="procedures"
           options={{ title: "Глобальні процедури" }}
