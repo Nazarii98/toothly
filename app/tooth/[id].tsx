@@ -123,7 +123,7 @@ export default function ToothDetailScreen() {
           contentContainerStyle={[
             styles.scrollContent,
             {
-              paddingTop: insets.top + 60,
+              paddingTop: insets.top + 68,
               paddingBottom: insets.bottom + 24,
             },
           ]}
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     width: "100%",
-    maxWidth: 340,
+    maxWidth: 360,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     color: "#2d5a4a",
   },
   statusList: {
-    paddingHorizontal: 12,
+    padding: 12,
   },
   statusOption: {
     flexDirection: "row",

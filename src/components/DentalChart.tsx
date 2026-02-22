@@ -57,6 +57,7 @@ const TOUCH_SIZE_PCT = 8;
 
 type Props = {
   onToothPress: (toothId: ToothId) => void;
+  onToothLongPress?: (toothId: ToothId) => void;
   teethStatuses?: Record<ToothId, ToothStatus | undefined>;
   statusColors?: Record<string, string>;
   statusBorderColors?: Record<string, string>;
@@ -64,6 +65,7 @@ type Props = {
 
 export function DentalChart({
   onToothPress,
+  onToothLongPress,
   teethStatuses,
   statusColors,
   statusBorderColors,
@@ -82,9 +84,6 @@ export function DentalChart({
         style={{ width: imgWidth, height: imgHeight }}
         resizeMode="contain"
       />
-      {/*
-       help text to display left and right sides of the chart
-      */}
       <Text style={[styles.helpText, { top: imgHeight * 0.48, right: 10 }]}>
         Ліва
       </Text>
@@ -104,6 +103,8 @@ export function DentalChart({
           <Pressable
             key={id}
             onPress={() => onToothPress(id)}
+            onLongPress={() => onToothLongPress?.(id)}
+            delayLongPress={150}
             style={({ pressed }) => [
               styles.touchArea,
               {
