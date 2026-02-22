@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { GlassModal } from "../../src/components/GlassModal";
+import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -120,64 +120,14 @@ export default function ChartScreen() {
           : null}
       </View>
 
-      <GlassModal
+      <StatusPickerModal
         visible={popupTooth !== null}
         onClose={() => setPopupTooth(null)}
-      >
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>
-            Зуб {popupTooth} —{" "}
-            {popupTooth ? (TOOTH_NAMES[popupTooth[1]] ?? "") : ""}
-          </Text>
-          <Pressable onPress={() => setPopupTooth(null)} hitSlop={12}>
-            <Text style={styles.modalDone}>Готово</Text>
-          </Pressable>
-        </View>
-        <View style={styles.statusList}>
-          {[
-            ["", "Не встановлено"] as [string, string],
-            ...statusMaps.options,
-          ].map(([value, label]) => {
-            const currentStatus = popupTooth
-              ? teethStatuses[popupTooth]
-              : undefined;
-            const isSelected = (currentStatus ?? "") === value;
-            const color =
-              value === ""
-                ? "#999"
-                : (statusMaps.borderColors[value] ?? "#999");
-            return (
-              <Pressable
-                key={value || "empty"}
-                style={({ pressed }) => [
-                  styles.statusOption,
-                  isSelected && styles.statusOptionSelected,
-                  pressed && styles.statusOptionPressed,
-                ]}
-                onPress={() => handleStatusSelect(value as ToothStatus)}
-              >
-                <View style={[styles.statusDot, { backgroundColor: color }]} />
-                <Text
-                  style={[
-                    styles.statusText,
-                    isSelected && styles.statusTextSelected,
-                  ]}
-                >
-                  {label}
-                </Text>
-                {isSelected && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={22}
-                    color="#2d5a4a"
-                    style={styles.statusCheck}
-                  />
-                )}
-              </Pressable>
-            );
-          })}
-        </View>
-      </GlassModal>
+        title={`Зуб ${popupTooth} — ${popupTooth ? (TOOTH_NAMES[popupTooth[1]] ?? "") : ""}`}
+        currentStatus={popupTooth ? teethStatuses[popupTooth] : undefined}
+        statusMaps={statusMaps}
+        onSelect={handleStatusSelect}
+      />
     </View>
   );
 }
@@ -245,58 +195,5 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: "#444",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e8ece8",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a3d32",
-  },
-  modalDone: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2d5a4a",
-  },
-  statusList: {
-    padding: 12,
-  },
-  statusOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    gap: 12,
-  },
-  statusOptionSelected: {
-    backgroundColor: "#e8f5ee",
-  },
-  statusOptionPressed: {
-    backgroundColor: "#f0f5f2",
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  statusText: {
-    flex: 1,
-    fontSize: 16,
-    color: "#3d5a4a",
-  },
-  statusTextSelected: {
-    fontWeight: "600",
-    color: "#1a3d32",
-  },
-  statusCheck: {
-    marginLeft: "auto",
   },
 });

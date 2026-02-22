@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { GlassModal } from "../../src/components/GlassModal";
+import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -144,75 +144,35 @@ export default function ToothDetailScreen() {
               <Text style={styles.statusTriggerText}>{currentStatusLabel}</Text>
               <Ionicons name="chevron-forward" size={18} color="#8a9a90" />
             </Pressable>
-            <GlassModal
+            <StatusPickerModal
               visible={pickerVisible}
               onClose={() => setPickerVisible(false)}
-            >
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Оберіть статус</Text>
-                <Pressable onPress={() => setPickerVisible(false)} hitSlop={12}>
-                  <Text style={styles.modalDone}>Готово</Text>
-                </Pressable>
-              </View>
-              <View style={styles.statusList}>
-                {[["", "Не встановлено"], ...statusMaps.options].map(
-                  ([value, label]) => {
-                    const isSelected = (currentStatus ?? "") === value;
-                    const color =
-                      value === ""
-                        ? "#999"
-                        : (statusMaps.borderColors[value] ?? "#999");
-                    return (
-                      <Pressable
-                        key={value || "empty"}
-                        style={({ pressed }) => [
-                          styles.statusOption,
-                          isSelected && styles.statusOptionSelected,
-                          pressed && styles.statusOptionPressed,
-                        ]}
-                        onPress={() => handleStatusChange(value as ToothStatus)}
-                      >
-                        <View
-                          style={[
-                            styles.statusOptionDot,
-                            { backgroundColor: color },
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.statusOptionText,
-                            isSelected && styles.statusOptionTextSelected,
-                          ]}
-                        >
-                          {label}
-                        </Text>
-                        {isSelected && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={22}
-                            color="#2d5a4a"
-                            style={styles.statusOptionCheck}
-                          />
-                        )}
-                      </Pressable>
-                    );
-                  },
-                )}
-              </View>
-              <View style={styles.statusSectionFooter}>
-                <Pressable
-                  style={styles.manageBtn}
-                  hitSlop={12}
-                  onPress={() => {
-                    router.push("/statuses");
-                    setPickerVisible(false);
-                  }}
-                >
-                  <Ionicons name="settings-outline" size={16} color="#5a7a6a" />
-                  <Text style={styles.manageBtnText}>Керувати статусами</Text>
-                </Pressable>
-              </View>
-            </GlassModal>
+              title="Оберіть статус"
+              currentStatus={currentStatus}
+              statusMaps={statusMaps}
+              onSelect={handleStatusChange}
+              footer={
+                <View style={styles.statusSectionFooter}>
+                  <Pressable
+                    style={styles.manageBtn}
+                    hitSlop={12}
+                    onPress={() => {
+                      router.push("/statuses");
+                      setPickerVisible(false);
+                    }}
+                  >
+                    <Ionicons
+                      name="settings-outline"
+                      size={16}
+                      color="#5a7a6a"
+                    />
+                    <Text style={styles.manageBtnText}>
+                      Керувати статусами
+                    </Text>
+                  </Pressable>
+                </View>
+              }
+            />
           </View>
 
           <View style={styles.historySection}>
@@ -371,59 +331,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 12,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e8ece8",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a3d32",
-  },
-  modalDone: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2d5a4a",
-  },
-  statusList: {
-    padding: 12,
-  },
-  statusOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    gap: 12,
-  },
-  statusOptionSelected: {
-    backgroundColor: "#e8f5ee",
-  },
-  statusOptionPressed: {
-    backgroundColor: "#f0f5f2",
-  },
-  statusOptionDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  statusOptionText: {
-    flex: 1,
-    fontSize: 16,
-    color: "#3d5a4a",
-  },
-  statusOptionTextSelected: {
-    fontWeight: "600",
-    color: "#1a3d32",
-  },
-  statusOptionCheck: {
-    marginLeft: "auto",
   },
   statusSectionFooter: {
     paddingVertical: 12,
