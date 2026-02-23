@@ -8,12 +8,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useAppTheme } from "../../src/theme";
 import { useDataSync } from "../../src/DataSyncProvider";
 import { loadData } from "../../src/store/teethStore";
-import {
-  QUADRANT_LABELS,
-  TOOTH_NAMES,
-  GLOBAL_PROCEDURE_TYPES,
-  buildStatusMaps,
-} from "../../src/types";
+import { buildStatusMaps } from "../../src/types";
 import type { ToothChange, GlobalProcedure, StatusMaps } from "../../src/types";
 
 type HistoryItem =
@@ -440,68 +435,77 @@ export default function HistoryScreen() {
       )}
 
       {/* Recent records */}
-      {viewMode !== "year" && <View style={styles.recentSection}>
-        <View style={styles.recentHeader}>
-          <Text
-            style={[styles.recentTitle, { color: colors.text }]}
-            numberOfLines={1}
-          >
-            Останні записи {periodLabel}
-          </Text>
-          <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
-            <Text style={[styles.showAll, { color: colors.accent }]}>
-              {periodItems.length > 3
-                ? `Усі ${periodItems.length}`
-                : "Показати все"}
-            </Text>
-          </Pressable>
-        </View>
-        {recentItems.length === 0 && (
-          <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>
-            Записів поки немає
-          </Text>
-        )}
-        {recentItems.map((item) => {
-          const isGlobal = item.type === "global";
-          const data = item.data;
-          const title = data.title;
-          const time = new Date(data.date).toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
-          const badge = isGlobal ? "GP" : (data as ToothChange).toothId;
-          const badgeBg = isGlobal ? colors.textSecondary : colors.accent;
-          const onPress = isGlobal
-            ? () => router.push("/global-detail")
-            : () => router.push(`/tooth/${(data as ToothChange).toothId}`);
-          return (
-            <Pressable
-              key={data.id}
-              style={[styles.recentRow, { backgroundColor: colors.card }]}
-              onPress={onPress}
+      {viewMode !== "year" && (
+        <View style={styles.recentSection}>
+          <View style={styles.recentHeader}>
+            <Text
+              style={[styles.recentTitle, { color: colors.text }]}
+              numberOfLines={1}
             >
-              <View style={[styles.recentBadge, { backgroundColor: badgeBg }]}>
-                <Text style={[styles.recentBadgeText, { color: colors.white }]}>
-                  {badge}
-                </Text>
-              </View>
-              <Text
-                style={[styles.recentRowTitle, { color: colors.text }]}
-                numberOfLines={1}
-              >
-                {title}
+              Останні записи {periodLabel}
+            </Text>
+            <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
+              <Text style={[styles.showAll, { color: colors.accent }]}>
+                {periodItems.length > 3
+                  ? `Усі ${periodItems.length}`
+                  : "Показати все"}
               </Text>
-              <Text
-                style={[styles.recentRowTime, { color: colors.textTertiary }]}
-              >
-                {time}
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.chevron}
-              />
             </Pressable>
-          );
-        })}
-      </View>}
+          </View>
+          {recentItems.length === 0 && (
+            <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>
+              Записів поки немає
+            </Text>
+          )}
+          {recentItems.map((item) => {
+            const isGlobal = item.type === "global";
+            const data = item.data;
+            const title = data.title;
+            const time = new Date(data.date).toLocaleDateString("uk-UA", {
+              day: "numeric",
+              month: "short",
+            });
+            const badge = isGlobal ? "GP" : (data as ToothChange).toothId;
+            const badgeBg = isGlobal ? colors.textSecondary : colors.accent;
+            const onPress = isGlobal
+              ? () => router.push("/global-detail")
+              : () => router.push(`/tooth/${(data as ToothChange).toothId}`);
+            return (
+              <Pressable
+                key={data.id}
+                style={[styles.recentRow, { backgroundColor: colors.card }]}
+                onPress={onPress}
+              >
+                <View
+                  style={[styles.recentBadge, { backgroundColor: badgeBg }]}
+                >
+                  <Text
+                    style={[styles.recentBadgeText, { color: colors.white }]}
+                  >
+                    {badge}
+                  </Text>
+                </View>
+                <Text
+                  style={[styles.recentRowTitle, { color: colors.text }]}
+                  numberOfLines={1}
+                >
+                  {title}
+                </Text>
+                <Text
+                  style={[styles.recentRowTime, { color: colors.textTertiary }]}
+                >
+                  {time}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.chevron}
+                />
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {/* FAB */}
       <Pressable

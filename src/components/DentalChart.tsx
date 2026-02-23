@@ -154,6 +154,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     fontWeight: "600",
     textAlign: "center",
-    transform: [{ translateX: -8 }, { translateY: -6 }],
   },
 });

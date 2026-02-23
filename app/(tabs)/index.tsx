@@ -1,17 +1,21 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDataSync } from "../../src/DataSyncProvider";
-import { Ionicons } from "@expo/vector-icons";
 import { DentalChart } from "../../src/components/DentalChart";
 import { loadData, setToothStatus } from "../../src/store/teethStore";
-import { getProfiles, getCurrentProfileId, getCurrentProfileRole } from "../../src/store/profileStore";
+import {
+  getProfiles,
+  getCurrentProfileId,
+  getCurrentProfileRole,
+} from "../../src/store/profileStore";
 import { buildStatusMaps, TOOTH_NAMES } from "../../src/types";
 import type { ToothId, ToothStatus, StatusMaps } from "../../src/types";
+import { Host, Button, HStack, Spacer } from "@expo/ui/swift-ui";
 
 export default function ChartScreen() {
   const { colors } = useAppTheme();
@@ -77,57 +81,35 @@ export default function ChartScreen() {
     ...new Set(Object.values(teethStatuses).filter(Boolean)),
   ] as ToothStatus[];
 
-  const profileBadgeBg = colors.glassCard;
-  const btnBorder = colors.isDark ? colors.border : "rgba(0,0,0,0.1)";
+  const scheme = colors.isDark ? "dark" : "light";
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {profileName ? (
-        <Pressable
-          style={[
-            styles.profileBadge,
-            {
-              top: insets.top + 10,
-              backgroundColor: profileBadgeBg,
-              borderColor: btnBorder,
-              borderWidth: 1,
-            },
-          ]}
-          onPress={() => router.push("/profiles")}
-          hitSlop={6}
-        >
-          <Ionicons
-            name="person-circle-outline"
-            size={18}
-            color={colors.accent}
-          />
-          <Text
-            style={[styles.profileBadgeText, { color: colors.text }]}
-            numberOfLines={1}
-          >
-            {profileName}
-          </Text>
-        </Pressable>
-      ) : null}
-
-      <Pressable
-        onPress={() => setShowStatuses((v) => !v)}
-        style={[
-          styles.eyeBtn,
-          {
-            top: insets.top + 8,
-            backgroundColor: profileBadgeBg,
-            borderColor: btnBorder,
-            borderWidth: 1,
-          },
-        ]}
-        hitSlop={8}
+      <Host
+        colorScheme={scheme}
+        style={[styles.topBar, { top: insets.top + 8 }]}
       >
-        <Ionicons
-          name={showStatuses ? "eye" : "eye-off"}
-          size={22}
-          color={showStatuses ? colors.accent : colors.textTertiary}
-        />
-      </Pressable>
+        <HStack alignment="center">
+          {profileName ? (
+            <Button
+              variant="glass"
+              systemImage="person.circle"
+              onPress={() => router.push("/profiles")}
+              color={colors.accent}
+              controlSize="large"
+            >
+              {profileName}
+            </Button>
+          ) : null}
+          <Spacer />
+          <Button
+            variant="glass"
+            systemImage={showStatuses ? "eye" : "eye.slash"}
+            onPress={() => setShowStatuses((v) => !v)}
+            color={showStatuses ? colors.accent : colors.textTertiary}
+            controlSize="large"
+          />
+        </HStack>
+      </Host>
 
       <View style={styles.chartArea}>
         <DentalChart
@@ -176,41 +158,12 @@ export default function ChartScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center" },
   chartArea: { alignItems: "center" },
-  profileBadge: {
+  topBar: {
     position: "absolute",
     left: 16,
-    zIndex: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-    maxWidth: 180,
-  },
-  profileBadgeText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  eyeBtn: {
-    position: "absolute",
     right: 16,
     zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    height: 36,
   },
   legend: {
     flexDirection: "row",

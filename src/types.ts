@@ -130,7 +130,7 @@ export const STATUS_COLORS: Record<string, string> = {
   treatment: "rgba(255, 152, 0, 0.45)",
   cavity: "rgba(244, 67, 54, 0.4)",
   filled: "rgba(33, 150, 243, 0.4)",
-  extracted: "rgba(255, 160, 155, 0.5)",
+  extracted: "rgba(28, 27, 27, 0.6)",
   crown: "rgba(156, 39, 176, 0.4)",
   other: "rgba(158, 158, 158, 0.3)",
 };
