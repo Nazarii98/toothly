@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStableHeaderHeight } from "../src/hooks/useStableHeaderHeight";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -48,6 +49,7 @@ const BUILTIN_STATUSES = Object.entries(STATUS_LABELS).map(([id, label]) => ({
 export default function ManageStatusesScreen() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const headerHeight = useStableHeaderHeight();
   const [customStatuses, setCustomStatuses] = useState<CustomStatus[]>([]);
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
@@ -97,7 +99,7 @@ export default function ManageStatusesScreen() {
         style={styles.container}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 68, paddingBottom: insets.bottom + 20 },
+          { paddingTop: headerHeight + 12, paddingBottom: insets.bottom + 20 },
         ]}
       >
         <Text style={[styles.sectionTitle, { color: colors.text }]}>

@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStableHeaderHeight } from "../src/hooks/useStableHeaderHeight";
 import { GlassModal } from "../src/components/GlassModal";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -25,6 +26,7 @@ const TYPE_OPTIONS = Object.entries(GLOBAL_PROCEDURE_TYPES);
 export default function GlobalProceduresScreen() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const headerHeight = useStableHeaderHeight();
   const [procedures, setProcedures] = useState<GlobalProcedure[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [formTitle, setFormTitle] = useState("");
@@ -90,7 +92,7 @@ export default function GlobalProceduresScreen() {
       <ScrollView
         style={[styles.container, { backgroundColor: colors.bg }]}
         contentContainerStyle={{
-          paddingTop: insets.top + 56,
+          paddingTop: headerHeight + 12,
           paddingBottom: insets.bottom + 20,
         }}
       >

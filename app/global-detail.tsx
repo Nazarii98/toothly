@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStableHeaderHeight } from "../src/hooks/useStableHeaderHeight";
 import { useAppTheme } from "../src/theme";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +15,7 @@ import type { GlobalProcedure } from "../src/types";
 export default function GlobalDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const headerHeight = useStableHeaderHeight();
   const { colors } = useAppTheme();
 
   const [procedures, setProcedures] = useState<GlobalProcedure[]>([]);
@@ -81,7 +83,7 @@ export default function GlobalDetailScreen() {
           contentContainerStyle={[
             styles.scrollContent,
             {
-              paddingTop: insets.top + 68,
+              paddingTop: headerHeight + 12,
               paddingBottom: insets.bottom + 24,
             },
           ]}
@@ -154,11 +156,16 @@ export default function GlobalDetailScreen() {
                 </Text>
                 {canEdit && (
                   <Pressable
-                    style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                    style={[
+                      styles.emptyCta,
+                      { backgroundColor: colors.accent },
+                    ]}
                     onPress={openAdd}
                   >
                     <Ionicons name="add" size={20} color={colors.white} />
-                    <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                    <Text
+                      style={[styles.emptyCtaText, { color: colors.white }]}
+                    >
                       Додати запис
                     </Text>
                   </Pressable>

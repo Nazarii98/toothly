@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable, Alert, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Alert,
+  TextInput,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -54,35 +61,51 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]} edges={["top"]}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: colors.bg }]}
+      edges={["top"]}
+    >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Налаштування
-        </Text>
-        <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Налаштування</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
           <Pressable
             style={styles.menuRow}
             onPress={() => router.push("/profiles")}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons name="person" size={22} color={colors.accent} />
             </View>
-            <Text style={[styles.menuLabel, { color: colors.text }]}>Профіль</Text>
+            <Text style={[styles.menuLabel, { color: colors.text }]}>
+              Профіль
+            </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
           <Pressable
             style={styles.menuRow}
             onPress={() => router.push("/statuses")}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons
                 name="color-palette-outline"
                 size={22}
                 color={colors.accent}
               />
             </View>
-            <Text style={[styles.menuLabel, { color: colors.text }]}>Статуси зубів</Text>
+            <Text style={[styles.menuLabel, { color: colors.text }]}>
+              Статуси зубів
+            </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
         </View>
@@ -90,20 +113,35 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
           Зовнішній вигляд
         </Text>
-        <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
           <Pressable
             style={styles.menuRow}
             onPress={() => setThemeModalOpen(true)}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons
-                name={preference === "dark" ? "moon" : preference === "light" ? "sunny" : "phone-portrait-outline"}
+                name={
+                  preference === "dark"
+                    ? "moon"
+                    : preference === "light"
+                      ? "sunny"
+                      : "phone-portrait-outline"
+                }
                 size={22}
                 color={colors.accent}
               />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.menuLabel, { color: colors.text }]}>Тема</Text>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>
+                Тема
+              </Text>
               <Text style={[styles.menuHint, { color: colors.textTertiary }]}>
                 {THEME_LABELS[preference]}
               </Text>
@@ -115,31 +153,68 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
           Акаунт
         </Text>
-        <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons name="mail" size={22} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.menuLabel, { color: colors.text }]}>Email</Text>
-              <Text style={[styles.menuHint, { color: colors.textTertiary }]} numberOfLines={1}>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>
+                Email
+              </Text>
+              <Text
+                style={[styles.menuHint, { color: colors.textTertiary }]}
+                numberOfLines={1}
+              >
                 {user?.email ?? "—"}
               </Text>
             </View>
           </View>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
           <Pressable style={styles.menuRow} onPress={handleSignOut}>
-            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
-              <Ionicons name="log-out-outline" size={22} color={colors.destructive} />
+            <View
+              style={[
+                styles.menuIcon,
+                { backgroundColor: "rgba(192,96,96,0.12)" },
+              ]}
+            >
+              <Ionicons
+                name="log-out-outline"
+                size={22}
+                color={colors.destructive}
+              />
             </View>
             <Text style={[styles.menuLabel, { color: colors.destructive }]}>
               Вийти з акаунту
             </Text>
           </Pressable>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
-          <Pressable style={styles.menuRow} onPress={() => setDeleteModalOpen(true)}>
-            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
-              <Ionicons name="trash-outline" size={22} color={colors.destructive} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => setDeleteModalOpen(true)}
+          >
+            <View
+              style={[
+                styles.menuIcon,
+                { backgroundColor: "rgba(192,96,96,0.12)" },
+              ]}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={colors.destructive}
+              />
             </View>
             <Text style={[styles.menuLabel, { color: colors.destructive }]}>
               Видалити акаунт
@@ -229,12 +304,17 @@ export default function SettingsScreen() {
         </View>
         <View style={styles.deleteModalContent}>
           <Text style={[styles.deleteWarning, { color: colors.textSecondary }]}>
-            Це видалить ваш акаунт та всі дані безповоротно. Введіть пароль для підтвердження.
+            Це видалить ваш акаунт та всі дані безповоротно. Введіть пароль для
+            підтвердження.
           </Text>
           <TextInput
             style={[
               styles.deleteInput,
-              { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border },
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
             ]}
             placeholder="Пароль"
             placeholderTextColor={colors.textTertiary}
@@ -246,7 +326,10 @@ export default function SettingsScreen() {
           <Pressable
             style={[
               styles.deleteBtn,
-              { backgroundColor: colors.destructive, opacity: deleteLoading ? 0.7 : 1 },
+              {
+                backgroundColor: colors.destructive,
+                opacity: deleteLoading ? 0.7 : 1,
+              },
             ]}
             onPress={handleDeleteAccount}
             disabled={deleteLoading}

@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
+  Animated,
   Text,
   StyleSheet,
   ScrollView,
@@ -11,12 +12,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Keyboard,
 } from "react-native";
 import { Stack, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassModal } from "../src/components/GlassModal";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStableHeaderHeight } from "../src/hooks/useStableHeaderHeight";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import {
@@ -82,6 +85,7 @@ function parseExportedProfile(json: string): ExportedProfile | null {
 export default function ProfilesScreen() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const headerHeight = useStableHeaderHeight();
   const { profilesRevision, resubscribe } = useDataSync();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -98,6 +102,37 @@ export default function ProfilesScreen() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const kbAnim = useRef(new Animated.Value(0)).current;
+  const kbOpen = useRef(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        kbOpen.current = true;
+        Animated.timing(kbAnim, {
+          toValue: e.endCoordinates.height,
+          duration: e.duration ?? 250,
+          useNativeDriver: false,
+        }).start();
+      },
+    );
+    const hide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      (e) => {
+        kbOpen.current = false;
+        Animated.timing(kbAnim, {
+          toValue: 0,
+          duration: e.duration ?? 250,
+          useNativeDriver: false,
+        }).start();
+      },
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [kbAnim]);
 
   const refresh = useCallback(async () => {
     const [list, id] = await Promise.all([
@@ -292,265 +327,404 @@ export default function ProfilesScreen() {
   };
 
   return (
-    <>
+    <View style={[styles.screenRoot, { backgroundColor: colors.bg }]}>
       <Stack.Screen
         options={{
           title: "Профіль",
         }}
       />
-      <ScrollView
-        style={[styles.scroll, { backgroundColor: colors.bg }]}
-        contentContainerStyle={[
-          styles.content,
-          Platform.OS === "android" && { paddingTop: insets.top + 68 },
+      <Animated.View
+        style={[
+          styles.screenWrap,
+          {
+            marginBottom: kbAnim,
+          },
         ]}
-        contentInset={
-          Platform.OS === "ios" ? { top: insets.top + 68 } : undefined
-        }
-        contentOffset={
-          Platform.OS === "ios" ? { x: 0, y: -(insets.top + 68) } : undefined
-        }
-        scrollIndicatorInsets={
-          Platform.OS === "ios" ? { top: insets.top + 68 } : undefined
-        }
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.isDark ? colors.text : colors.textSecondary}
-            progressViewOffset={Platform.OS === "android" ? insets.top + 68 : 0}
-          />
-        }
       >
-        <Text style={[styles.hint, { color: colors.textTertiary }]}>
-          Оберіть профіль для перегляду. Керуйте доступом, експортом та
-          редагуванням кожного профілю окремо.
-        </Text>
-        <View style={styles.profileList}>
-          {profiles.map((p) => {
-            const isActive = currentId === p.id;
-            const initial = (p.name[0] ?? "?").toUpperCase();
-            const isOwner = !p.role || p.role === "owner";
-            const canExport = isOwner || p.role === "editor";
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: headerHeight + 12 },
+          ]}
+          scrollIndicatorInsets={{ top: headerHeight + 12 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.isDark ? colors.text : colors.textSecondary}
+              progressViewOffset={Platform.OS === "android" ? headerHeight : 0}
+            />
+          }
+        >
+          <Text style={[styles.hint, { color: colors.textTertiary }]}>
+            Оберіть профіль для перегляду. Керуйте доступом, експортом та
+            редагуванням кожного профілю окремо.
+          </Text>
+          <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+            Мої профілі
+          </Text>
+          <View style={styles.profileList}>
+            {profiles
+              .filter((pr) => !pr.role || pr.role === "owner")
+              .map((p) => {
+                const isActive = currentId === p.id;
+                const initial = (p.name[0] ?? "?").toUpperCase();
+                const isOwner = !p.role || p.role === "owner";
+                const canExport = isOwner || p.role === "editor";
 
-            if (editingId === p.id) {
-              return (
-                <View
-                  key={p.id}
-                  style={[
-                    styles.profileCard,
-                    {
-                      backgroundColor: colors.card,
-                      shadowColor: colors.shadow,
-                    },
-                  ]}
-                >
-                  <View style={styles.editRow}>
-                    <TextInput
+                if (editingId === p.id) {
+                  return (
+                    <View
+                      key={p.id}
                       style={[
-                        styles.editInput,
-                        { backgroundColor: colors.inputBg, color: colors.text },
-                      ]}
-                      value={editName}
-                      onChangeText={setEditName}
-                      placeholder="Ім'я профілю"
-                      placeholderTextColor={colors.textTertiary}
-                      autoFocus
-                    />
-                    <Pressable
-                      onPress={handleSaveEdit}
-                      style={[
-                        styles.editConfirm,
-                        { backgroundColor: colors.accent },
+                        styles.profileCard,
+                        {
+                          backgroundColor: colors.card,
+                          shadowColor: colors.shadow,
+                        },
                       ]}
                     >
-                      <Ionicons
-                        name="checkmark"
-                        size={20}
-                        color={colors.white}
-                      />
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        setEditingId(null);
-                        setEditName("");
-                      }}
-                      style={[
-                        styles.editCancel,
-                        { backgroundColor: colors.border },
-                      ]}
-                    >
-                      <Ionicons
-                        name="close"
-                        size={20}
-                        color={colors.textTertiary}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
-              );
-            }
+                      <View style={styles.editRow}>
+                        <TextInput
+                          style={[
+                            styles.editInput,
+                            {
+                              backgroundColor: colors.inputBg,
+                              color: colors.text,
+                            },
+                          ]}
+                          value={editName}
+                          onChangeText={setEditName}
+                          placeholder="Ім'я профілю"
+                          placeholderTextColor={colors.textTertiary}
+                          autoFocus
+                        />
+                        <Pressable
+                          onPress={handleSaveEdit}
+                          style={[
+                            styles.editConfirm,
+                            { backgroundColor: colors.accent },
+                          ]}
+                        >
+                          <Ionicons
+                            name="checkmark"
+                            size={20}
+                            color={colors.white}
+                          />
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            setEditingId(null);
+                            setEditName("");
+                          }}
+                          style={[
+                            styles.editCancel,
+                            { backgroundColor: colors.border },
+                          ]}
+                        >
+                          <Ionicons
+                            name="close"
+                            size={20}
+                            color={colors.textTertiary}
+                          />
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                }
 
-            return (
-              <Pressable
-                key={p.id}
-                style={[
-                  styles.profileCard,
-                  { backgroundColor: colors.card, shadowColor: colors.shadow },
-                  isActive && styles.profileCardActive,
-                  isActive && {
-                    backgroundColor: colors.accentBg,
-                    borderColor: colors.accent,
-                  },
-                ]}
-                onPress={() => handleSelectProfile(p.id)}
-              >
-                <View
-                  style={[
-                    styles.avatar,
-                    {
-                      backgroundColor: isActive ? colors.accent : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
+                return (
+                  <Pressable
+                    key={p.id}
                     style={[
-                      styles.avatarText,
-                      { color: isActive ? colors.white : colors.textSecondary },
+                      styles.profileCard,
+                      {
+                        backgroundColor: colors.card,
+                        shadowColor: colors.shadow,
+                      },
+                      isActive && styles.profileCardActive,
+                      isActive && {
+                        backgroundColor: colors.accentBg,
+                        borderColor: colors.accent,
+                      },
                     ]}
+                    onPress={() => handleSelectProfile(p.id)}
                   >
-                    {initial}
-                  </Text>
-                </View>
-                <View style={styles.profileInfo}>
-                  <View style={styles.nameRow}>
-                    <Text
+                    <View
                       style={[
-                        styles.profileName,
-                        { color: colors.text },
-                        isActive && styles.profileNameActive,
+                        styles.avatar,
+                        {
+                          backgroundColor: isActive
+                            ? colors.accent
+                            : colors.border,
+                        },
                       ]}
-                      numberOfLines={1}
                     >
-                      {p.name}
-                    </Text>
-                    {p.role && p.role !== "owner" && (
-                      <View
+                      <Text
                         style={[
-                          styles.roleBadge,
+                          styles.avatarText,
                           {
-                            backgroundColor:
-                              (p.role === "editor"
-                                ? "#FF9800"
-                                : colors.textTertiary) + "18",
+                            color: isActive
+                              ? colors.white
+                              : colors.textSecondary,
                           },
                         ]}
                       >
+                        {initial}
+                      </Text>
+                    </View>
+                    <View style={styles.profileInfo}>
+                      <View style={styles.nameRow}>
                         <Text
                           style={[
-                            styles.roleBadgeText,
+                            styles.profileName,
+                            { color: colors.text },
+                            isActive && styles.profileNameActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {p.name}
+                        </Text>
+                        {p.role && p.role !== "owner" && (
+                          <View
+                            style={[
+                              styles.roleBadge,
+                              {
+                                backgroundColor:
+                                  (p.role === "editor"
+                                    ? "#FF9800"
+                                    : colors.textTertiary) + "18",
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.roleBadgeText,
+                                {
+                                  color:
+                                    p.role === "editor"
+                                      ? "#FF9800"
+                                      : colors.textTertiary,
+                                },
+                              ]}
+                            >
+                              {p.role === "editor" ? "Редактор" : "Переглядач"}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <View style={styles.cardActions}>
+                      {isOwner && (
+                        <Pressable
+                          onPress={() => {
+                            setEditingId(p.id);
+                            setEditName(p.name);
+                          }}
+                          style={[
+                            styles.cardActionBtn,
+                            { backgroundColor: colors.accentBg },
+                          ]}
+                        >
+                          <Ionicons
+                            name="pencil-outline"
+                            size={17}
+                            color={colors.textSecondary}
+                          />
+                        </Pressable>
+                      )}
+                      {canExport && (
+                        <Pressable
+                          onPress={() => handleExportOpen(p.id)}
+                          style={[
+                            styles.cardActionBtn,
+                            { backgroundColor: colors.accentBg },
+                          ]}
+                        >
+                          <Ionicons
+                            name="share-outline"
+                            size={17}
+                            color={colors.accent}
+                          />
+                        </Pressable>
+                      )}
+                      {isOwner && (
+                        <Pressable
+                          onPress={() =>
+                            router.push(
+                              `/profile-access?profileId=${p.id}&profileName=${encodeURIComponent(p.name)}`,
+                            )
+                          }
+                          style={[
+                            styles.cardActionBtn,
+                            { backgroundColor: colors.accentBg },
+                          ]}
+                        >
+                          <Ionicons
+                            name="people-outline"
+                            size={17}
+                            color={colors.accent}
+                          />
+                        </Pressable>
+                      )}
+                      {isOwner &&
+                        profiles.filter((pr) => !pr.role || pr.role === "owner")
+                          .length > 1 && (
+                          <Pressable
+                            onPress={() => handleDeleteProfile(p)}
+                            style={[
+                              styles.cardActionBtn,
+                              { backgroundColor: colors.destructive + "10" },
+                            ]}
+                          >
+                            <Ionicons
+                              name="trash-outline"
+                              size={17}
+                              color={colors.destructive}
+                            />
+                          </Pressable>
+                        )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+          </View>
+
+          {profiles.some((p) => p.role && p.role !== "owner") && (
+            <>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.textTertiary, marginTop: 24 },
+                ]}
+              >
+                Спільні профілі
+              </Text>
+              <View style={styles.profileList}>
+                {profiles
+                  .filter((pr) => pr.role && pr.role !== "owner")
+                  .map((p) => {
+                    const isActive = currentId === p.id;
+                    const initial = (p.name[0] ?? "?").toUpperCase();
+                    const canExport = p.role === "editor";
+
+                    return (
+                      <Pressable
+                        key={p.id}
+                        style={[
+                          styles.profileCard,
+                          {
+                            backgroundColor: colors.card,
+                            shadowColor: colors.shadow,
+                          },
+                          isActive && styles.profileCardActive,
+                          isActive && {
+                            backgroundColor: colors.accentBg,
+                            borderColor: colors.accent,
+                          },
+                        ]}
+                        onPress={() => handleSelectProfile(p.id)}
+                      >
+                        <View
+                          style={[
+                            styles.avatar,
                             {
-                              color:
-                                p.role === "editor"
-                                  ? "#FF9800"
-                                  : colors.textTertiary,
+                              backgroundColor: isActive
+                                ? colors.accent
+                                : colors.border,
                             },
                           ]}
                         >
-                          {p.role === "editor" ? "Редактор" : "Переглядач"}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  {isActive && (
-                    <Text
-                      style={[
-                        styles.activeLabel,
-                        { color: colors.textSecondary },
-                      ]}
-                    >
-                      Активний профіль
-                    </Text>
-                  )}
-                </View>
-                <View style={styles.cardActions}>
-                  {isOwner && (
-                    <Pressable
-                      onPress={() => {
-                        setEditingId(p.id);
-                        setEditName(p.name);
-                      }}
-                      style={[
-                        styles.cardActionBtn,
-                        { backgroundColor: colors.accentBg },
-                      ]}
-                    >
-                      <Ionicons
-                        name="pencil-outline"
-                        size={17}
-                        color={colors.textSecondary}
-                      />
-                    </Pressable>
-                  )}
-                  {canExport && (
-                    <Pressable
-                      onPress={() => handleExportOpen(p.id)}
-                      style={[
-                        styles.cardActionBtn,
-                        { backgroundColor: colors.accentBg },
-                      ]}
-                    >
-                      <Ionicons
-                        name="share-outline"
-                        size={17}
-                        color={colors.accent}
-                      />
-                    </Pressable>
-                  )}
-                  {isOwner && (
-                    <Pressable
-                      onPress={() =>
-                        router.push(
-                          `/profile-access?profileId=${p.id}&profileName=${encodeURIComponent(p.name)}`,
-                        )
-                      }
-                      style={[
-                        styles.cardActionBtn,
-                        { backgroundColor: colors.accentBg },
-                      ]}
-                    >
-                      <Ionicons
-                        name="people-outline"
-                        size={17}
-                        color={colors.accent}
-                      />
-                    </Pressable>
-                  )}
-                  {isOwner &&
-                    profiles.filter((pr) => !pr.role || pr.role === "owner")
-                      .length > 1 && (
-                      <Pressable
-                        onPress={() => handleDeleteProfile(p)}
-                        style={[
-                          styles.cardActionBtn,
-                          { backgroundColor: colors.destructive + "10" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={17}
-                          color={colors.destructive}
-                        />
+                          <Text
+                            style={[
+                              styles.avatarText,
+                              {
+                                color: isActive
+                                  ? colors.white
+                                  : colors.textSecondary,
+                              },
+                            ]}
+                          >
+                            {initial}
+                          </Text>
+                        </View>
+                        <View style={styles.profileInfo}>
+                          <View style={styles.nameRow}>
+                            <Text
+                              style={[
+                                styles.profileName,
+                                { color: colors.text },
+                                isActive && styles.profileNameActive,
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {p.name}
+                            </Text>
+                            <View
+                              style={[
+                                styles.roleBadge,
+                                {
+                                  backgroundColor:
+                                    (p.role === "editor"
+                                      ? "#FF9800"
+                                      : colors.textTertiary) + "18",
+                                },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.roleBadgeText,
+                                  {
+                                    color:
+                                      p.role === "editor"
+                                        ? "#FF9800"
+                                        : colors.textTertiary,
+                                  },
+                                ]}
+                              >
+                                {p.role === "editor"
+                                  ? "Редактор"
+                                  : "Переглядач"}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        {canExport && (
+                          <View style={styles.cardActions}>
+                            <Pressable
+                              onPress={() => handleExportOpen(p.id)}
+                              style={[
+                                styles.cardActionBtn,
+                                { backgroundColor: colors.accentBg },
+                              ]}
+                            >
+                              <Ionicons
+                                name="share-outline"
+                                size={17}
+                                color={colors.accent}
+                              />
+                            </Pressable>
+                          </View>
+                        )}
                       </Pressable>
-                    )}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+                    );
+                  })}
+              </View>
+            </>
+          )}
+        </ScrollView>
 
-        <View style={styles.bottomButtons}>
+        <View
+          style={[
+            styles.bottomButtons,
+            {
+              paddingBottom: insets.bottom + 12,
+              borderTopColor: colors.border,
+            },
+          ]}
+        >
           {adding ? (
             <View style={styles.addRow}>
               <TextInput
@@ -627,7 +801,7 @@ export default function ProfilesScreen() {
             </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.View>
 
       <GlassModal
         visible={exportModalVisible}
@@ -777,7 +951,7 @@ export default function ProfilesScreen() {
           </Pressable>
         </View>
       </GlassModal>
-    </>
+    </View>
   );
 }
 
@@ -787,6 +961,13 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 14,
     marginBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 10,
   },
   profileList: {
     gap: 12,
@@ -888,8 +1069,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  screenRoot: {
+    flex: 1,
+  },
+  screenWrap: {
+    flex: 1,
+  },
   bottomButtons: {
-    marginTop: 16,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   bottomRow: {
     flexDirection: "row",

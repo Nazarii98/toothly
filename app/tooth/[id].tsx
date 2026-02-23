@@ -8,6 +8,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStableHeaderHeight } from "../../src/hooks/useStableHeaderHeight";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -34,6 +35,7 @@ export default function ToothDetailScreen() {
   const toothId = id as ToothId;
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const headerHeight = useStableHeaderHeight();
   const { colors } = useAppTheme();
 
   const [record, setRecord] = useState<ToothRecord | null>(null);
@@ -121,7 +123,7 @@ export default function ToothDetailScreen() {
           contentContainerStyle={[
             styles.scrollContent,
             {
-              paddingTop: insets.top + 68,
+              paddingTop: headerHeight + 12,
               paddingBottom: insets.bottom + 24,
             },
           ]}

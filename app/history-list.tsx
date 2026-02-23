@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStableHeaderHeight } from "../src/hooks/useStableHeaderHeight";
 import { useAppTheme } from "../src/theme";
 import { loadData } from "../src/store/teethStore";
 import {
@@ -91,6 +92,7 @@ export default function HistoryListScreen() {
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const headerHeight = useStableHeaderHeight();
   const params = useLocalSearchParams<{ date?: string }>();
 
   const initialPreset: FilterPreset = params.date ? "month" : "all";
@@ -263,7 +265,7 @@ export default function HistoryListScreen() {
     <View
       style={[
         styles.root,
-        { backgroundColor: colors.bg, paddingTop: insets.top + 56 },
+        { backgroundColor: colors.bg, paddingTop: headerHeight + 12 },
       ]}
     >
       <View style={styles.filtersRow}>
