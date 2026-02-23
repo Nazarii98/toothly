@@ -24,11 +24,16 @@ const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors, preference, setPreference } = useAppTheme();
-  const { user, signOut, deleteAccount } = useAuth();
+  const { user, signOut, changePassword, deleteAccount } = useAuth();
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
 
   const handleSignOut = () => {
     Alert.alert("Вихід", "Ви впевнені, що хочете вийти з акаунту?", [
@@ -57,6 +62,38 @@ export default function SettingsScreen() {
       Alert.alert("Помилка", msg);
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPw || !newPw) {
+      Alert.alert("Помилка", "Заповніть всі поля");
+      return;
+    }
+    if (newPw.length < 6) {
+      Alert.alert("Помилка", "Новий пароль має містити щонайменше 6 символів");
+      return;
+    }
+    if (newPw !== confirmPw) {
+      Alert.alert("Помилка", "Паролі не збігаються");
+      return;
+    }
+    setPwLoading(true);
+    try {
+      await changePassword(currentPw, newPw);
+      setPwModalOpen(false);
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmPw("");
+      Alert.alert("Готово", "Пароль успішно змінено");
+    } catch (e: any) {
+      const msg =
+        e.code === "auth/wrong-password" || e.code === "auth/invalid-credential"
+          ? "Невірний поточний пароль"
+          : "Помилка зміни паролю. Спробуйте ще раз";
+      Alert.alert("Помилка", msg);
+    } finally {
+      setPwLoading(false);
     }
   };
 
@@ -104,7 +141,7 @@ export default function SettingsScreen() {
               />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
-              Статуси зубів
+              Статуси
             </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
@@ -177,6 +214,23 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </View>
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => setPwModalOpen(true)}
+          >
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons name="key-outline" size={22} color={colors.accent} />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.text }]}>
+              Змінити пароль
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
+          </Pressable>
           <View
             style={[styles.separator, { backgroundColor: colors.border }]}
           />
@@ -340,6 +394,99 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
       </GlassModal>
+      <GlassModal
+        visible={pwModalOpen}
+        onClose={() => {
+          setPwModalOpen(false);
+          setCurrentPw("");
+          setNewPw("");
+          setConfirmPw("");
+        }}
+      >
+        <View style={styles.modalHeader}>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>
+            Змінити пароль
+          </Text>
+          <Pressable
+            onPress={() => {
+              setPwModalOpen(false);
+              setCurrentPw("");
+              setNewPw("");
+              setConfirmPw("");
+            }}
+            hitSlop={12}
+          >
+            <Text style={[styles.modalDone, { color: colors.accent }]}>
+              Скасувати
+            </Text>
+          </Pressable>
+        </View>
+        <View style={styles.deleteModalContent}>
+          <TextInput
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
+            placeholder="Поточний пароль"
+            placeholderTextColor={colors.textTertiary}
+            value={currentPw}
+            onChangeText={setCurrentPw}
+            secureTextEntry
+            autoComplete="password"
+          />
+          <TextInput
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
+            placeholder="Новий пароль"
+            placeholderTextColor={colors.textTertiary}
+            value={newPw}
+            onChangeText={setNewPw}
+            secureTextEntry
+            autoComplete="new-password"
+          />
+          <TextInput
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
+            placeholder="Підтвердити новий пароль"
+            placeholderTextColor={colors.textTertiary}
+            value={confirmPw}
+            onChangeText={setConfirmPw}
+            secureTextEntry
+            autoComplete="new-password"
+          />
+          <Pressable
+            style={[
+              styles.deleteBtn,
+              {
+                backgroundColor: colors.accent,
+                opacity: pwLoading ? 0.7 : 1,
+              },
+            ]}
+            onPress={handleChangePassword}
+            disabled={pwLoading}
+          >
+            <Text style={styles.deleteBtnText}>
+              {pwLoading ? "Зміна..." : "Змінити пароль"}
+            </Text>
+          </Pressable>
+        </View>
+      </GlassModal>
     </SafeAreaView>
   );
 }
@@ -383,6 +530,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   menuLabel: {
+    flex: 1,
     fontSize: 17,
     fontWeight: "600",
   },

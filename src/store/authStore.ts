@@ -5,6 +5,7 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   deleteUser,
+  updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
   type User,
@@ -41,6 +42,17 @@ export async function reauthenticate(password: string): Promise<void> {
   if (!user || !user.email) throw new Error("Not authenticated");
   const credential = EmailAuthProvider.credential(user.email, password);
   await reauthenticateWithCredential(user, credential);
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error("Not authenticated");
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPassword);
 }
 
 export async function deleteAccount(): Promise<void> {

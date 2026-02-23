@@ -13,6 +13,7 @@ import {
   signOutUser,
   resetPassword as authResetPassword,
   reauthenticate,
+  changePassword as authChangePassword,
   deleteAccount as authDeleteAccount,
   onAuthChange,
 } from "./store/authStore";
@@ -28,6 +29,7 @@ interface AuthContextValue {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
 }
 
@@ -38,6 +40,7 @@ const AuthContext = createContext<AuthContextValue>({
   signUp: async () => {},
   signOut: async () => {},
   resetPassword: async () => {},
+  changePassword: async () => {},
   deleteAccount: async () => {},
 });
 
@@ -79,6 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await authResetPassword(email);
   }, []);
 
+  const handleChangePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      await authChangePassword(currentPassword, newPassword);
+    },
+    [],
+  );
+
   const handleDeleteAccount = useCallback(async (password: string) => {
     const u = user;
     if (!u) throw new Error("Not authenticated");
@@ -97,9 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUp: handleSignUp,
       signOut: handleSignOut,
       resetPassword: handleResetPassword,
+      changePassword: handleChangePassword,
       deleteAccount: handleDeleteAccount,
     }),
-    [user, loading, handleSignIn, handleSignUp, handleSignOut, handleResetPassword, handleDeleteAccount],
+    [user, loading, handleSignIn, handleSignUp, handleSignOut, handleResetPassword, handleChangePassword, handleDeleteAccount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
