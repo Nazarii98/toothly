@@ -74,6 +74,10 @@ function RootStack() {
           options={{ title: "Профіль", headerBackTitle: "Назад" }}
         />
         <Stack.Screen
+          name="history-list"
+          options={{ title: "Історія", headerBackTitle: "Назад" }}
+        />
+        <Stack.Screen
           name="add-record"
           options={{
             ...modalScreenOptions(colors),

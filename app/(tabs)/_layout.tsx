@@ -12,10 +12,7 @@ export default function TabLayout() {
   return (
     <NativeTabs
       tintColor={colors.accent}
-      blurEffect={colors.isDark ? "none" : "systemMaterial"}
-      backgroundColor={colors.isDark ? colors.card : null}
-      shadowColor={colors.isDark ? colors.border : undefined}
-      disableTransparentOnScrollEdge
+      blurEffect={colors.isDark ? "systemMaterialDark" : "systemMaterial"}
     >
       <NativeTabs.Trigger name="index">
         <Icon
@@ -30,8 +27,8 @@ export default function TabLayout() {
 
       <NativeTabs.Trigger name="history">
         <Icon
-          sf={{ default: "clock", selected: "clock.fill" }}
-          androidSrc={<VectorIcon family={Ionicons} name="time" />}
+          sf={{ default: "calendar", selected: "calendar" }}
+          androidSrc={<VectorIcon family={Ionicons} name="calendar" />}
         />
         <Label>Історія</Label>
       </NativeTabs.Trigger>
