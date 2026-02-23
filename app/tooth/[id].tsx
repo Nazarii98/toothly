@@ -233,11 +233,16 @@ export default function ToothDetailScreen() {
                 </Text>
                 {canEdit && (
                   <Pressable
-                    style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                    style={[
+                      styles.emptyCta,
+                      { backgroundColor: colors.accent },
+                    ]}
                     onPress={openAdd}
                   >
                     <Ionicons name="add" size={20} color={colors.white} />
-                    <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                    <Text
+                      style={[styles.emptyCtaText, { color: colors.white }]}
+                    >
                       Додати запис
                     </Text>
                   </Pressable>
@@ -351,6 +356,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
+    flexGrow: 0,
+    flexShrink: 0,
   },
   statusCard: {
     borderRadius: 20,

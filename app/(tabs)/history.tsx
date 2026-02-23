@@ -175,7 +175,7 @@ export default function HistoryScreen() {
     return allItems.filter((i) => i.data.date.startsWith(prefix));
   }, [allItems, viewMode, year, month]);
 
-  const recentItems = periodItems.slice(0, 3);
+  const recentItems = periodItems.slice(0, 5);
 
   const periodLabel =
     viewMode === "month"
