@@ -67,14 +67,14 @@ export default function ChartScreen() {
 
   const profileBadgeBg = colors.isDark ? "rgba(30,50,40,0.85)" : "rgba(255,255,255,0.85)";
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {profileName ? (
         <Pressable
           style={[styles.profileBadge, { top: insets.top + 10, backgroundColor: profileBadgeBg }]}
           onPress={() => router.push("/profiles")}
           hitSlop={6}
         >
-          <Ionicons name="person-circle-outline" size={18} color="#2d5a4a" />
+          <Ionicons name="person-circle-outline" size={18} color={colors.accent} />
           <Text style={[styles.profileBadgeText, { color: colors.text }]} numberOfLines={1}>
             {profileName}
           </Text>
@@ -89,7 +89,7 @@ export default function ChartScreen() {
         <Ionicons
           name={showStatuses ? "eye" : "eye-off"}
           size={22}
-          color={showStatuses ? "#2d5a4a" : "#aaa"}
+          color={showStatuses ? colors.accent : colors.textTertiary}
         />
       </Pressable>
 

@@ -249,7 +249,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 28,
     fontWeight: "700",
-    color: "#1a3d32",
     marginBottom: 12,
   },
   statusRow: {
@@ -259,7 +258,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e0e8e4",
   },
   dot: {
     width: 14,
@@ -268,10 +266,8 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 15,
-    color: "#1a3d32",
   },
   empty: {
-    color: "#7a9a8a",
     fontSize: 14,
     paddingVertical: 12,
   },
@@ -280,25 +276,20 @@ const styles = StyleSheet.create({
   },
   addForm: {
     marginTop: 16,
-    backgroundColor: "#fff",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#d0dcd6",
   },
   formLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1a3d32",
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 14,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#fafafa",
     marginBottom: 16,
   },
   colorGrid: {
@@ -315,7 +306,6 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   colorOptionSelected: {
-    borderColor: "#1a3d32",
     borderWidth: 3,
   },
   formActions: {
@@ -324,13 +314,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
-  cancelBtnText: { fontSize: 15, color: "#5a7a6a" },
+  cancelBtnText: { fontSize: 15 },
   saveBtn: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: "#2d5a4a",
     borderRadius: 14,
   },
   pressed: { opacity: 0.85 },
-  saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+  saveBtnText: { fontSize: 15, fontWeight: "600" },
 });

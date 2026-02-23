@@ -135,7 +135,7 @@ export default function EditRecordScreen() {
                     <View
                       style={[
                         styles.chipDot,
-                        { backgroundColor: active ? "#fff" : dotColor },
+                        { backgroundColor: active ? colors.white : dotColor },
                       ]}
                     />
                     <Text
@@ -173,9 +173,9 @@ export default function EditRecordScreen() {
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Фото</Text>
             {imageUri ? (
-              <View style={styles.imagePreview}>
+              <View style={[styles.imagePreview, { backgroundColor: colors.border }]}>
                 <Image source={{ uri: imageUri }} style={styles.previewImg} />
-                <View style={styles.imageActions}>
+                <View style={[styles.imageActions, { backgroundColor: colors.inputBg }]}>
                   <Pressable style={styles.imageActionBtn} onPress={pickImage}>
                     <Ionicons
                       name="swap-horizontal"
@@ -273,16 +273,14 @@ export default function EditRecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f2f6f4" },
+  root: { flex: 1 },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 120 },
 
   card: {
-    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -291,7 +289,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#5a7a6a",
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 12,
@@ -304,7 +301,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 14,
-    backgroundColor: "#eef5f1",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -313,7 +309,6 @@ const styles = StyleSheet.create({
   cardRowLabel: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#8a9a90",
     textTransform: "uppercase",
     letterSpacing: 0.4,
     marginBottom: 3,
@@ -321,7 +316,6 @@ const styles = StyleSheet.create({
   cardRowValue: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#1a3d32",
   },
 
   chipGrid: {
@@ -336,23 +330,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 24,
-    backgroundColor: "#f0f5f2",
   },
   chipDot: {
     width: 7,
     height: 7,
     borderRadius: 4,
   },
-  chipText: { fontSize: 13, color: "#3d5a4a", fontWeight: "500" },
-  chipTextActive: { color: "#fff" },
+  chipText: { fontSize: 13, fontWeight: "500" },
 
   input: {
-    backgroundColor: "#f5f8f6",
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 14,
     fontSize: 15,
-    color: "#1a3d32",
     marginBottom: 8,
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
@@ -364,13 +354,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 20,
     borderRadius: 16,
-    backgroundColor: "#f5f8f6",
   },
-  imagePlaceholderText: { fontSize: 14, color: "#8a9a90", fontWeight: "500" },
+  imagePlaceholderText: { fontSize: 14, fontWeight: "500" },
   imagePreview: {
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#e0e0e0",
   },
   previewImg: { width: "100%", height: 200 },
   imageActions: {
@@ -378,18 +366,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 24,
     paddingVertical: 10,
-    backgroundColor: "#f5f8f6",
   },
   imageActionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
-  imageActionText: { fontSize: 13, color: "#2d5a4a", fontWeight: "500" },
+  imageActionText: { fontSize: 13, fontWeight: "500" },
 
   saveBtn: {
     marginTop: 4,
     paddingVertical: 16,
-    backgroundColor: "#2d5a4a",
     borderRadius: 18,
     alignItems: "center",
-    shadowColor: "#2d5a4a",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -397,7 +382,6 @@ const styles = StyleSheet.create({
   },
   saveBtnPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   saveBtnText: {
-    color: "#fff",
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,

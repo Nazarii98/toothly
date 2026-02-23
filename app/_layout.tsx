@@ -5,35 +5,53 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet } from "react-native";
 import { ThemeProvider, useAppTheme } from "../src/theme";
 
-function GradientHeader() {
+function GradientHeader({ isDark }: { isDark: boolean }) {
+  const base = isDark ? "15, 26, 21" : "45, 90, 74";
   return (
     <LinearGradient
       colors={[
-        "rgba(45, 90, 74, 1)",
-        "rgba(45, 90, 74, 0.92)",
-        "rgba(45, 90, 74, 0.8)",
-        "rgba(45, 90, 74, 0.7)",
-        "rgba(45, 90, 74, 0.6)",
-        "rgba(45, 90, 74, 0.5)",
+        `rgba(${base}, 1)`,
+        `rgba(${base}, 0.92)`,
+        `rgba(${base}, 0.8)`,
+        `rgba(${base}, 0.7)`,
+        `rgba(${base}, 0.6)`,
+        `rgba(${base}, 0.5)`,
       ]}
       locations={[0, 0.25, 0.5, 0.7, 0.88, 1]}
       style={[
         StyleSheet.absoluteFill,
-        { borderBottomWidth: 1, borderBottomColor: "#5a7a6a49" },
+        {
+          borderBottomWidth: 1,
+          borderBottomColor: isDark
+            ? "rgba(42, 61, 52, 0.4)"
+            : "rgba(90, 122, 106, 0.29)",
+        },
       ]}
     />
   );
 }
 
-const headerOptions = {
-  headerTransparent: true,
-  headerTintColor: "#fff",
-  headerTitleStyle: { fontWeight: "600" as const, fontSize: 18, flex: 1 },
-  headerBackground: () => <GradientHeader />,
-};
+const modalScreenOptions = (colors: any) => ({
+  presentation: "modal" as const,
+  headerTransparent: false,
+  headerBackground: undefined,
+  headerStyle: {
+    backgroundColor: colors.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  } as any,
+  headerTintColor: colors.text,
+  headerTitleStyle: { fontWeight: "600" as const, fontSize: 18 },
+});
 
 function RootStack() {
   const { colors } = useAppTheme();
+  const headerOptions = {
+    headerTransparent: true,
+    headerTintColor: "#fff",
+    headerTitleStyle: { fontWeight: "600" as const, fontSize: 18, flex: 1 },
+    headerBackground: () => <GradientHeader isDark={colors.isDark} />,
+  };
   return (
     <>
       <StatusBar style={colors.isDark ? "light" : "auto"} />
@@ -58,33 +76,15 @@ function RootStack() {
         <Stack.Screen
           name="add-record"
           options={{
-            presentation: "modal",
+            ...modalScreenOptions(colors),
             title: "Новий запис",
-            headerTransparent: false,
-            headerBackground: undefined,
-            headerStyle: {
-              backgroundColor: "#f2f6f4",
-              borderBottomWidth: 1,
-              borderBottomColor: "#dce5df",
-            } as any,
-            headerTintColor: "#1a3d32",
-            headerTitleStyle: { fontWeight: "600" as const, fontSize: 18 },
           }}
         />
         <Stack.Screen
           name="edit-record"
           options={{
-            presentation: "modal",
+            ...modalScreenOptions(colors),
             title: "Редагувати запис",
-            headerTransparent: false,
-            headerBackground: undefined,
-            headerStyle: {
-              backgroundColor: "#f2f6f4",
-              borderBottomWidth: 1,
-              borderBottomColor: "#dce5df",
-            } as any,
-            headerTintColor: "#1a3d32",
-            headerTitleStyle: { fontWeight: "600" as const, fontSize: 18 },
           }}
         />
       </Stack>

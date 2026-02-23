@@ -129,7 +129,10 @@ export default function HistoryScreen() {
         renderSectionHeader={({ section }) => (
           <Text style={[styles.sectionHeader, { color: colors.text, backgroundColor: colors.bg }]}>{section.title}</Text>
         )}
+        style={{ backgroundColor: colors.bg }}
         contentContainerStyle={[styles.listContent, { backgroundColor: colors.bg }]}
+        contentInsetAdjustmentBehavior="never"
+        automaticallyAdjustsScrollIndicatorInsets={false}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: colors.textSecondary }]}>Історія порожня. Додайте перший запис.</Text>
         }
@@ -138,7 +141,7 @@ export default function HistoryScreen() {
         style={({ pressed }) => [styles.fab, { backgroundColor: colors.accent }, pressed && styles.fabPressed]}
         onPress={() => router.push('/add-record')}
       >
-        <Ionicons name="add" size={28} color="#fff" />
+        <Ionicons name="add" size={28} color={colors.white} />
       </Pressable>
     </SafeAreaView>
   );

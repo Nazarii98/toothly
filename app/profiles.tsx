@@ -415,7 +415,7 @@ export default function ProfilesScreen() {
         {adding ? (
           <View style={styles.addRow}>
             <TextInput
-              style={[styles.addInput, { backgroundColor: colors.card }]}
+              style={[styles.addInput, { backgroundColor: colors.card, color: colors.text, shadowColor: colors.shadow }]}
               value={newName}
               onChangeText={setNewName}
               placeholder="Ім'я нового профілю"
@@ -658,14 +658,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a3d32",
   },
   profileNameActive: {
     fontWeight: "700",
   },
   activeLabel: {
     fontSize: 12,
-    color: "#5a7a6a",
     marginTop: 2,
   },
   profileActions: {
@@ -684,18 +682,15 @@ const styles = StyleSheet.create({
   },
   editInput: {
     flex: 1,
-    backgroundColor: "#f5f8f6",
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 14,
     fontSize: 15,
-    color: "#1a3d32",
   },
   editConfirm: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#2d5a4a",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -703,7 +698,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#e8ece8",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -715,13 +709,10 @@ const styles = StyleSheet.create({
   },
   addInput: {
     flex: 1,
-    backgroundColor: "#fff",
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 14,
     fontSize: 15,
-    color: "#1a3d32",
-    shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -730,13 +721,11 @@ const styles = StyleSheet.create({
   addConfirmBtn: {
     paddingVertical: 12,
     paddingHorizontal: 18,
-    backgroundColor: "#2d5a4a",
     borderRadius: 14,
   },
   addConfirmText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#fff",
   },
   addProfileBtn: {
     flexDirection: "row",
@@ -745,19 +734,15 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     marginTop: 10,
-    backgroundColor: "#2d5a4a",
     borderRadius: 16,
   },
   addProfileBtnText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#fff",
   },
   actionCard: {
-    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 4,
-    shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -770,18 +755,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e8ece8",
   },
   actionRowLast: { borderBottomWidth: 0 },
   actionRowTextWrap: { flex: 1 },
   actionRowText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a3d32",
   },
   actionRowHint: {
     fontSize: 12,
-    color: "#8a9a90",
     marginTop: 2,
   },
   modalCardPadded: {

@@ -5,10 +5,18 @@ import {
   VectorIcon,
 } from "expo-router/unstable-native-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useAppTheme } from "../../src/theme";
 
 export default function TabLayout() {
+  const { colors } = useAppTheme();
   return (
-    <NativeTabs tintColor="#2d5a4a" blurEffect="systemMaterial">
+    <NativeTabs
+      tintColor={colors.accent}
+      blurEffect={colors.isDark ? "none" : "systemMaterial"}
+      backgroundColor={colors.isDark ? colors.card : null}
+      shadowColor={colors.isDark ? colors.border : undefined}
+      disableTransparentOnScrollEdge
+    >
       <NativeTabs.Trigger name="index">
         <Icon
           sf={{

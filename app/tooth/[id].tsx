@@ -266,7 +266,7 @@ export default function ToothDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f2f6f4" },
+  safe: { flex: 1 },
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20 },
   headerAddBtn: {
@@ -277,11 +277,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   statusCard: {
-    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 16,
     marginBottom: 20,
-    shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -290,7 +288,6 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#8a9a90",
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 10,
@@ -298,7 +295,6 @@ const styles = StyleSheet.create({
   statusTrigger: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f8f6",
     borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -313,22 +309,18 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "600",
-    color: "#1a3d32",
   },
   modalBackdrop: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
     padding: 24,
   },
   modalCard: {
-    backgroundColor: "rgba(255,255,255,0.65)",
     borderRadius: 20,
     width: "100%",
     maxWidth: 360,
     overflow: "hidden",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -338,7 +330,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#e8ece8",
   },
   manageBtn: {
     flexDirection: "row",
@@ -348,17 +339,14 @@ const styles = StyleSheet.create({
   },
   manageBtnText: {
     fontSize: 14,
-    color: "#5a7a6a",
     fontWeight: "500",
   },
   historySection: {},
   emptyState: {
-    backgroundColor: "#fff",
     borderRadius: 20,
     paddingVertical: 32,
     paddingHorizontal: 24,
     alignItems: "center",
-    shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -367,12 +355,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#1a3d32",
     marginTop: 12,
   },
   emptyHint: {
     fontSize: 14,
-    color: "#7a9a8a",
     marginTop: 4,
     textAlign: "center",
   },
@@ -381,7 +367,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginTop: 20,
-    backgroundColor: "#2d5a4a",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 18,
@@ -389,14 +374,11 @@ const styles = StyleSheet.create({
   emptyCtaText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#fff",
   },
   recordList: { gap: 12 },
   recordCard: {
-    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 18,
-    shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -412,12 +394,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     fontWeight: "700",
-    color: "#1a3d32",
     lineHeight: 22,
   },
   recordDate: {
     fontSize: 12,
-    color: "#8a9a90",
     fontWeight: "500",
   },
   recordBadge: {
@@ -434,11 +414,9 @@ const styles = StyleSheet.create({
   recordBadgeText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#2d5a4a",
   },
   recordNotes: {
     fontSize: 14,
-    color: "#5a6a5a",
     marginTop: 8,
     lineHeight: 20,
   },
@@ -447,7 +425,6 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 12,
     marginTop: 12,
-    backgroundColor: "#e8ece8",
   },
   recordActions: {
     flexDirection: "row",
@@ -465,7 +442,6 @@ const styles = StyleSheet.create({
   recordBtnEditText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#2d5a4a",
   },
   recordBtnDelete: {
     flexDirection: "row",
@@ -477,6 +453,5 @@ const styles = StyleSheet.create({
   recordBtnDeleteText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#a04040",
   },
 });

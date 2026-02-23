@@ -18,10 +18,12 @@ import {
 } from "../src/store/teethStore";
 import { GLOBAL_PROCEDURE_TYPES } from "../src/types";
 import type { GlobalProcedure } from "../src/types";
+import { useAppTheme } from "../src/theme";
 
 const TYPE_OPTIONS = Object.entries(GLOBAL_PROCEDURE_TYPES);
 
 export default function GlobalProceduresScreen() {
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [procedures, setProcedures] = useState<GlobalProcedure[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -86,47 +88,57 @@ export default function GlobalProceduresScreen() {
   return (
     <View style={styles.safe}>
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.bg }]}
         contentContainerStyle={{
           paddingTop: insets.top + 56,
           paddingBottom: insets.bottom + 20,
         }}
       >
-        <Text style={styles.title}>Глобальні процедури</Text>
-        <Text style={styles.hint}>
+        <Text style={[styles.title, { color: colors.text }]}>Глобальні процедури</Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>
           Наприклад: чистка, відбілювання, огляд усієї порожнини рота.
         </Text>
 
         <Pressable
-          style={({ pressed }) => [styles.addBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.addBtn,
+            { backgroundColor: colors.accent },
+            pressed && styles.pressed,
+          ]}
           onPress={openAdd}
         >
-          <Text style={styles.addBtnText}>+ Додати процедуру</Text>
+          <Text style={[styles.addBtnText, { color: colors.white }]}>+ Додати процедуру</Text>
         </Pressable>
 
         {procedures.length === 0 ? (
-          <Text style={styles.empty}>
+          <Text style={[styles.empty, { color: colors.textTertiary }]}>
             Ще немає записів. Додайте першу процедуру.
           </Text>
         ) : (
           <View style={styles.list}>
             {procedures.map((p) => (
-              <View key={p.id} style={styles.card}>
+              <View
+                key={p.id}
+                style={[
+                  styles.card,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
                 <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>{p.title}</Text>
-                  <Text style={styles.cardDate}>{formatDate(p.date)}</Text>
+                  <Text style={[styles.cardTitle, { color: colors.text }]}>{p.title}</Text>
+                  <Text style={[styles.cardDate, { color: colors.textTertiary }]}>{formatDate(p.date)}</Text>
                 </View>
-                <Text style={styles.cardType}>
+                <Text style={[styles.cardType, { color: colors.accent }]}>
                   {GLOBAL_PROCEDURE_TYPES[p.type]}
                 </Text>
                 {p.notes ? (
-                  <Text style={styles.cardNotes}>{p.notes}</Text>
+                  <Text style={[styles.cardNotes, { color: colors.textSecondary }]}>{p.notes}</Text>
                 ) : null}
                 <Pressable
                   onPress={() => deleteProc(p)}
                   style={styles.deleteBtn}
                 >
-                  <Text style={styles.deleteBtnText}>Видалити</Text>
+                  <Text style={[styles.deleteBtnText, { color: colors.destructive }]}>Видалити</Text>
                 </Pressable>
               </View>
             ))}
@@ -140,8 +152,8 @@ export default function GlobalProceduresScreen() {
         position="bottom"
         animationType="slide"
       >
-        <Text style={styles.modalTitle}>Нова процедура</Text>
-        <Text style={styles.label}>Тип</Text>
+        <Text style={[styles.modalTitle, { color: colors.text }]}>Нова процедура</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Тип</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -153,13 +165,13 @@ export default function GlobalProceduresScreen() {
               onPress={() => setFormType(value as GlobalProcedure["type"])}
               style={[
                 styles.typeChip,
-                formType === value && styles.typeChipActive,
+                { backgroundColor: formType === value ? colors.accent : colors.statusOptionBg },
               ]}
             >
               <Text
                 style={[
                   styles.typeChipText,
-                  formType === value && styles.typeChipTextActive,
+                  { color: formType === value ? colors.white : colors.accent },
                 ]}
               >
                 {label}
@@ -168,29 +180,47 @@ export default function GlobalProceduresScreen() {
           ))}
         </ScrollView>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.inputBg,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Назва (опційно)"
           value={formTitle}
           onChangeText={setFormTitle}
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.textTertiary}
         />
         <TextInput
-          style={[styles.input, styles.textArea]}
+          style={[
+            styles.input,
+            styles.textArea,
+            {
+              backgroundColor: colors.inputBg,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Нотатки"
           value={formNotes}
           onChangeText={setFormNotes}
           multiline
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.textTertiary}
         />
         <View style={styles.modalActions}>
           <Pressable
             onPress={() => setModalVisible(false)}
             style={styles.cancelBtn}
           >
-            <Text style={styles.cancelBtnText}>Скасувати</Text>
+            <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>Скасувати</Text>
           </Pressable>
-          <Pressable onPress={save} style={styles.saveBtn}>
-            <Text style={styles.saveBtnText}>Зберегти</Text>
+          <Pressable
+            onPress={save}
+            style={[styles.saveBtn, { backgroundColor: colors.accent }]}
+          >
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
           </Pressable>
         </View>
       </GlassModal>
@@ -204,13 +234,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1a3d32",
     textAlign: "center",
     marginTop: 12,
   },
   hint: {
     fontSize: 13,
-    color: "#5a7a6a",
     textAlign: "center",
     marginTop: 4,
     marginHorizontal: 24,
@@ -218,74 +246,63 @@ const styles = StyleSheet.create({
   addBtn: {
     margin: 16,
     paddingVertical: 14,
-    backgroundColor: "#2d5a4a",
     borderRadius: 16,
     alignItems: "center",
   },
   pressed: { opacity: 0.85 },
-  addBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  addBtnText: { fontSize: 16, fontWeight: "600" },
   empty: {
     textAlign: "center",
-    color: "#7a9a8a",
     marginTop: 24,
     paddingHorizontal: 24,
   },
   list: { padding: 16, paddingTop: 0 },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e0e8e4",
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  cardTitle: { fontSize: 16, fontWeight: "600", color: "#1a3d32", flex: 1 },
-  cardDate: { fontSize: 12, color: "#7a9a8a" },
-  cardType: { fontSize: 12, color: "#2d5a4a", marginTop: 4 },
-  cardNotes: { fontSize: 14, color: "#3d5a4a", marginTop: 8 },
+  cardTitle: { fontSize: 16, fontWeight: "600", flex: 1 },
+  cardDate: { fontSize: 12 },
+  cardType: { fontSize: 12, marginTop: 4 },
+  cardNotes: { fontSize: 14, marginTop: 8 },
   deleteBtn: { marginTop: 12 },
-  deleteBtnText: { fontSize: 14, color: "#a04040", fontWeight: "600" },
+  deleteBtnText: { fontSize: 14, fontWeight: "600" },
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a3d32",
     marginBottom: 16,
   },
-  label: { fontSize: 14, fontWeight: "600", color: "#1a3d32", marginBottom: 8 },
+  label: { fontSize: 14, fontWeight: "600", marginBottom: 8 },
   typeRow: { marginBottom: 12, maxHeight: 44 },
   typeChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 24,
-    backgroundColor: "#e8f0ec",
     marginRight: 8,
   },
-  typeChipActive: { backgroundColor: "#2d5a4a" },
-  typeChipText: { fontSize: 13, color: "#2d5a4a" },
-  typeChipTextActive: { color: "#fff" },
+  typeChipText: { fontSize: 13 },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 10,
     padding: 12,
     fontSize: 16,
     marginBottom: 12,
-    backgroundColor: "#fafafa",
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
   modalActions: { flexDirection: "row", gap: 12, justifyContent: "flex-end" },
   cancelBtn: { paddingVertical: 12, paddingHorizontal: 20 },
-  cancelBtnText: { fontSize: 16, color: "#5a7a6a" },
+  cancelBtnText: { fontSize: 16 },
   saveBtn: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: "#2d5a4a",
     borderRadius: 10,
   },
-  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  saveBtnText: { fontSize: 16, fontWeight: "600" },
 });

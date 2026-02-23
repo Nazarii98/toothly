@@ -12,46 +12,54 @@ import { useAppTheme } from "../theme";
 
 const IMAGE_ASPECT = 399 / 600;
 
-const TOOTH_POSITIONS: { id: ToothId; x: number; y: number }[] = [
+type ToothDef = {
+  id: ToothId;
+  x: number;
+  y: number;
+  nx: number;
+  ny: number;
+};
+
+const TOOTH_POSITIONS: ToothDef[] = [
   // Верхня щелепа — ліва сторона (права пацієнта, квадрант 1: 18→11)
-  { id: "18", x: 19.5, y: 42 },
-  { id: "17", x: 19.5, y: 36 },
-  { id: "16", x: 21, y: 30 },
-  { id: "15", x: 24.5, y: 24 },
-  { id: "14", x: 28.5, y: 19.0 },
-  { id: "13", x: 32.5, y: 14.5 },
-  { id: "12", x: 37.5, y: 10.5 },
-  { id: "11", x: 45.5, y: 8.5 },
+  { id: "18", x: 19.5, y: 42, nx: 7, ny: 41 },
+  { id: "17", x: 19.5, y: 36, nx: 6, ny: 34 },
+  { id: "16", x: 21, y: 30, nx: 9, ny: 28 },
+  { id: "15", x: 24.5, y: 24, nx: 12.5, ny: 22 },
+  { id: "14", x: 28.5, y: 19, nx: 16.5, ny: 16.5 },
+  { id: "13", x: 32.5, y: 14.5, nx: 21.5, ny: 9 },
+  { id: "12", x: 37.5, y: 10.5, nx: 35, ny: 4 },
+  { id: "11", x: 45.5, y: 8.5, nx: 43.5, ny: 2 },
 
   // Верхня щелепа — права сторона (ліва пацієнта, квадрант 2: 21→28)
-  { id: "21", x: 55, y: 8.5 },
-  { id: "22", x: 63.5, y: 10.5 },
-  { id: "23", x: 69, y: 14.5 },
-  { id: "24", x: 72.5, y: 19.5 },
-  { id: "25", x: 76.5, y: 24.5 },
-  { id: "26", x: 79.5, y: 30 },
-  { id: "27", x: 81.5, y: 36 },
-  { id: "28", x: 80.5, y: 42.5 },
+  { id: "21", x: 55, y: 8.5, nx: 54, ny: 2 },
+  { id: "22", x: 63.5, y: 10.5, nx: 63.5, ny: 4 },
+  { id: "23", x: 69, y: 14.5, nx: 77, ny: 9 },
+  { id: "24", x: 72.5, y: 19.5, nx: 82, ny: 16.5 },
+  { id: "25", x: 76.5, y: 24.5, nx: 86, ny: 22 },
+  { id: "26", x: 79.5, y: 30, nx: 90, ny: 28 },
+  { id: "27", x: 81.5, y: 36, nx: 94, ny: 34 },
+  { id: "28", x: 80.5, y: 42.5, nx: 92, ny: 41 },
 
   // Нижня щелепа — ліва сторона (права пацієнта, квадрант 4: 48→41)
-  { id: "48", x: 19.5, y: 58.5 },
-  { id: "47", x: 19, y: 65 },
-  { id: "46", x: 21, y: 72 },
-  { id: "45", x: 25.5, y: 78 },
-  { id: "44", x: 30.5, y: 83.5 },
-  { id: "43", x: 35.5, y: 87.5 },
-  { id: "42", x: 40, y: 90 },
-  { id: "41", x: 46.5, y: 90.5 },
+  { id: "48", x: 19.5, y: 58.5, nx: 6, ny: 57 },
+  { id: "47", x: 19, y: 65, nx: 4, ny: 64 },
+  { id: "46", x: 21, y: 72, nx: 8, ny: 71 },
+  { id: "45", x: 25.5, y: 78, nx: 12, ny: 77.5 },
+  { id: "44", x: 30.5, y: 83.5, nx: 17, ny: 84 },
+  { id: "43", x: 35.5, y: 87.5, nx: 23, ny: 91.5 },
+  { id: "42", x: 40, y: 90, nx: 38, ny: 95 },
+  { id: "41", x: 46.5, y: 90.5, nx: 45, ny: 96.5 },
 
   // Нижня щелепа — права сторона (ліва пацієнта, квадрант 3: 31→38)
-  { id: "31", x: 53, y: 90.5 },
-  { id: "32", x: 59, y: 90 },
-  { id: "33", x: 64.5, y: 87.5 },
-  { id: "34", x: 69.5, y: 83 },
-  { id: "35", x: 74.5, y: 77.5 },
-  { id: "36", x: 79, y: 71.5 },
-  { id: "37", x: 81, y: 65 },
-  { id: "38", x: 81, y: 59 },
+  { id: "31", x: 53, y: 90.5, nx: 52, ny: 96.5 },
+  { id: "32", x: 59, y: 90, nx: 59, ny: 95 },
+  { id: "33", x: 64.5, y: 87.5, nx: 74, ny: 91.5 },
+  { id: "34", x: 69.5, y: 83, nx: 80, ny: 84 },
+  { id: "35", x: 74.5, y: 77.5, nx: 84, ny: 77.5 },
+  { id: "36", x: 79, y: 71.5, nx: 89, ny: 71 },
+  { id: "37", x: 81, y: 65, nx: 93, ny: 64 },
+  { id: "38", x: 81, y: 59, nx: 91, ny: 57 },
 ];
 
 const TOUCH_SIZE_PCT = 8;
@@ -78,6 +86,7 @@ export function DentalChart({
 
   const touchSize = (imgWidth * TOUCH_SIZE_PCT) / 100;
   const half = touchSize / 2;
+  const numFontSize = Math.max(9, imgWidth * 0.024);
 
   return (
     <View style={[styles.container, { width: imgWidth, height: imgHeight }]}>
@@ -86,13 +95,24 @@ export function DentalChart({
         style={{ width: imgWidth, height: imgHeight }}
         resizeMode="contain"
       />
-      <Text style={[styles.helpText, { top: imgHeight * 0.48, right: 10, color: colors.accent }]}>
+      <Text
+        style={[
+          styles.helpText,
+          { top: imgHeight * 0.48, right: 10, color: colors.text },
+        ]}
+      >
         Ліва
       </Text>
-      <Text style={[styles.helpText, { top: imgHeight * 0.48, left: 10, color: colors.accent }]}>
+      <Text
+        style={[
+          styles.helpText,
+          { top: imgHeight * 0.48, left: 10, color: colors.text },
+        ]}
+      >
         Права
       </Text>
-      {TOOTH_POSITIONS.map(({ id, x, y }) => {
+
+      {TOOTH_POSITIONS.map(({ id, x, y, nx, ny }) => {
         const left = (imgWidth * x) / 100 - half;
         const top = (imgHeight * y) / 100 - half;
         const status = teethStatuses?.[id];
@@ -101,29 +121,47 @@ export function DentalChart({
         const borderColor =
           status && statusBorderColors ? statusBorderColors[status] : undefined;
 
+        const numLeft = (imgWidth * nx) / 100;
+        const numTop = (imgHeight * ny) / 100;
+
         return (
-          <Pressable
-            key={id}
-            onPress={() => onToothPress(id)}
-            onLongPress={() => onToothLongPress?.(id)}
-            delayLongPress={150}
-            style={({ pressed }) => [
-              styles.touchArea,
-              {
-                left,
-                top,
-                width: touchSize,
-                height: touchSize,
-                borderRadius: touchSize / 2,
-              },
-              bgColor != null && {
-                backgroundColor: bgColor,
-                borderWidth: 2,
-                borderColor,
-              },
-              pressed && styles.pressed,
-            ]}
-          />
+          <React.Fragment key={id}>
+            <Text
+              style={[
+                styles.toothNum,
+                {
+                  left: numLeft,
+                  top: numTop,
+                  fontSize: numFontSize,
+                  color: colors.text,
+                },
+              ]}
+              pointerEvents="none"
+            >
+              {id}
+            </Text>
+            <Pressable
+              onPress={() => onToothPress(id)}
+              onLongPress={() => onToothLongPress?.(id)}
+              delayLongPress={150}
+              style={({ pressed }) => [
+                styles.touchArea,
+                {
+                  left,
+                  top,
+                  width: touchSize,
+                  height: touchSize,
+                  borderRadius: touchSize / 2,
+                },
+                bgColor != null && {
+                  backgroundColor: bgColor,
+                  borderWidth: 2,
+                  borderColor,
+                },
+                pressed && styles.pressed,
+              ]}
+            />
+          </React.Fragment>
         );
       })}
     </View>
@@ -146,5 +184,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  toothNum: {
+    position: "absolute",
+    fontWeight: "600",
+    textAlign: "center",
+    transform: [{ translateX: -8 }, { translateY: -6 }],
   },
 });
