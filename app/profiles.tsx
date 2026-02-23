@@ -44,6 +44,8 @@ import {
   isEncryptedPayload,
 } from "../src/utils/profileCrypto";
 import { useAppTheme } from "../src/theme";
+import { useAuth } from "../src/AuthProvider";
+import { revokeAccess } from "../src/store/firestoreService";
 import { useDataSync } from "../src/DataSyncProvider";
 
 const EXPORT_VERSION = 1;
@@ -84,6 +86,7 @@ function parseExportedProfile(json: string): ExportedProfile | null {
 
 export default function ProfilesScreen() {
   const { colors } = useAppTheme();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const headerHeight = useStableHeaderHeight();
   const { profilesRevision, resubscribe } = useDataSync();
@@ -213,6 +216,38 @@ export default function ProfilesScreen() {
             await deleteProfile(profile.id);
             clearDataCache();
             refresh();
+          },
+        },
+      ],
+    );
+  };
+
+  const handleLeaveProfile = (profileId: string, profileName: string) => {
+    Alert.alert(
+      "Від'єднатися",
+      `Ви більше не матимете доступу до профілю «${profileName}». Продовжити?`,
+      [
+        { text: "Скасувати", style: "cancel" },
+        {
+          text: "Від'єднатися",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              if (!user?.uid) return;
+              await revokeAccess(profileId, user.uid);
+              if (currentId === profileId) {
+                const own = profiles.find((p) => p.role === "owner");
+                if (own) {
+                  await setCurrentProfileId(own.id);
+                  setCurrentId(own.id);
+                  resubscribe();
+                }
+              }
+              invalidateProfileCache();
+              await refresh();
+            } catch {
+              Alert.alert("Помилка", "Не вдалося від'єднатися від профілю");
+            }
           },
         },
       ],
@@ -691,8 +726,8 @@ export default function ProfilesScreen() {
                             </View>
                           </View>
                         </View>
-                        {canExport && (
-                          <View style={styles.cardActions}>
+                        <View style={styles.cardActions}>
+                          {canExport && (
                             <Pressable
                               onPress={() => handleExportOpen(p.id)}
                               style={[
@@ -706,8 +741,21 @@ export default function ProfilesScreen() {
                                 color={colors.accent}
                               />
                             </Pressable>
-                          </View>
-                        )}
+                          )}
+                          <Pressable
+                            onPress={() => handleLeaveProfile(p.id, p.name)}
+                            style={[
+                              styles.cardActionBtn,
+                              { backgroundColor: "rgba(192,96,96,0.12)" },
+                            ]}
+                          >
+                            <Ionicons
+                              name="log-out-outline"
+                              size={17}
+                              color={colors.destructive}
+                            />
+                          </Pressable>
+                        </View>
                       </Pressable>
                     );
                   })}

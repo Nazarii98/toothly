@@ -440,7 +440,7 @@ export default function HistoryScreen() {
       )}
 
       {/* Recent records */}
-      <View style={styles.recentSection}>
+      {viewMode !== "year" && <View style={styles.recentSection}>
         <View style={styles.recentHeader}>
           <Text
             style={[styles.recentTitle, { color: colors.text }]}
@@ -465,7 +465,7 @@ export default function HistoryScreen() {
           const isGlobal = item.type === "global";
           const data = item.data;
           const title = data.title;
-          const time = formatTime(data.date);
+          const time = new Date(data.date).toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
           const badge = isGlobal ? "GP" : (data as ToothChange).toothId;
           const badgeBg = isGlobal ? colors.textSecondary : colors.accent;
           const onPress = isGlobal
@@ -501,7 +501,7 @@ export default function HistoryScreen() {
             </Pressable>
           );
         })}
-      </View>
+      </View>}
 
       {/* FAB */}
       <Pressable
