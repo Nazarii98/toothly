@@ -22,6 +22,7 @@ import {
   loadData,
   getToothRecord,
   updateToothChange,
+  deleteToothChange,
 } from "../src/store/teethStore";
 import { TOOTH_NAMES, buildStatusMaps } from "../src/types";
 import type { ToothId, ToothChange, StatusMaps } from "../src/types";
@@ -85,6 +86,20 @@ export default function EditRecordScreen() {
       imageUri: imageUri ?? undefined,
     });
     router.back();
+  };
+
+  const handleDelete = () => {
+    Alert.alert("Видалити запис?", title, [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Видалити",
+        style: "destructive",
+        onPress: async () => {
+          await deleteToothChange(toothId, changeId);
+          router.back();
+        },
+      },
+    ]);
   };
 
   const toothLabel = `${toothId} · ${TOOTH_NAMES[toothId[1]] ?? ""}`;
@@ -248,6 +263,20 @@ export default function EditRecordScreen() {
           >
             <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
           </Pressable>
+
+          {/* ── Delete ── */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.deleteBtn,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={handleDelete}
+          >
+            <Ionicons name="trash-outline" size={18} color={colors.destructive} />
+            <Text style={[styles.deleteBtnText, { color: colors.destructive }]}>
+              Видалити запис
+            </Text>
+          </Pressable>
         </KeyboardAwareScrollView>
       </View>
     </>
@@ -347,5 +376,18 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
+  },
+
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 16,
+    paddingVertical: 12,
+  },
+  deleteBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

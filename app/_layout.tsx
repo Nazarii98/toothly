@@ -49,6 +49,7 @@ function RootStack() {
   const headerOptions = {
     headerTransparent: true,
     headerTintColor: "#fff",
+    headerBackButtonDisplayMode: "minimal" as const,
     headerTitleStyle: { fontWeight: "600" as const, fontSize: 18, flex: 1 },
     headerBackground: () => <GradientHeader isDark={colors.isDark} />,
   };
@@ -56,11 +57,14 @@ function RootStack() {
     <>
       <StatusBar style={colors.isDark ? "light" : "auto"} />
       <Stack screenOptions={headerOptions}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
-          name="tooth/[id]"
-          options={{ headerBackTitle: "Назад" }}
+          name="(tabs)"
+          options={{
+            headerShown: false,
+            title: "Home",
+          }}
         />
+        <Stack.Screen name="tooth/[id]" />
         <Stack.Screen
           name="procedures"
           options={{ title: "Глобальні процедури" }}
@@ -69,18 +73,12 @@ function RootStack() {
           name="statuses"
           options={{ title: "Керування статусами" }}
         />
-        <Stack.Screen
-          name="profiles"
-          options={{ title: "Профіль", headerBackTitle: "Назад" }}
-        />
+        <Stack.Screen name="profiles" options={{ title: "Профіль" }} />
         <Stack.Screen
           name="global-detail"
-          options={{ title: "Ротова порожнина", headerBackTitle: "Назад" }}
+          options={{ title: "Ротова порожнина" }}
         />
-        <Stack.Screen
-          name="history-list"
-          options={{ title: "Історія", headerBackTitle: "Назад" }}
-        />
+        <Stack.Screen name="history-list" options={{ title: "Історія" }} />
         <Stack.Screen
           name="add-record"
           options={{

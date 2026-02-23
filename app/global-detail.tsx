@@ -1,21 +1,11 @@
 import React, { useCallback, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Alert,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import {
-  loadData,
-  deleteGlobalProcedure,
-} from "../src/store/teethStore";
+import { loadData } from "../src/store/teethStore";
 import { GLOBAL_PROCEDURE_TYPES } from "../src/types";
 import type { GlobalProcedure } from "../src/types";
 
@@ -47,20 +37,6 @@ export default function GlobalDetailScreen() {
     router.push(`/edit-global?id=${proc.id}`);
   };
 
-  const handleDelete = (proc: GlobalProcedure) => {
-    Alert.alert("Видалити процедуру?", `"${proc.title}"`, [
-      { text: "Скасувати", style: "cancel" },
-      {
-        text: "Видалити",
-        style: "destructive",
-        onPress: async () => {
-          await deleteGlobalProcedure(proc.id);
-          refresh();
-        },
-      },
-    ]);
-  };
-
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("uk-UA", {
       day: "2-digit",
@@ -75,9 +51,12 @@ export default function GlobalDetailScreen() {
       <Stack.Screen
         options={{
           title: "Ротова порожнина",
-          headerBackTitle: "Назад",
           headerRight: () => (
-            <Pressable onPress={openAdd} hitSlop={8} style={styles.headerAddBtn}>
+            <Pressable
+              onPress={openAdd}
+              hitSlop={8}
+              style={styles.headerAddBtn}
+            >
               <Ionicons name="add" size={26} color={colors.white} />
             </Pressable>
           ),
@@ -96,9 +75,20 @@ export default function GlobalDetailScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Info card */}
-          <View style={[styles.infoCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <View style={[styles.infoIcon, { backgroundColor: colors.accentBg }]}>
-              <Ionicons name="medical-outline" size={24} color={colors.accent} />
+          <View
+            style={[
+              styles.infoCard,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
+            <View
+              style={[styles.infoIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons
+                name="medical-outline"
+                size={24}
+                color={colors.accent}
+              />
             </View>
             <Text style={[styles.infoTitle, { color: colors.text }]}>
               Загальні процедури
@@ -106,9 +96,16 @@ export default function GlobalDetailScreen() {
             <Text style={[styles.infoHint, { color: colors.textSecondary }]}>
               Чистка, відбілювання, огляд та інші процедури ротової порожнини
             </Text>
-            <View style={[styles.infoBadge, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.infoBadge, { backgroundColor: colors.accentBg }]}
+            >
               <Text style={[styles.infoBadgeText, { color: colors.accent }]}>
-                {procedures.length} {procedures.length === 1 ? "запис" : procedures.length < 5 ? "записи" : "записів"}
+                {procedures.length}{" "}
+                {procedures.length === 1
+                  ? "запис"
+                  : procedures.length < 5
+                    ? "записи"
+                    : "записів"}
               </Text>
             </View>
           </View>
@@ -120,56 +117,98 @@ export default function GlobalDetailScreen() {
             </Text>
 
             {procedures.length === 0 ? (
-              <View style={[styles.emptyState, { backgroundColor: colors.cardSecondary, shadowColor: colors.shadow }]}>
-                <Ionicons name="document-text-outline" size={40} color={colors.textTertiary} />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>Ще немає записів</Text>
-                <Text style={[styles.emptyHint, { color: colors.textSecondary }]}>
+              <View
+                style={[
+                  styles.emptyState,
+                  {
+                    backgroundColor: colors.cardSecondary,
+                    shadowColor: colors.shadow,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={40}
+                  color={colors.textTertiary}
+                />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                  Ще немає записів
+                </Text>
+                <Text
+                  style={[styles.emptyHint, { color: colors.textSecondary }]}
+                >
                   Додайте першу загальну процедуру
                 </Text>
-                <Pressable style={[styles.emptyCta, { backgroundColor: colors.accent }]} onPress={openAdd}>
+                <Pressable
+                  style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                  onPress={openAdd}
+                >
                   <Ionicons name="add" size={20} color={colors.white} />
-                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>Додати запис</Text>
+                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                    Додати запис
+                  </Text>
                 </Pressable>
               </View>
             ) : (
               <View style={styles.recordList}>
                 {procedures.map((p) => (
-                  <View
+                  <Pressable
                     key={p.id}
-                    style={[styles.recordCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}
+                    style={[
+                      styles.recordCard,
+                      {
+                        backgroundColor: colors.card,
+                        shadowColor: colors.shadow,
+                      },
+                    ]}
+                    onPress={() => openEdit(p)}
                   >
                     <View style={styles.recordCardTop}>
-                      <Text style={[styles.recordTitle, { color: colors.text }]} numberOfLines={2}>
+                      <Text
+                        style={[styles.recordTitle, { color: colors.text }]}
+                        numberOfLines={2}
+                      >
                         {p.title}
                       </Text>
-                      <Text style={[styles.recordDate, { color: colors.textTertiary }]}>
-                        {formatDate(p.date)}
-                      </Text>
-                    </View>
-
-                    <View style={[styles.recordBadge, { backgroundColor: colors.accentBg, borderColor: colors.border, borderWidth: 1 }]}>
-                      <Text style={[styles.recordBadgeText, { color: colors.accent }]}>
-                        {GLOBAL_PROCEDURE_TYPES[p.type]}
-                      </Text>
+                      <View style={styles.recordMeta}>
+                        <View
+                          style={[
+                            styles.recordStatusBadge,
+                            { backgroundColor: colors.accentBg },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.recordStatusText,
+                              { color: colors.accent },
+                            ]}
+                          >
+                            {GLOBAL_PROCEDURE_TYPES[p.type]}
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            styles.recordDate,
+                            { color: colors.textTertiary },
+                          ]}
+                        >
+                          {formatDate(p.date)}
+                        </Text>
+                      </View>
                     </View>
 
                     {p.notes ? (
-                      <Text style={[styles.recordNotes, { color: colors.textSecondary }]} numberOfLines={3}>
+                      <Text
+                        style={[
+                          styles.recordNotes,
+                          { color: colors.textSecondary },
+                        ]}
+                        numberOfLines={3}
+                      >
                         {p.notes}
                       </Text>
                     ) : null}
-
-                    <View style={styles.recordActions}>
-                      <Pressable onPress={() => openEdit(p)} style={styles.recordBtnEdit}>
-                        <Ionicons name="pencil" size={14} color={colors.accent} />
-                        <Text style={[styles.recordBtnEditText, { color: colors.accent }]}>Редагувати</Text>
-                      </Pressable>
-                      <Pressable onPress={() => handleDelete(p)} style={styles.recordBtnDelete}>
-                        <Ionicons name="trash-outline" size={14} color={colors.destructive} />
-                        <Text style={[styles.recordBtnDeleteText, { color: colors.destructive }]}>Видалити</Text>
-                      </Pressable>
-                    </View>
-                  </View>
+                  </Pressable>
                 ))}
               </View>
             )}
@@ -295,23 +334,25 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 22,
   },
-  recordDate: {
-    fontSize: 12,
-    fontWeight: "500",
+  recordMeta: {
+    alignItems: "flex-end",
+    gap: 6,
   },
-  recordBadge: {
+  recordStatusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
-    marginTop: 8,
-    paddingHorizontal: 10,
+    gap: 5,
+    paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 10,
   },
-  recordBadgeText: {
-    fontSize: 13,
+  recordStatusText: {
+    fontSize: 12,
     fontWeight: "600",
+  },
+  recordDate: {
+    fontSize: 12,
+    fontWeight: "500",
   },
   recordNotes: {
     fontSize: 14,
@@ -321,27 +362,11 @@ const styles = StyleSheet.create({
   recordActions: {
     flexDirection: "row",
     marginTop: 12,
-    gap: 16,
+    gap: 6,
     alignItems: "center",
   },
-  recordBtnEdit: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-  },
-  recordBtnEditText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  recordBtnDelete: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-  },
-  recordBtnDeleteText: {
-    fontSize: 13,
-    fontWeight: "600",
+  recordActionHint: {
+    flex: 1,
+    fontSize: 12,
   },
 });

@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  Alert,
   ScrollView,
   Image,
 } from "react-native";
@@ -16,7 +15,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   loadData,
-  deleteToothChange,
   getToothRecord,
   setToothStatus,
 } from "../../src/store/teethStore";
@@ -70,20 +68,6 @@ export default function ToothDetailScreen() {
     router.push(`/edit-record?toothId=${toothId}&changeId=${change.id}`);
   };
 
-  const deleteChange = (change: ToothChange) => {
-    Alert.alert("Видалити запис?", `"${change.title}"`, [
-      { text: "Скасувати", style: "cancel" },
-      {
-        text: "Видалити",
-        style: "destructive",
-        onPress: async () => {
-          await deleteToothChange(toothId, change.id);
-          refresh();
-        },
-      },
-    ]);
-  };
-
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString("uk-UA", {
       day: "2-digit",
@@ -107,7 +91,6 @@ export default function ToothDetailScreen() {
       <Stack.Screen
         options={{
           title: `Зуб ${toothId}`,
-          headerBackTitle: "Назад",
           headerRight: () => (
             <Pressable
               onPress={openAdd}
@@ -131,10 +114,20 @@ export default function ToothDetailScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <View style={[styles.statusCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>Поточний статус</Text>
+          <View
+            style={[
+              styles.statusCard,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
+            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+              Поточний статус
+            </Text>
             <Pressable
-              style={[styles.statusTrigger, { backgroundColor: colors.inputBg }]}
+              style={[
+                styles.statusTrigger,
+                { backgroundColor: colors.inputBg },
+              ]}
               onPress={() => setPickerVisible(true)}
             >
               <View
@@ -143,8 +136,14 @@ export default function ToothDetailScreen() {
                   { backgroundColor: currentStatusColor },
                 ]}
               />
-              <Text style={[styles.statusTriggerText, { color: colors.text }]}>{currentStatusLabel}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
+              <Text style={[styles.statusTriggerText, { color: colors.text }]}>
+                {currentStatusLabel}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={colors.chevron}
+              />
             </Pressable>
             <StatusPickerModal
               visible={pickerVisible}
@@ -154,7 +153,12 @@ export default function ToothDetailScreen() {
               statusMaps={statusMaps}
               onSelect={handleStatusChange}
               footer={
-                <View style={[styles.statusSectionFooter, { borderTopColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.statusSectionFooter,
+                    { borderTopColor: colors.border },
+                  ]}
+                >
                   <Pressable
                     style={styles.manageBtn}
                     hitSlop={12}
@@ -168,7 +172,12 @@ export default function ToothDetailScreen() {
                       size={16}
                       color={colors.textSecondary}
                     />
-                    <Text style={[styles.manageBtnText, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.manageBtnText,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Керувати статусами
                     </Text>
                   </Pressable>
@@ -178,83 +187,129 @@ export default function ToothDetailScreen() {
           </View>
 
           <View style={styles.historySection}>
-            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>Історія змін</Text>
+            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+              Історія змін
+            </Text>
             {record && record.changes.length === 0 ? (
-              <View style={[styles.emptyState, { backgroundColor: colors.cardSecondary, shadowColor: colors.shadow }]}>
+              <View
+                style={[
+                  styles.emptyState,
+                  {
+                    backgroundColor: colors.cardSecondary,
+                    shadowColor: colors.shadow,
+                  },
+                ]}
+              >
                 <Ionicons
                   name="document-text-outline"
                   size={40}
                   color={colors.textTertiary}
                 />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>Ще немає записів</Text>
-                <Text style={[styles.emptyHint, { color: colors.textSecondary }]}>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                  Ще немає записів
+                </Text>
+                <Text
+                  style={[styles.emptyHint, { color: colors.textSecondary }]}
+                >
                   Додайте перший запис про лікування або огляд
                 </Text>
-                <Pressable style={[styles.emptyCta, { backgroundColor: colors.accent }]} onPress={openAdd}>
+                <Pressable
+                  style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                  onPress={openAdd}
+                >
                   <Ionicons name="add" size={20} color={colors.white} />
-                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>Додати запис</Text>
+                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                    Додати запис
+                  </Text>
                 </Pressable>
               </View>
             ) : (
               <View style={styles.recordList}>
                 {record?.changes.map((c) => (
-                  <View key={c.id} style={[styles.recordCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+                  <Pressable
+                    key={c.id}
+                    style={[
+                      styles.recordCard,
+                      {
+                        backgroundColor: colors.card,
+                        shadowColor: colors.shadow,
+                      },
+                    ]}
+                    onPress={() => openEdit(c)}
+                  >
                     <View style={styles.recordCardTop}>
-                      <Text style={[styles.recordTitle, { color: colors.text }]} numberOfLines={2}>
+                      <Text
+                        style={[styles.recordTitle, { color: colors.text }]}
+                        numberOfLines={2}
+                      >
                         {c.title}
                       </Text>
-                      <Text style={[styles.recordDate, { color: colors.textTertiary }]}>
-                        {formatDate(c.date)}
-                      </Text>
-                    </View>
-                    {c.status && (
-                      <View style={[styles.recordBadge, { backgroundColor: colors.accentBg, borderColor: colors.border, borderWidth: 1 }]}>
-                        <View
+                      <View style={styles.recordMeta}>
+                        {c.status && (
+                          <View
+                            style={[
+                              styles.recordStatusBadge,
+                              {
+                                backgroundColor:
+                                  (statusMaps.borderColors[c.status] ??
+                                    "#999") + "18",
+                              },
+                            ]}
+                          >
+                            <View
+                              style={[
+                                styles.recordStatusDot,
+                                {
+                                  backgroundColor:
+                                    statusMaps.borderColors[c.status] ?? "#999",
+                                },
+                              ]}
+                            />
+                            <Text
+                              style={[
+                                styles.recordStatusText,
+                                {
+                                  color:
+                                    statusMaps.borderColors[c.status] ??
+                                    colors.textSecondary,
+                                },
+                              ]}
+                            >
+                              {statusMaps.labels[c.status] ?? c.status}
+                            </Text>
+                          </View>
+                        )}
+                        <Text
                           style={[
-                            styles.recordBadgeDot,
-                            {
-                              backgroundColor:
-                                statusMaps.borderColors[c.status] ?? "#999",
-                            },
+                            styles.recordDate,
+                            { color: colors.textTertiary },
                           ]}
-                        />
-                        <Text style={[styles.recordBadgeText, { color: colors.accent }]}>
-                          {statusMaps.labels[c.status] ?? c.status}
+                        >
+                          {formatDate(c.date)}
                         </Text>
                       </View>
-                    )}
+                    </View>
                     {c.notes ? (
-                      <Text style={[styles.recordNotes, { color: colors.textSecondary }]} numberOfLines={2}>
+                      <Text
+                        style={[
+                          styles.recordNotes,
+                          { color: colors.textSecondary },
+                        ]}
+                        numberOfLines={2}
+                      >
                         {c.notes}
                       </Text>
                     ) : null}
                     {c.imageUri && (
                       <Image
                         source={{ uri: c.imageUri }}
-                        style={[styles.recordImage, { backgroundColor: colors.border }]}
+                        style={[
+                          styles.recordImage,
+                          { backgroundColor: colors.border },
+                        ]}
                       />
                     )}
-                    <View style={styles.recordActions}>
-                      <Pressable
-                        onPress={() => openEdit(c)}
-                        style={styles.recordBtnEdit}
-                      >
-                        <Ionicons name="pencil" size={14} color={colors.accent} />
-                        <Text style={[styles.recordBtnEditText, { color: colors.accent }]}>Редагувати</Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => deleteChange(c)}
-                        style={styles.recordBtnDelete}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={14}
-                          color={colors.destructive}
-                        />
-                        <Text style={[styles.recordBtnDeleteText, { color: colors.destructive }]}>Видалити</Text>
-                      </Pressable>
-                    </View>
-                  </View>
+                  </Pressable>
                 ))}
               </View>
             )}
@@ -396,24 +451,30 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 22,
   },
+  recordMeta: {
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  recordStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  recordStatusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  recordStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
   recordDate: {
     fontSize: 12,
     fontWeight: "500",
-  },
-  recordBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 8,
-  },
-  recordBadgeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  recordBadgeText: {
-    fontSize: 13,
-    fontWeight: "600",
   },
   recordNotes: {
     fontSize: 14,
@@ -429,29 +490,11 @@ const styles = StyleSheet.create({
   recordActions: {
     flexDirection: "row",
     marginTop: 12,
-    gap: 16,
+    gap: 6,
     alignItems: "center",
   },
-  recordBtnEdit: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 0,
-  },
-  recordBtnEditText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  recordBtnDelete: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 0,
-  },
-  recordBtnDeleteText: {
-    fontSize: 13,
-    fontWeight: "600",
+  recordActionHint: {
+    flex: 1,
+    fontSize: 12,
   },
 });

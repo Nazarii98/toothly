@@ -66,15 +66,16 @@ function formatTime(iso: string) {
   });
 }
 
+const CALENDAR_ROWS = 6;
+
 function getCalendarDays(year: number, month: number) {
-  const first = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0).getDate();
-  let startDow = first.getDay() - 1;
+  let startDow = new Date(year, month, 1).getDay() - 1;
   if (startDow < 0) startDow = 6;
   const days: (number | null)[] = [];
   for (let i = 0; i < startDow; i++) days.push(null);
   for (let d = 1; d <= lastDay; d++) days.push(d);
-  while (days.length % 7 !== 0) days.push(null);
+  while (days.length < CALENDAR_ROWS * 7) days.push(null);
   return days;
 }
 
@@ -85,7 +86,7 @@ function getMiniMonthDays(year: number, month: number) {
   const days: (number | null)[] = [];
   for (let i = 0; i < startDow; i++) days.push(null);
   for (let d = 1; d <= lastDay; d++) days.push(d);
-  while (days.length % 7 !== 0) days.push(null);
+  while (days.length < CALENDAR_ROWS * 7) days.push(null);
   return days;
 }
 
@@ -164,7 +165,20 @@ export default function HistoryScreen() {
     setMonth(today.getMonth());
   };
 
-  const recentItems = allItems.slice(0, 3);
+  const periodItems = useMemo(() => {
+    if (viewMode === "month") {
+      const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+      return allItems.filter((i) => i.data.date.startsWith(prefix));
+    }
+    const prefix = `${year}-`;
+    return allItems.filter((i) => i.data.date.startsWith(prefix));
+  }, [allItems, viewMode, year, month]);
+
+  const recentItems = periodItems.slice(0, 3);
+
+  const periodLabel = viewMode === "month"
+    ? `за ${MONTH_NAMES[month].toLowerCase()} ${year}`
+    : `за ${year} рік`;
 
   const countForMonth = useCallback(
     (m: number) => {
@@ -415,13 +429,13 @@ export default function HistoryScreen() {
       {/* Recent records */}
       <View style={styles.recentSection}>
         <View style={styles.recentHeader}>
-          <Text style={[styles.recentTitle, { color: colors.text }]}>
-            Останні записи
+          <Text style={[styles.recentTitle, { color: colors.text }]} numberOfLines={1}>
+            Останні записи {periodLabel}
           </Text>
-          {allItems.length > 0 && (
+          {periodItems.length > 3 && (
             <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
               <Text style={[styles.showAll, { color: colors.accent }]}>
-                Показати все
+                Усі {periodItems.length}
               </Text>
             </Pressable>
           )}
@@ -608,8 +622,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   recentTitle: {
-    fontSize: 16,
+    flex: 1,
+    fontSize: 15,
     fontWeight: "700",
+    marginRight: 8,
   },
   showAll: {
     fontSize: 14,
