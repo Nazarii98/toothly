@@ -1,6 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export type ThemePreference = "light" | "dark" | "system";
+export type ThemePreference =
+  | "light"
+  | "dark"
+  | "system"
+  | "emerald"
+  | "ocean"
+  | "lavender"
+  | "sunset"
+  | "midnight";
 
 const THEME_KEY = "@teeth_manager_theme";
 
@@ -10,7 +18,18 @@ export async function getThemePreference(): Promise<ThemePreference> {
   if (cached) return cached;
   try {
     const raw = await AsyncStorage.getItem(THEME_KEY);
-    if (raw === "light" || raw === "dark" || raw === "system") {
+    if (
+      [
+        "light",
+        "dark",
+        "system",
+        "emerald",
+        "ocean",
+        "lavender",
+        "sunset",
+        "midnight",
+      ].includes(raw as string)
+    ) {
       cached = raw;
       return raw;
     }

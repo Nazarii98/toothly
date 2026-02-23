@@ -77,10 +77,8 @@ export default function ChartScreen() {
     ...new Set(Object.values(teethStatuses).filter(Boolean)),
   ] as ToothStatus[];
 
-  const profileBadgeBg = colors.isDark
-    ? "rgba(30,50,40,0.85)"
-    : "rgba(255,255,255,0.92)";
-  const btnBorder = colors.isDark ? "transparent" : "rgba(0,0,0,0.1)";
+  const profileBadgeBg = colors.glassCard;
+  const btnBorder = colors.isDark ? colors.border : "rgba(0,0,0,0.1)";
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {profileName ? (

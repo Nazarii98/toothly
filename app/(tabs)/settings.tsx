@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useAppTheme, THEME_LABELS } from "../../src/theme";
+import { useAppTheme, THEME_LABELS, THEME_COLORS } from "../../src/theme";
 import type { ThemePreference } from "../../src/store/themeStore";
 import { GlassModal } from "../../src/components/GlassModal";
 import { useAuth } from "../../src/AuthProvider";
@@ -19,6 +19,11 @@ const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
   { value: "system", icon: "phone-portrait-outline" },
   { value: "light", icon: "sunny-outline" },
   { value: "dark", icon: "moon-outline" },
+  { value: "emerald", icon: "leaf-outline" },
+  { value: "ocean", icon: "water-outline" },
+  { value: "lavender", icon: "flower-outline" },
+  { value: "sunset", icon: "partly-sunny-outline" },
+  { value: "midnight", icon: "planet-outline" },
 ];
 
 export default function SettingsScreen() {
@@ -165,11 +170,8 @@ export default function SettingsScreen() {
             >
               <Ionicons
                 name={
-                  preference === "dark"
-                    ? "moon"
-                    : preference === "light"
-                      ? "sunny"
-                      : "phone-portrait-outline"
+                  (THEME_OPTIONS.find((o) => o.value === preference)?.icon ??
+                    "phone-portrait-outline") as any
                 }
                 size={22}
                 color={colors.accent}
@@ -292,6 +294,7 @@ export default function SettingsScreen() {
         <View style={styles.themeList}>
           {THEME_OPTIONS.map(({ value, icon }) => {
             const isSelected = preference === value;
+            const preview = value !== "system" ? THEME_COLORS[value] : null;
             return (
               <Pressable
                 key={value}
@@ -319,12 +322,33 @@ export default function SettingsScreen() {
                 >
                   {THEME_LABELS[value]}
                 </Text>
+                {preview && (
+                  <View style={styles.themePreview}>
+                    <View
+                      style={[
+                        styles.previewDot,
+                        { backgroundColor: preview.bg },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.previewDot,
+                        { backgroundColor: preview.accent },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.previewDot,
+                        { backgroundColor: preview.card },
+                      ]}
+                    />
+                  </View>
+                )}
                 {isSelected && (
                   <Ionicons
                     name="checkmark-circle"
                     size={22}
                     color={colors.accent}
-                    style={{ marginLeft: "auto" }}
                   />
                 )}
               </Pressable>
@@ -573,6 +597,18 @@ const styles = StyleSheet.create({
   themeOptionText: {
     flex: 1,
     fontSize: 16,
+  },
+  themePreview: {
+    flexDirection: "row",
+    gap: 4,
+    marginRight: 4,
+  },
+  previewDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(128,128,128,0.3)",
   },
   deleteModalContent: {
     padding: 20,
