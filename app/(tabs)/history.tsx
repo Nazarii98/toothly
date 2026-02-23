@@ -432,13 +432,11 @@ export default function HistoryScreen() {
           <Text style={[styles.recentTitle, { color: colors.text }]} numberOfLines={1}>
             Останні записи {periodLabel}
           </Text>
-          {periodItems.length > 3 && (
-            <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
-              <Text style={[styles.showAll, { color: colors.accent }]}>
-                Усі {periodItems.length}
-              </Text>
-            </Pressable>
-          )}
+          <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
+            <Text style={[styles.showAll, { color: colors.accent }]}>
+              {periodItems.length > 3 ? `Усі ${periodItems.length}` : "Показати все"}
+            </Text>
+          </Pressable>
         </View>
         {recentItems.length === 0 && (
           <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>

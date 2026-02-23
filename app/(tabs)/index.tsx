@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { BlurView } from "expo-blur";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { useRouter } from "expo-router";
@@ -66,45 +65,58 @@ export default function ChartScreen() {
     ...new Set(Object.values(teethStatuses).filter(Boolean)),
   ] as ToothStatus[];
 
-  const materialTint = colors.isDark
-    ? "systemChromeMaterialDark"
-    : "systemChromeMaterial";
+  const profileBadgeBg = colors.isDark
+    ? "rgba(30,50,40,0.85)"
+    : "rgba(255,255,255,0.92)";
+  const btnBorder = colors.isDark ? "transparent" : "rgba(0,0,0,0.1)";
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {profileName ? (
         <Pressable
-          style={[styles.profileBadge, { top: insets.top + 10 }]}
+          style={[
+            styles.profileBadge,
+            {
+              top: insets.top + 10,
+              backgroundColor: profileBadgeBg,
+              borderColor: btnBorder,
+              borderWidth: 1,
+            },
+          ]}
           onPress={() => router.push("/profiles")}
           hitSlop={6}
         >
-          <BlurView tint={materialTint as any} style={styles.blurPill}>
-            <Ionicons
-              name="person-circle-outline"
-              size={18}
-              color={colors.accent}
-            />
-            <Text
-              style={[styles.profileBadgeText, { color: colors.text }]}
-              numberOfLines={1}
-            >
-              {profileName}
-            </Text>
-          </BlurView>
+          <Ionicons
+            name="person-circle-outline"
+            size={18}
+            color={colors.accent}
+          />
+          <Text
+            style={[styles.profileBadgeText, { color: colors.text }]}
+            numberOfLines={1}
+          >
+            {profileName}
+          </Text>
         </Pressable>
       ) : null}
 
       <Pressable
         onPress={() => setShowStatuses((v) => !v)}
-        style={[styles.eyeBtn, { top: insets.top + 8 }]}
+        style={[
+          styles.eyeBtn,
+          {
+            top: insets.top + 8,
+            backgroundColor: profileBadgeBg,
+            borderColor: btnBorder,
+            borderWidth: 1,
+          },
+        ]}
         hitSlop={8}
       >
-        <BlurView tint={materialTint as any} style={styles.blurCircle}>
-          <Ionicons
-            name={showStatuses ? "eye" : "eye-off"}
-            size={22}
-            color={showStatuses ? colors.accent : colors.textTertiary}
-          />
-        </BlurView>
+        <Ionicons
+          name={showStatuses ? "eye" : "eye-off"}
+          size={22}
+          color={showStatuses ? colors.accent : colors.textTertiary}
+        />
       </Pressable>
 
       <View style={styles.chartArea}>
@@ -158,16 +170,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     zIndex: 10,
-    borderRadius: 22,
-    overflow: "hidden",
-    maxWidth: 180,
-  },
-  blurPill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+    maxWidth: 180,
   },
   profileBadgeText: {
     fontSize: 14,
@@ -179,13 +193,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
     width: 40,
     height: 40,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  blurCircle: {
-    flex: 1,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
   legend: {
     flexDirection: "row",
