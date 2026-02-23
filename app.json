@@ -8,14 +8,17 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "teeth-manager",
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router"
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nazarii98.teeth-manager"
     },
     "android": {
       "adaptiveIcon": {

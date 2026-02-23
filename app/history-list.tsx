@@ -347,7 +347,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   segmented: {
-    height: 34,
+    height: 38,
+    maxWidth: 260,
+    alignSelf: "center",
+    width: "100%",
   },
   navRow: {
     flexDirection: "row",

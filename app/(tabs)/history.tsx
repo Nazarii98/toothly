@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAppTheme } from "../../src/theme";
+import { useDataSync } from "../../src/DataSyncProvider";
 import { loadData } from "../../src/store/teethStore";
 import {
   QUADRANT_LABELS,
@@ -93,6 +94,7 @@ function getMiniMonthDays(year: number, month: number) {
 export default function HistoryScreen() {
   const { colors } = useAppTheme();
   const router = useRouter();
+  const { dataRevision } = useDataSync();
 
   const today = new Date();
   const [viewMode, setViewMode] = useState<ViewMode>("month");
@@ -120,6 +122,10 @@ export default function HistoryScreen() {
       refresh();
     }, [refresh]),
   );
+
+  useEffect(() => {
+    if (dataRevision > 0) refresh();
+  }, [dataRevision]);
 
   const itemsByDate = useMemo(() => {
     const map = new Map<string, HistoryItem[]>();
@@ -519,9 +525,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 4,
+    alignItems: "center",
   },
   segmented: {
-    height: 34,
+    height: 38,
+    maxWidth: 200,
+    width: "100%",
   },
 
   header: {

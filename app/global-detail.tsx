@@ -1,11 +1,13 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useDataSync } from "../src/DataSyncProvider";
 import { loadData } from "../src/store/teethStore";
+import { getCurrentProfileRole } from "../src/store/profileStore";
 import { GLOBAL_PROCEDURE_TYPES } from "../src/types";
 import type { GlobalProcedure } from "../src/types";
 
@@ -15,12 +17,17 @@ export default function GlobalDetailScreen() {
   const { colors } = useAppTheme();
 
   const [procedures, setProcedures] = useState<GlobalProcedure[]>([]);
+  const [role, setRole] = useState<string>("owner");
+
+  const { dataRevision } = useDataSync();
+  const canEdit = role !== "viewer";
 
   const refresh = useCallback(async () => {
-    const data = await loadData();
+    const [data, r] = await Promise.all([loadData(), getCurrentProfileRole()]);
     setProcedures(
       [...data.globalProcedures].sort((a, b) => b.date.localeCompare(a.date)),
     );
+    setRole(r);
   }, []);
 
   useFocusEffect(
@@ -28,6 +35,10 @@ export default function GlobalDetailScreen() {
       refresh();
     }, [refresh]),
   );
+
+  useEffect(() => {
+    if (dataRevision > 0) refresh();
+  }, [dataRevision]);
 
   const openAdd = () => {
     router.push("/add-record?target=global");
@@ -51,15 +62,17 @@ export default function GlobalDetailScreen() {
       <Stack.Screen
         options={{
           title: "Ротова порожнина",
-          headerRight: () => (
-            <Pressable
-              onPress={openAdd}
-              hitSlop={8}
-              style={styles.headerAddBtn}
-            >
-              <Ionicons name="add" size={26} color={colors.text} />
-            </Pressable>
-          ),
+          headerRight: canEdit
+            ? () => (
+                <Pressable
+                  onPress={openAdd}
+                  hitSlop={8}
+                  style={styles.headerAddBtn}
+                >
+                  <Ionicons name="add" size={26} color={colors.text} />
+                </Pressable>
+              )
+            : undefined,
         }}
       />
       <View style={[styles.safe, { backgroundColor: colors.bg }]}>
@@ -139,15 +152,17 @@ export default function GlobalDetailScreen() {
                 >
                   Додайте першу загальну процедуру
                 </Text>
-                <Pressable
-                  style={[styles.emptyCta, { backgroundColor: colors.accent }]}
-                  onPress={openAdd}
-                >
-                  <Ionicons name="add" size={20} color={colors.white} />
-                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>
-                    Додати запис
-                  </Text>
-                </Pressable>
+                {canEdit && (
+                  <Pressable
+                    style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                    onPress={openAdd}
+                  >
+                    <Ionicons name="add" size={20} color={colors.white} />
+                    <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                      Додати запис
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             ) : (
               <View style={styles.recordList}>
@@ -161,7 +176,8 @@ export default function GlobalDetailScreen() {
                         shadowColor: colors.shadow,
                       },
                     ]}
-                    onPress={() => openEdit(p)}
+                    onPress={canEdit ? () => openEdit(p) : undefined}
+                    disabled={!canEdit}
                   >
                     <View style={styles.recordCardTop}>
                       <Text

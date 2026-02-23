@@ -1,5 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ensureCurrentProfileId } from "./profileStore";
+import {
+  getProfileData,
+  saveProfileData,
+} from "./firestoreService";
 import type {
   AppData,
   ToothId,
@@ -10,12 +13,6 @@ import type {
   CustomStatus,
 } from "../types";
 import { ALL_TOOTH_IDS } from "../types";
-
-const STORAGE_KEY_PREFIX = "@teeth_manager_data_";
-
-function storageKey(profileId: string): string {
-  return `${STORAGE_KEY_PREFIX}${profileId}`;
-}
 
 const defaultToothRecord = (toothId: ToothId): ToothRecord => ({
   toothId,
@@ -36,65 +33,33 @@ export function clearDataCache(): void {
   cached = null;
 }
 
-/** Load data for a specific profile (for export). Does not update cache. */
-export async function loadDataForProfile(profileId: string): Promise<AppData> {
-  try {
-    const raw = await AsyncStorage.getItem(storageKey(profileId));
-    if (raw) {
-      const parsed = JSON.parse(raw) as AppData;
-      const teeth = { ...getDefaultData().teeth, ...parsed.teeth };
-      ALL_TOOTH_IDS.forEach((id) => {
-        if (!teeth[id]) teeth[id] = defaultToothRecord(id);
-        if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
-      });
-      return {
-        teeth,
-        globalProcedures: parsed.globalProcedures ?? [],
-        customStatuses: parsed.customStatuses ?? [],
-      };
-    }
-  } catch (_) {}
-  return getDefaultData();
+export function updateCachedData(profileId: string, data: AppData): void {
+  cached = { profileId, data };
 }
 
-/** Save data for a specific profile (for import). Does not update cache. */
+export async function loadDataForProfile(profileId: string): Promise<AppData> {
+  return getProfileData(profileId);
+}
+
 export async function saveDataForProfile(
   profileId: string,
   data: AppData,
 ): Promise<void> {
-  await AsyncStorage.setItem(storageKey(profileId), JSON.stringify(data));
+  await saveProfileData(profileId, data);
 }
 
 export async function loadData(): Promise<AppData> {
   const profileId = await ensureCurrentProfileId();
   if (cached && cached.profileId === profileId) return cached.data;
-  try {
-    const raw = await AsyncStorage.getItem(storageKey(profileId));
-    if (raw) {
-      const parsed = JSON.parse(raw) as AppData;
-      const teeth = { ...getDefaultData().teeth, ...parsed.teeth };
-      ALL_TOOTH_IDS.forEach((id) => {
-        if (!teeth[id]) teeth[id] = defaultToothRecord(id);
-        if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
-      });
-      cached = {
-        profileId,
-        data: {
-          teeth,
-          globalProcedures: parsed.globalProcedures ?? [],
-          customStatuses: parsed.customStatuses ?? [],
-        },
-      };
-      return cached.data;
-    }
-  } catch (_) {}
-  cached = { profileId, data: getDefaultData() };
+  const data = await getProfileData(profileId);
+  cached = { profileId, data };
   return cached.data;
 }
 
 async function saveData(data: AppData): Promise<void> {
   if (!cached) return;
-  await AsyncStorage.setItem(storageKey(cached.profileId), JSON.stringify(data));
+  cached = { ...cached, data };
+  await saveProfileData(cached.profileId, data);
 }
 
 export function getToothRecord(data: AppData, toothId: ToothId): ToothRecord {

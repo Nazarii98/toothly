@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,10 @@ import {
   TextInput,
   Share,
   ActivityIndicator,
+  RefreshControl,
+  Platform,
 } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassModal } from "../src/components/GlassModal";
 import { useFocusEffect } from "@react-navigation/native";
@@ -24,6 +26,7 @@ import {
   addProfile,
   updateProfile,
   deleteProfile,
+  invalidateProfileCache,
   type Profile,
 } from "../src/store/profileStore";
 import {
@@ -38,6 +41,7 @@ import {
   isEncryptedPayload,
 } from "../src/utils/profileCrypto";
 import { useAppTheme } from "../src/theme";
+import { useDataSync } from "../src/DataSyncProvider";
 
 const EXPORT_VERSION = 1;
 
@@ -78,6 +82,7 @@ function parseExportedProfile(json: string): ExportedProfile | null {
 export default function ProfilesScreen() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { profilesRevision, resubscribe } = useDataSync();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -88,9 +93,11 @@ export default function ProfilesScreen() {
   const [importJson, setImportJson] = useState("");
   const [importPassword, setImportPassword] = useState("");
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportProfileId, setExportProfileId] = useState<string | null>(null);
   const [exportPassword, setExportPassword] = useState("");
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
     const [list, id] = await Promise.all([
@@ -101,17 +108,32 @@ export default function ProfilesScreen() {
     setCurrentId(id);
   }, []);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    invalidateProfileCache();
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
+
   useFocusEffect(
     useCallback(() => {
       refresh();
     }, [refresh]),
   );
 
+  useEffect(() => {
+    if (profilesRevision > 0) {
+      invalidateProfileCache();
+      refresh();
+    }
+  }, [profilesRevision]);
+
   const handleSelectProfile = async (id: string) => {
     if (id === currentId) return;
     await setCurrentProfileId(id);
     clearDataCache();
     setCurrentId(id);
+    resubscribe();
   };
 
   const handleAddProfile = async () => {
@@ -136,7 +158,11 @@ export default function ProfilesScreen() {
   };
 
   const handleDeleteProfile = (profile: Profile) => {
-    if (profiles.length <= 1) {
+    if (profile.role && profile.role !== "owner") {
+      Alert.alert("Помилка", "Ви не можете видалити чужий профіль.");
+      return;
+    }
+    if (profiles.filter((p) => p.role === "owner" || !p.role).length <= 1) {
       Alert.alert("Помилка", "Повинен залишитися хоча б один профіль.");
       return;
     }
@@ -158,18 +184,19 @@ export default function ProfilesScreen() {
     );
   };
 
-  const handleExportOpen = () => {
+  const handleExportOpen = (profileId: string) => {
+    setExportProfileId(profileId);
     setExportPassword("");
     setExportModalVisible(true);
   };
 
   const handleExport = async () => {
-    if (!currentId) return;
-    const profile = profiles.find((p) => p.id === currentId);
+    if (!exportProfileId) return;
+    const profile = profiles.find((p) => p.id === exportProfileId);
     if (!profile) return;
     setExporting(true);
     try {
-      const data = await loadDataForProfile(currentId);
+      const data = await loadDataForProfile(exportProfileId);
       const payload: ExportedProfile = {
         version: EXPORT_VERSION,
         profileName: profile.name,
@@ -190,6 +217,7 @@ export default function ProfilesScreen() {
       }
       await Share.share({ message, title });
       setExportModalVisible(false);
+      setExportProfileId(null);
       setExportPassword("");
     } catch {
       Alert.alert("Помилка", "Не вдалося експортувати профіль.");
@@ -274,18 +302,37 @@ export default function ProfilesScreen() {
         style={[styles.scroll, { backgroundColor: colors.bg }]}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 68 },
+          Platform.OS === "android" && { paddingTop: insets.top + 68 },
         ]}
+        contentInset={
+          Platform.OS === "ios" ? { top: insets.top + 68 } : undefined
+        }
+        contentOffset={
+          Platform.OS === "ios" ? { x: 0, y: -(insets.top + 68) } : undefined
+        }
+        scrollIndicatorInsets={
+          Platform.OS === "ios" ? { top: insets.top + 68 } : undefined
+        }
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.isDark ? colors.text : colors.textSecondary}
+            progressViewOffset={Platform.OS === "android" ? insets.top + 68 : 0}
+          />
+        }
       >
         <Text style={[styles.hint, { color: colors.textTertiary }]}>
-          Оберіть людину, чиї записи ви переглядаєте. Можна експортувати та
-          імпортувати профіль разом з усіма даними.
+          Оберіть профіль для перегляду. Керуйте доступом, експортом та
+          редагуванням кожного профілю окремо.
         </Text>
         <View style={styles.profileList}>
           {profiles.map((p) => {
             const isActive = currentId === p.id;
             const initial = (p.name[0] ?? "?").toUpperCase();
+            const isOwner = !p.role || p.role === "owner";
+            const canExport = isOwner || p.role === "editor";
 
             if (editingId === p.id) {
               return (
@@ -362,7 +409,6 @@ export default function ProfilesScreen() {
                 <View
                   style={[
                     styles.avatar,
-                    isActive ? styles.avatarActive : styles.avatarInactive,
                     {
                       backgroundColor: isActive ? colors.accent : colors.border,
                     },
@@ -371,24 +417,52 @@ export default function ProfilesScreen() {
                   <Text
                     style={[
                       styles.avatarText,
-                      { color: colors.textSecondary },
-                      isActive && styles.avatarTextActive,
-                      isActive && { color: colors.white },
+                      { color: isActive ? colors.white : colors.textSecondary },
                     ]}
                   >
                     {initial}
                   </Text>
                 </View>
                 <View style={styles.profileInfo}>
-                  <Text
-                    style={[
-                      styles.profileName,
-                      { color: colors.text },
-                      isActive && styles.profileNameActive,
-                    ]}
-                  >
-                    {p.name}
-                  </Text>
+                  <View style={styles.nameRow}>
+                    <Text
+                      style={[
+                        styles.profileName,
+                        { color: colors.text },
+                        isActive && styles.profileNameActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {p.name}
+                    </Text>
+                    {p.role && p.role !== "owner" && (
+                      <View
+                        style={[
+                          styles.roleBadge,
+                          {
+                            backgroundColor:
+                              (p.role === "editor"
+                                ? "#FF9800"
+                                : colors.textTertiary) + "18",
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.roleBadgeText,
+                            {
+                              color:
+                                p.role === "editor"
+                                  ? "#FF9800"
+                                  : colors.textTertiary,
+                            },
+                          ]}
+                        >
+                          {p.role === "editor" ? "Редактор" : "Переглядач"}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   {isActive && (
                     <Text
                       style={[
@@ -400,168 +474,167 @@ export default function ProfilesScreen() {
                     </Text>
                   )}
                 </View>
-                {isActive && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={24}
-                    color={colors.accent}
-                  />
-                )}
-                {!isActive && profiles.length > 1 && (
-                  <View style={styles.profileActions}>
+                <View style={styles.cardActions}>
+                  {isOwner && (
                     <Pressable
                       onPress={() => {
                         setEditingId(p.id);
                         setEditName(p.name);
                       }}
-                      style={styles.iconBtn}
-                      hitSlop={8}
+                      style={[
+                        styles.cardActionBtn,
+                        { backgroundColor: colors.accentBg },
+                      ]}
                     >
                       <Ionicons
                         name="pencil-outline"
-                        size={16}
-                        color={colors.textTertiary}
+                        size={17}
+                        color={colors.textSecondary}
                       />
                     </Pressable>
+                  )}
+                  {canExport && (
                     <Pressable
-                      onPress={() => handleDeleteProfile(p)}
-                      style={styles.iconBtn}
-                      hitSlop={8}
+                      onPress={() => handleExportOpen(p.id)}
+                      style={[
+                        styles.cardActionBtn,
+                        { backgroundColor: colors.accentBg },
+                      ]}
                     >
                       <Ionicons
-                        name="trash-outline"
-                        size={16}
-                        color={colors.destructive}
+                        name="share-outline"
+                        size={17}
+                        color={colors.accent}
                       />
                     </Pressable>
-                  </View>
-                )}
-                {isActive && profiles.length > 1 && (
-                  <Pressable
-                    onPress={() => {
-                      setEditingId(p.id);
-                      setEditName(p.name);
-                    }}
-                    style={[styles.iconBtn, { marginLeft: 4 }]}
-                    hitSlop={8}
-                  >
-                    <Ionicons
-                      name="pencil-outline"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                  </Pressable>
-                )}
+                  )}
+                  {isOwner && (
+                    <Pressable
+                      onPress={() =>
+                        router.push(
+                          `/profile-access?profileId=${p.id}&profileName=${encodeURIComponent(p.name)}`,
+                        )
+                      }
+                      style={[
+                        styles.cardActionBtn,
+                        { backgroundColor: colors.accentBg },
+                      ]}
+                    >
+                      <Ionicons
+                        name="people-outline"
+                        size={17}
+                        color={colors.accent}
+                      />
+                    </Pressable>
+                  )}
+                  {isOwner &&
+                    profiles.filter((pr) => !pr.role || pr.role === "owner")
+                      .length > 1 && (
+                      <Pressable
+                        onPress={() => handleDeleteProfile(p)}
+                        style={[
+                          styles.cardActionBtn,
+                          { backgroundColor: colors.destructive + "10" },
+                        ]}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={17}
+                          color={colors.destructive}
+                        />
+                      </Pressable>
+                    )}
+                </View>
               </Pressable>
             );
           })}
         </View>
 
-        {adding ? (
-          <View style={styles.addRow}>
-            <TextInput
-              style={[
-                styles.addInput,
-                {
-                  backgroundColor: colors.card,
-                  color: colors.text,
-                  shadowColor: colors.shadow,
-                },
-              ]}
-              value={newName}
-              onChangeText={setNewName}
-              placeholder="Ім'я нового профілю"
-              placeholderTextColor={colors.textTertiary}
-              autoFocus
-            />
-            <Pressable
-              onPress={handleAddProfile}
-              style={[styles.addConfirmBtn, { backgroundColor: colors.accent }]}
-            >
-              <Text style={[styles.addConfirmText, { color: colors.white }]}>
-                Додати
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setAdding(false);
-                setNewName("");
-              }}
-              style={[styles.editCancel, { backgroundColor: colors.border }]}
-            >
-              <Ionicons name="close" size={20} color={colors.textTertiary} />
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            style={[styles.addProfileBtn, { backgroundColor: colors.accent }]}
-            onPress={() => setAdding(true)}
-          >
-            <Ionicons name="add" size={20} color={colors.white} />
-            <Text style={[styles.addProfileBtnText, { color: colors.white }]}>
-              Додати профіль
-            </Text>
-          </Pressable>
-        )}
-
-        <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-          Експорт та імпорт
-        </Text>
-        <View
-          style={[
-            styles.actionCard,
-            { backgroundColor: colors.card, shadowColor: colors.shadow },
-          ]}
-        >
-          <Pressable
-            style={[styles.actionRow, { borderBottomColor: colors.border }]}
-            onPress={handleExportOpen}
-            disabled={exporting}
-          >
-            {exporting ? (
-              <ActivityIndicator size="small" color={colors.accent} />
-            ) : (
-              <Ionicons name="share-outline" size={22} color={colors.accent} />
-            )}
-            <View style={styles.actionRowTextWrap}>
-              <Text style={[styles.actionRowText, { color: colors.text }]}>
-                Експортувати поточний профіль
-              </Text>
-              <Text
-                style={[styles.actionRowHint, { color: colors.textTertiary }]}
+        <View style={styles.bottomButtons}>
+          {adding ? (
+            <View style={styles.addRow}>
+              <TextInput
+                style={[
+                  styles.addInput,
+                  {
+                    backgroundColor: colors.card,
+                    color: colors.text,
+                    shadowColor: colors.shadow,
+                  },
+                ]}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="Ім'я нового профілю"
+                placeholderTextColor={colors.textTertiary}
+                autoFocus
+              />
+              <Pressable
+                onPress={handleAddProfile}
+                style={[
+                  styles.addConfirmBtn,
+                  { backgroundColor: colors.accent },
+                ]}
               >
-                Усі дані, кастомні статуси та процедури
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
-          </Pressable>
-          <Pressable
-            style={[styles.actionRow, styles.actionRowLast]}
-            onPress={() => setImportVisible(true)}
-          >
-            <Ionicons
-              name="document-attach-outline"
-              size={22}
-              color={colors.accent}
-            />
-            <View style={styles.actionRowTextWrap}>
-              <Text style={[styles.actionRowText, { color: colors.text }]}>
-                Імпортувати профіль
-              </Text>
-              <Text
-                style={[styles.actionRowHint, { color: colors.textTertiary }]}
+                <Text style={[styles.addConfirmText, { color: colors.white }]}>
+                  Додати
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setAdding(false);
+                  setNewName("");
+                }}
+                style={[styles.editCancel, { backgroundColor: colors.border }]}
               >
-                Вставте JSON з експорту
-              </Text>
+                <Ionicons name="close" size={20} color={colors.textTertiary} />
+              </Pressable>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
-          </Pressable>
+          ) : (
+            <View style={styles.bottomRow}>
+              <Pressable
+                style={[
+                  styles.addProfileBtn,
+                  { backgroundColor: colors.accent },
+                ]}
+                onPress={() => setAdding(true)}
+              >
+                <Ionicons name="add" size={20} color={colors.white} />
+                <Text
+                  style={[styles.addProfileBtnText, { color: colors.white }]}
+                >
+                  Додати профіль
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.importBtn,
+                  {
+                    backgroundColor: colors.card,
+                    shadowColor: colors.shadow,
+                  },
+                ]}
+                onPress={() => setImportVisible(true)}
+              >
+                <Ionicons
+                  name="document-attach-outline"
+                  size={20}
+                  color={colors.accent}
+                />
+                <Text style={[styles.importBtnText, { color: colors.accent }]}>
+                  Імпорт
+                </Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </ScrollView>
 
       <GlassModal
         visible={exportModalVisible}
-        onClose={() => setExportModalVisible(false)}
+        onClose={() => {
+          setExportModalVisible(false);
+          setExportProfileId(null);
+        }}
         cardStyle={styles.modalCardPadded}
       >
         <Text style={[styles.modalTitle, { color: colors.text }]}>
@@ -588,6 +661,7 @@ export default function ProfilesScreen() {
             style={styles.modalBtnSecondary}
             onPress={() => {
               setExportModalVisible(false);
+              setExportProfileId(null);
               setExportPassword("");
             }}
           >
@@ -712,20 +786,10 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
   hint: {
     fontSize: 14,
-    color: "#6a7a70",
     marginBottom: 16,
   },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#8a9a90",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginTop: 24,
-    marginBottom: 10,
-  },
   profileList: {
-    gap: 10,
+    gap: 12,
   },
   profileCard: {
     flexDirection: "row",
@@ -733,7 +797,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 14,
-    gap: 14,
+    gap: 12,
     shadowColor: "#1a3d32",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -741,9 +805,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   profileCardActive: {
-    backgroundColor: "#eef5f1",
     borderWidth: 1.5,
-    borderColor: "#2d5a4a",
   },
   avatar: {
     width: 44,
@@ -752,41 +814,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarActive: {
-    backgroundColor: "#2d5a4a",
-  },
-  avatarInactive: {
-    backgroundColor: "#e0e8e4",
-  },
+  avatarActive: {},
+  avatarInactive: {},
   avatarText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#5a7a6a",
   },
-  avatarTextActive: {
-    color: "#fff",
-  },
+  avatarTextActive: {},
   profileInfo: {
     flex: 1,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   profileName: {
     fontSize: 16,
     fontWeight: "600",
+    flexShrink: 1,
   },
   profileNameActive: {
     fontWeight: "700",
+  },
+  roleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  roleBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
   },
   activeLabel: {
     fontSize: 12,
     marginTop: 2,
   },
-  profileActions: {
+  cardActions: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
+    gap: 6,
   },
-  iconBtn: {
-    padding: 8,
+  cardActionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   editRow: {
     flex: 1,
@@ -815,11 +888,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  bottomButtons: {
+    marginTop: 16,
+  },
+  bottomRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
   addRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 10,
   },
   addInput: {
     flex: 1,
@@ -842,43 +921,34 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   addProfileBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     paddingVertical: 14,
-    marginTop: 10,
     borderRadius: 16,
   },
   addProfileBtnText: {
     fontSize: 15,
     fontWeight: "600",
   },
-  actionCard: {
-    borderRadius: 20,
-    padding: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  actionRow: {
+  importBtn: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
     paddingVertical: 14,
-    paddingHorizontal: 14,
-    gap: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  actionRowLast: { borderBottomWidth: 0 },
-  actionRowTextWrap: { flex: 1 },
-  actionRowText: {
-    fontSize: 16,
+  importBtnText: {
+    fontSize: 15,
     fontWeight: "600",
-  },
-  actionRowHint: {
-    fontSize: 12,
-    marginTop: 2,
   },
   modalCardPadded: {
     padding: 20,
@@ -887,12 +957,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a3d32",
     marginBottom: 4,
   },
   modalHint: {
     fontSize: 13,
-    color: "#6a7a70",
     marginBottom: 12,
   },
   importFileBtn: {
@@ -901,30 +969,24 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: "#eef5f1",
     borderRadius: 16,
     marginBottom: 12,
   },
   importFileBtnText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#2d5a4a",
   },
   passwordInput: {
-    backgroundColor: "#f5f8f6",
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 14,
     fontSize: 15,
-    color: "#1a3d32",
     marginBottom: 16,
   },
   importInput: {
-    backgroundColor: "#f5f8f6",
     borderRadius: 16,
     padding: 12,
     fontSize: 13,
-    color: "#1a3d32",
     minHeight: 120,
     textAlignVertical: "top",
     marginBottom: 16,
@@ -941,12 +1003,10 @@ const styles = StyleSheet.create({
   modalBtnSecondaryText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#6a7a70",
   },
   modalBtnPrimary: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: "#2d5a4a",
     borderRadius: 16,
     minWidth: 120,
     alignItems: "center",

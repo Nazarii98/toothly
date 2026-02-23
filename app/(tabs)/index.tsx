@@ -1,14 +1,15 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDataSync } from "../../src/DataSyncProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { DentalChart } from "../../src/components/DentalChart";
 import { loadData, setToothStatus } from "../../src/store/teethStore";
-import { getProfiles, getCurrentProfileId } from "../../src/store/profileStore";
+import { getProfiles, getCurrentProfileId, getCurrentProfileRole } from "../../src/store/profileStore";
 import { buildStatusMaps, TOOTH_NAMES } from "../../src/types";
 import type { ToothId, ToothStatus, StatusMaps } from "../../src/types";
 
@@ -23,21 +24,27 @@ export default function ChartScreen() {
   const [showStatuses, setShowStatuses] = useState(true);
   const [popupTooth, setPopupTooth] = useState<ToothId | null>(null);
   const [profileName, setProfileName] = useState("");
+  const [role, setRole] = useState<string>("owner");
+
+  const { dataRevision } = useDataSync();
+  const canEdit = role !== "viewer";
 
   const refresh = useCallback(async () => {
-    const [data, profiles, currentId] = await Promise.all([
+    const [data, profiles, currentId, r] = await Promise.all([
       loadData(),
       getProfiles(),
       getCurrentProfileId(),
+      getCurrentProfileRole(),
     ]);
     const map: Record<ToothId, ToothStatus | undefined> = {};
-    Object.values(data.teeth).forEach((r) => {
-      if (r.currentStatus) map[r.toothId] = r.currentStatus;
+    Object.values(data.teeth).forEach((rec) => {
+      if (rec.currentStatus) map[rec.toothId] = rec.currentStatus;
     });
     setTeethStatuses(map);
     setStatusMaps(buildStatusMaps(data.customStatuses));
     const current = profiles.find((p) => p.id === currentId);
     setProfileName(current?.name ?? "");
+    setRole(r);
   }, []);
 
   useFocusEffect(
@@ -46,11 +53,16 @@ export default function ChartScreen() {
     }, [refresh]),
   );
 
+  useEffect(() => {
+    if (dataRevision > 0) refresh();
+  }, [dataRevision]);
+
   const handleToothPress = (toothId: ToothId) => {
     router.push(`/tooth/${toothId}`);
   };
 
   const handleToothLongPress = (toothId: ToothId) => {
+    if (!canEdit) return;
     setPopupTooth(toothId);
   };
 

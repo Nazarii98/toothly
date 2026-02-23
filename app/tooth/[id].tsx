@@ -13,11 +13,13 @@ import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useDataSync } from "../../src/DataSyncProvider";
 import {
   loadData,
   getToothRecord,
   setToothStatus,
 } from "../../src/store/teethStore";
+import { getCurrentProfileRole } from "../../src/store/profileStore";
 import { buildStatusMaps } from "../../src/types";
 import type {
   ToothId,
@@ -37,11 +39,16 @@ export default function ToothDetailScreen() {
   const [record, setRecord] = useState<ToothRecord | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [role, setRole] = useState<string>("owner");
+  const { dataRevision } = useDataSync();
+
+  const canEdit = role !== "viewer";
 
   const refresh = useCallback(async () => {
-    const data = await loadData();
+    const [data, r] = await Promise.all([loadData(), getCurrentProfileRole()]);
     setRecord(getToothRecord(data, toothId));
     setStatusMaps(buildStatusMaps(data.customStatuses));
+    setRole(r);
   }, [toothId]);
 
   useEffect(() => {
@@ -53,6 +60,10 @@ export default function ToothDetailScreen() {
       refresh();
     }, [refresh]),
   );
+
+  useEffect(() => {
+    if (dataRevision > 0) refresh();
+  }, [dataRevision]);
 
   const handleStatusChange = async (status: ToothStatus) => {
     setPickerVisible(false);
@@ -91,15 +102,17 @@ export default function ToothDetailScreen() {
       <Stack.Screen
         options={{
           title: `Зуб ${toothId}`,
-          headerRight: () => (
-            <Pressable
-              onPress={openAdd}
-              hitSlop={8}
-              style={styles.headerAddBtn}
-            >
-              <Ionicons name="add" size={26} color={colors.text} />
-            </Pressable>
-          ),
+          headerRight: canEdit
+            ? () => (
+                <Pressable
+                  onPress={openAdd}
+                  hitSlop={8}
+                  style={styles.headerAddBtn}
+                >
+                  <Ionicons name="add" size={26} color={colors.text} />
+                </Pressable>
+              )
+            : undefined,
         }}
       />
       <View style={[styles.safe, { backgroundColor: colors.bg }]}>
@@ -128,7 +141,8 @@ export default function ToothDetailScreen() {
                 styles.statusTrigger,
                 { backgroundColor: colors.inputBg },
               ]}
-              onPress={() => setPickerVisible(true)}
+              onPress={canEdit ? () => setPickerVisible(true) : undefined}
+              disabled={!canEdit}
             >
               <View
                 style={[
@@ -139,11 +153,13 @@ export default function ToothDetailScreen() {
               <Text style={[styles.statusTriggerText, { color: colors.text }]}>
                 {currentStatusLabel}
               </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={colors.chevron}
-              />
+              {canEdit && (
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.chevron}
+                />
+              )}
             </Pressable>
             <StatusPickerModal
               visible={pickerVisible}
@@ -213,15 +229,17 @@ export default function ToothDetailScreen() {
                 >
                   Додайте перший запис про лікування або огляд
                 </Text>
-                <Pressable
-                  style={[styles.emptyCta, { backgroundColor: colors.accent }]}
-                  onPress={openAdd}
-                >
-                  <Ionicons name="add" size={20} color={colors.white} />
-                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>
-                    Додати запис
-                  </Text>
-                </Pressable>
+                {canEdit && (
+                  <Pressable
+                    style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                    onPress={openAdd}
+                  >
+                    <Ionicons name="add" size={20} color={colors.white} />
+                    <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                      Додати запис
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             ) : (
               <View style={styles.recordList}>
@@ -235,7 +253,8 @@ export default function ToothDetailScreen() {
                         shadowColor: colors.shadow,
                       },
                     ]}
-                    onPress={() => openEdit(c)}
+                    onPress={canEdit ? () => openEdit(c) : undefined}
+                    disabled={!canEdit}
                   >
                     <View style={styles.recordCardTop}>
                       <Text

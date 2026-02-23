@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAppTheme, THEME_LABELS } from "../../src/theme";
 import type { ThemePreference } from "../../src/store/themeStore";
 import { GlassModal } from "../../src/components/GlassModal";
+import { useAuth } from "../../src/AuthProvider";
 
 const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
   { value: "system", icon: "phone-portrait-outline" },
@@ -16,7 +17,41 @@ const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors, preference, setPreference } = useAppTheme();
+  const { user, signOut, deleteAccount } = useAuth();
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleSignOut = () => {
+    Alert.alert("Вихід", "Ви впевнені, що хочете вийти з акаунту?", [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Вийти",
+        style: "destructive",
+        onPress: () => signOut(),
+      },
+    ]);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      Alert.alert("Помилка", "Введіть пароль для підтвердження");
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await deleteAccount(deletePassword);
+    } catch (e: any) {
+      const msg =
+        e.code === "auth/wrong-password" || e.code === "auth/invalid-credential"
+          ? "Невірний пароль"
+          : "Помилка видалення акаунту. Спробуйте ще раз";
+      Alert.alert("Помилка", msg);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]} edges={["top"]}>
@@ -76,6 +111,41 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
         </View>
+
+        <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+          Акаунт
+        </Text>
+        <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+          <View style={styles.menuRow}>
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+              <Ionicons name="mail" size={22} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>Email</Text>
+              <Text style={[styles.menuHint, { color: colors.textTertiary }]} numberOfLines={1}>
+                {user?.email ?? "—"}
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <Pressable style={styles.menuRow} onPress={handleSignOut}>
+            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
+              <Ionicons name="log-out-outline" size={22} color={colors.destructive} />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.destructive }]}>
+              Вийти з акаунту
+            </Text>
+          </Pressable>
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <Pressable style={styles.menuRow} onPress={() => setDeleteModalOpen(true)}>
+            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
+              <Ionicons name="trash-outline" size={22} color={colors.destructive} />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.destructive }]}>
+              Видалити акаунт
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <GlassModal
@@ -131,6 +201,60 @@ export default function SettingsScreen() {
               </Pressable>
             );
           })}
+        </View>
+      </GlassModal>
+
+      <GlassModal
+        visible={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeletePassword("");
+        }}
+      >
+        <View style={styles.modalHeader}>
+          <Text style={[styles.modalTitle, { color: colors.destructive }]}>
+            Видалити акаунт
+          </Text>
+          <Pressable
+            onPress={() => {
+              setDeleteModalOpen(false);
+              setDeletePassword("");
+            }}
+            hitSlop={12}
+          >
+            <Text style={[styles.modalDone, { color: colors.accent }]}>
+              Скасувати
+            </Text>
+          </Pressable>
+        </View>
+        <View style={styles.deleteModalContent}>
+          <Text style={[styles.deleteWarning, { color: colors.textSecondary }]}>
+            Це видалить ваш акаунт та всі дані безповоротно. Введіть пароль для підтвердження.
+          </Text>
+          <TextInput
+            style={[
+              styles.deleteInput,
+              { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border },
+            ]}
+            placeholder="Пароль"
+            placeholderTextColor={colors.textTertiary}
+            value={deletePassword}
+            onChangeText={setDeletePassword}
+            secureTextEntry
+            autoComplete="password"
+          />
+          <Pressable
+            style={[
+              styles.deleteBtn,
+              { backgroundColor: colors.destructive, opacity: deleteLoading ? 0.7 : 1 },
+            ]}
+            onPress={handleDeleteAccount}
+            disabled={deleteLoading}
+          >
+            <Text style={styles.deleteBtnText}>
+              {deleteLoading ? "Видалення..." : "Видалити назавжди"}
+            </Text>
+          </Pressable>
         </View>
       </GlassModal>
     </SafeAreaView>
@@ -218,5 +342,31 @@ const styles = StyleSheet.create({
   themeOptionText: {
     flex: 1,
     fontSize: 16,
+  },
+  deleteModalContent: {
+    padding: 20,
+    gap: 14,
+  },
+  deleteWarning: {
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  deleteInput: {
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 16,
+  },
+  deleteBtn: {
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
