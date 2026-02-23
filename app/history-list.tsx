@@ -7,6 +7,7 @@ import {
   Pressable,
   Image,
 } from "react-native";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
@@ -25,11 +26,10 @@ type HistoryItem =
   | { type: "tooth"; data: ToothChange }
   | { type: "global"; data: GlobalProcedure };
 
-type FilterPreset = "day" | "week" | "month" | "year" | "all";
+type FilterPreset = "month" | "year" | "all";
 
+const FILTER_VALUES: FilterPreset[] = ["month", "year", "all"];
 const FILTER_LABELS: Record<FilterPreset, string> = {
-  day: "День",
-  week: "Тиждень",
   month: "Місяць",
   year: "Рік",
   all: "Все",
@@ -60,13 +60,6 @@ function getFilterRange(
 ): { from: Date; to: Date } | null {
   const d = startOfDay(refDate);
   switch (preset) {
-    case "day":
-      return { from: d, to: new Date(d.getTime() + 86400000) };
-    case "week": {
-      const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
-      const monday = new Date(d.getTime() - dow * 86400000);
-      return { from: monday, to: new Date(monday.getTime() + 7 * 86400000) };
-    }
     case "month":
       return {
         from: new Date(d.getFullYear(), d.getMonth(), 1),
@@ -100,8 +93,10 @@ export default function HistoryListScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ date?: string }>();
 
-  const initialPreset: FilterPreset = params.date ? "day" : "all";
-  const initialRef = params.date ? new Date(params.date + "T12:00:00") : new Date();
+  const initialPreset: FilterPreset = params.date ? "month" : "all";
+  const initialRef = params.date
+    ? new Date(params.date + "T12:00:00")
+    : new Date();
 
   const [allItems, setAllItems] = useState<HistoryItem[]>([]);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
@@ -122,7 +117,11 @@ export default function HistoryListScreen() {
     setAllItems(items);
   }, []);
 
-  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
 
   const filteredItems = useMemo(() => {
     const range = getFilterRange(filterPreset, refDate);
@@ -137,10 +136,35 @@ export default function HistoryListScreen() {
 
   const selectPreset = (preset: FilterPreset) => {
     setFilterPreset(preset);
-    if (preset !== "day") {
-      setRefDate(new Date());
-    }
+    setRefDate(new Date());
   };
+
+  const shiftRef = (direction: -1 | 1) => {
+    setRefDate((prev) => {
+      const d = new Date(prev);
+      if (filterPreset === "month") {
+        d.setMonth(d.getMonth() + direction);
+      } else if (filterPreset === "year") {
+        d.setFullYear(d.getFullYear() + direction);
+      }
+      return d;
+    });
+  };
+
+  const periodLabel = useMemo(() => {
+    if (filterPreset === "month") {
+      return refDate.toLocaleDateString("uk-UA", {
+        month: "long",
+        year: "numeric",
+      });
+    }
+    if (filterPreset === "year") {
+      return `${refDate.getFullYear()} рік`;
+    }
+    return "";
+  }, [filterPreset, refDate]);
+
+  const goToCurrentPeriod = () => setRefDate(new Date());
 
   const renderItem = ({ item }: { item: HistoryItem }) => {
     if (item.type === "tooth") {
@@ -149,15 +173,22 @@ export default function HistoryListScreen() {
       const t = c.toothId[1];
       return (
         <Pressable
-          style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
           onPress={() => router.push(`/tooth/${c.toothId}`)}
         >
           <View style={styles.cardRow}>
             <View style={[styles.badge, { backgroundColor: colors.accent }]}>
-              <Text style={[styles.badgeText, { color: colors.white }]}>{c.toothId}</Text>
+              <Text style={[styles.badgeText, { color: colors.white }]}>
+                {c.toothId}
+              </Text>
             </View>
             <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, { color: colors.text }]}>{c.title}</Text>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>
+                {c.title}
+              </Text>
               <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
                 {TOOTH_NAMES[t] ?? ""} · {QUADRANT_LABELS[q] ?? ""}
               </Text>
@@ -167,79 +198,114 @@ export default function HistoryListScreen() {
                 </Text>
               )}
               {c.notes ? (
-                <Text style={[styles.cardNotes, { color: colors.textSecondary }]} numberOfLines={2}>
+                <Text
+                  style={[styles.cardNotes, { color: colors.textSecondary }]}
+                  numberOfLines={2}
+                >
                   {c.notes}
                 </Text>
               ) : null}
             </View>
-            <Text style={[styles.cardTime, { color: colors.textTertiary }]}>{formatTime(c.date)}</Text>
+            <Text style={[styles.cardTime, { color: colors.textTertiary }]}>
+              {formatTime(c.date)}
+            </Text>
           </View>
           {c.imageUri && (
-            <Image source={{ uri: c.imageUri }} style={[styles.cardImage, { backgroundColor: colors.border }]} />
+            <Image
+              source={{ uri: c.imageUri }}
+              style={[styles.cardImage, { backgroundColor: colors.border }]}
+            />
           )}
         </Pressable>
       );
     }
     const p = item.data;
     return (
-      <View style={[styles.card, styles.globalCard, { backgroundColor: colors.cardSecondary, borderColor: colors.border }]}>
+      <Pressable
+        style={[
+          styles.card,
+          styles.globalCard,
+          { backgroundColor: colors.cardSecondary, borderColor: colors.border },
+        ]}
+        onPress={() => router.push("/global-detail")}
+      >
         <View style={styles.cardRow}>
-          <View style={[styles.badge, { backgroundColor: colors.textSecondary }]}>
+          <View
+            style={[styles.badge, { backgroundColor: colors.textSecondary }]}
+          >
             <Text style={[styles.badgeText, { color: colors.white }]}>GP</Text>
           </View>
           <View style={styles.cardContent}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>{p.title}</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {p.title}
+            </Text>
             <Text style={[styles.cardStatus, { color: colors.textSecondary }]}>
               {GLOBAL_PROCEDURE_TYPES[p.type]}
             </Text>
             {p.notes ? (
-              <Text style={[styles.cardNotes, { color: colors.textSecondary }]} numberOfLines={2}>
+              <Text
+                style={[styles.cardNotes, { color: colors.textSecondary }]}
+                numberOfLines={2}
+              >
                 {p.notes}
               </Text>
             ) : null}
           </View>
-          <Text style={[styles.cardTime, { color: colors.textTertiary }]}>{formatTime(p.date)}</Text>
+          <Text style={[styles.cardTime, { color: colors.textTertiary }]}>
+            {formatTime(p.date)}
+          </Text>
         </View>
-      </View>
+      </Pressable>
     );
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg, paddingTop: insets.top + 56 }]}>
+    <View
+      style={[
+        styles.root,
+        { backgroundColor: colors.bg, paddingTop: insets.top + 56 },
+      ]}
+    >
       <View style={styles.filtersRow}>
-        {(Object.keys(FILTER_LABELS) as FilterPreset[]).map((preset) => (
-          <Pressable
-            key={preset}
-            style={[
-              styles.filterChip,
-              { backgroundColor: colors.card },
-              filterPreset === preset && { backgroundColor: colors.accent },
-            ]}
-            onPress={() => selectPreset(preset)}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                { color: colors.textSecondary },
-                filterPreset === preset && { color: colors.white, fontWeight: "700" },
-              ]}
-            >
-              {FILTER_LABELS[preset]}
-            </Text>
-          </Pressable>
-        ))}
+        <SegmentedControl
+          values={FILTER_VALUES.map((p) => FILTER_LABELS[p])}
+          selectedIndex={FILTER_VALUES.indexOf(filterPreset)}
+          onChange={(e) => {
+            selectPreset(FILTER_VALUES[e.nativeEvent.selectedSegmentIndex]);
+          }}
+          style={styles.segmented}
+          tintColor={colors.accent}
+          fontStyle={{ color: colors.textSecondary, fontSize: 13 }}
+          activeFontStyle={{
+            color: colors.white,
+            fontWeight: "600",
+            fontSize: 13,
+          }}
+        />
       </View>
 
       {filterPreset !== "all" && (
-        <Text style={[styles.filterHint, { color: colors.textTertiary }]}>
-          {filterPreset === "day"
-            ? refDate.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" })
-            : filterPreset === "week"
-              ? "Поточний тиждень"
-              : filterPreset === "month"
-                ? refDate.toLocaleDateString("uk-UA", { month: "long", year: "numeric" })
-                : `${refDate.getFullYear()} рік`}
-        </Text>
+        <View style={styles.navRow}>
+          <Pressable
+            onPress={() => shiftRef(-1)}
+            hitSlop={12}
+            style={styles.navArrow}
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.accent} />
+          </Pressable>
+          <Pressable onPress={goToCurrentPeriod} hitSlop={8}>
+            <Text style={[styles.navLabel, { color: colors.text }]}>
+              {periodLabel}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => shiftRef(1)}
+            hitSlop={12}
+            style={styles.navArrow}
+          >
+            <Ionicons name="chevron-forward" size={20} color={colors.accent} />
+          </Pressable>
+        </View>
       )}
 
       <SectionList
@@ -247,14 +313,23 @@ export default function HistoryListScreen() {
         keyExtractor={(item) => item.data.id}
         renderItem={renderItem}
         renderSectionHeader={({ section }) => (
-          <Text style={[styles.sectionHeader, { color: colors.text, backgroundColor: colors.bg }]}>
+          <Text
+            style={[
+              styles.sectionHeader,
+              { color: colors.text, backgroundColor: colors.bg },
+            ]}
+          >
             {section.title}
           </Text>
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
-            <Ionicons name="document-text-outline" size={48} color={colors.textTertiary} />
+            <Ionicons
+              name="document-text-outline"
+              size={48}
+              color={colors.textTertiary}
+            />
             <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
               Немає записів за цей період
             </Text>
@@ -268,24 +343,29 @@ export default function HistoryListScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   filtersRow: {
-    flexDirection: "row",
     paddingHorizontal: 16,
     paddingVertical: 10,
-    gap: 8,
   },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  segmented: {
+    height: 34,
+  },
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  navArrow: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 16,
   },
-  filterChipText: {
-    fontSize: 13,
+  navLabel: {
+    fontSize: 15,
     fontWeight: "600",
-  },
-  filterHint: {
-    fontSize: 13,
-    paddingHorizontal: 16,
-    paddingBottom: 6,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -295,7 +375,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     paddingVertical: 10,
-    marginTop: 8,
   },
   card: {
     borderRadius: 18,

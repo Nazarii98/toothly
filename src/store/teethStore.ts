@@ -155,6 +155,18 @@ export async function addGlobalProcedure(
   await saveData(data);
 }
 
+export async function updateGlobalProcedure(
+  id: string,
+  updates: Partial<Omit<GlobalProcedure, "id">>,
+): Promise<void> {
+  const data = await loadData();
+  const idx = data.globalProcedures.findIndex((p) => p.id === id);
+  if (idx >= 0) {
+    data.globalProcedures[idx] = { ...data.globalProcedures[idx], ...updates };
+    await saveData(data);
+  }
+}
+
 export async function deleteGlobalProcedure(id: string): Promise<void> {
   const data = await loadData();
   data.globalProcedures = data.globalProcedures.filter((p) => p.id !== id);

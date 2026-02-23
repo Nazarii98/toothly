@@ -24,6 +24,8 @@ import {
   addToothChange,
   addGlobalProcedure,
 } from "../src/store/teethStore";
+import { CategoryPicker } from "../src/components/CategoryPicker";
+import type { CategoryOption } from "../src/components/CategoryPicker";
 import {
   ALL_TOOTH_IDS,
   QUADRANT_LABELS,
@@ -37,8 +39,6 @@ import type {
   ToothId,
   StatusMaps,
 } from "../src/types";
-
-const PROCEDURE_OPTIONS = Object.entries(GLOBAL_PROCEDURE_TYPES);
 const GENERAL_KEY = "__general__";
 
 function toothShort(id: ToothId): string {
@@ -170,76 +170,28 @@ export default function AddRecordModal() {
 
           {/* ── Category card ── */}
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              {isGeneral ? "Тип процедури" : "Категорія"}
-            </Text>
-            <View style={styles.chipGrid}>
-              {isGeneral
-                ? PROCEDURE_OPTIONS.map(([value, label]) => {
-                    const active = procedureType === value;
-                    return (
-                      <Pressable
-                        key={value}
-                        onPress={() =>
-                          setProcedureType(value as GlobalProcedure["type"])
-                        }
-                        style={[
-                            styles.chip,
-                            { backgroundColor: active ? colors.accent : colors.accentBg },
-                          ]}
-                      >
-                        <View
-                          style={[
-                            styles.chipDot,
-                            {
-                              backgroundColor: active ? colors.white : colors.accent,
-                            },
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.chipText,
-                            { color: active ? colors.white : colors.textSecondary },
-                          ]}
-                        >
-                          {label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })
-                : statusMaps.options.map(([value, label]) => {
-                    const active = category === value;
-                    const dotColor =
-                      statusMaps.borderColors[value] ?? "#9E9E9E";
-                    return (
-                      <Pressable
-                        key={value}
-                        onPress={() => setCategory(value)}
-                        style={[
-                            styles.chip,
-                            { backgroundColor: active ? colors.accent : colors.accentBg },
-                          ]}
-                      >
-                        <View
-                          style={[
-                            styles.chipDot,
-                            {
-                              backgroundColor: active ? colors.white : dotColor,
-                            },
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.chipText,
-                            { color: active ? colors.white : colors.textSecondary },
-                          ]}
-                        >
-                          {label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-            </View>
+            {isGeneral ? (
+              <CategoryPicker
+                title="Тип процедури"
+                options={Object.entries(GLOBAL_PROCEDURE_TYPES).map(([value, label]) => ({
+                  value,
+                  label,
+                }))}
+                selected={procedureType}
+                onSelect={(v) => setProcedureType(v as GlobalProcedure["type"])}
+              />
+            ) : (
+              <CategoryPicker
+                title="Категорія"
+                options={statusMaps.options.map(([value, label]) => ({
+                  value,
+                  label,
+                  color: statusMaps.borderColors[value] ?? "#9E9E9E",
+                }))}
+                selected={category}
+                onSelect={setCategory}
+              />
+            )}
           </View>
 
           {/* ── Details card ── */}
@@ -540,29 +492,6 @@ const styles = StyleSheet.create({
   pickerItemText: {
     flex: 1,
     fontSize: 15,
-  },
-
-  chipGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 24,
-  },
-  chipDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  chipText: {
-    fontSize: 13,
-    fontWeight: "500",
   },
 
   input: {

@@ -74,6 +74,10 @@ function RootStack() {
           options={{ title: "Профіль", headerBackTitle: "Назад" }}
         />
         <Stack.Screen
+          name="global-detail"
+          options={{ title: "Ротова порожнина", headerBackTitle: "Назад" }}
+        />
+        <Stack.Screen
           name="history-list"
           options={{ title: "Історія", headerBackTitle: "Назад" }}
         />
@@ -89,6 +93,13 @@ function RootStack() {
           options={{
             ...modalScreenOptions(colors),
             title: "Редагувати запис",
+          }}
+        />
+        <Stack.Screen
+          name="edit-global"
+          options={{
+            ...modalScreenOptions(colors),
+            title: "Редагувати процедуру",
           }}
         />
       </Stack>

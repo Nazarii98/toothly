@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
@@ -184,31 +185,17 @@ export default function HistoryScreen() {
     >
       {/* View mode toggle */}
       <View style={styles.toggleRow}>
-        <View style={[styles.togglePill, { backgroundColor: colors.card }]}>
-          {(["month", "year"] as const).map((mode) => (
-            <Pressable
-              key={mode}
-              style={[
-                styles.toggleBtn,
-                viewMode === mode && { backgroundColor: colors.accent },
-              ]}
-              onPress={() => setViewMode(mode)}
-            >
-              <Text
-                style={[
-                  styles.toggleText,
-                  { color: colors.textSecondary },
-                  viewMode === mode && {
-                    color: colors.white,
-                    fontWeight: "700",
-                  },
-                ]}
-              >
-                {mode === "month" ? "Місяць" : "Рік"}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <SegmentedControl
+          values={["Місяць", "Рік"]}
+          selectedIndex={viewMode === "month" ? 0 : 1}
+          onChange={(e) => {
+            setViewMode(e.nativeEvent.selectedSegmentIndex === 0 ? "month" : "year");
+          }}
+          style={styles.segmented}
+          tintColor={colors.accent}
+          fontStyle={{ color: colors.textSecondary, fontSize: 14 }}
+          activeFontStyle={{ color: colors.white, fontWeight: "600", fontSize: 14 }}
+        />
       </View>
 
       {/* Navigation header */}
@@ -452,7 +439,7 @@ export default function HistoryScreen() {
           const badge = isGlobal ? "GP" : (data as ToothChange).toothId;
           const badgeBg = isGlobal ? colors.textSecondary : colors.accent;
           const onPress = isGlobal
-            ? () => router.push("/history-list")
+            ? () => router.push("/global-detail")
             : () => router.push(`/tooth/${(data as ToothChange).toothId}`);
           return (
             <Pressable
@@ -505,23 +492,12 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
 
   toggleRow: {
-    alignItems: "center",
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 4,
   },
-  togglePill: {
-    flexDirection: "row",
-    borderRadius: 20,
-    padding: 3,
-  },
-  toggleBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 7,
-    borderRadius: 17,
-  },
-  toggleText: {
-    fontSize: 14,
-    fontWeight: "600",
+  segmented: {
+    height: 34,
   },
 
   header: {
