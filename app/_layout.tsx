@@ -48,9 +48,9 @@ function RootStack() {
   const { colors } = useAppTheme();
   const headerOptions = {
     headerTransparent: true,
-    headerTintColor: "#fff",
+    headerTintColor: colors.text,
     headerBackButtonDisplayMode: "minimal" as const,
-    headerTitleStyle: { fontWeight: "600" as const, fontSize: 18, flex: 1 },
+    headerTitleStyle: { fontWeight: "700" as const, fontSize: 24, flex: 1 },
     headerBackground: () => <GradientHeader isDark={colors.isDark} />,
   };
   return (

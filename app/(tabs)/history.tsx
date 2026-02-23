@@ -176,9 +176,10 @@ export default function HistoryScreen() {
 
   const recentItems = periodItems.slice(0, 3);
 
-  const periodLabel = viewMode === "month"
-    ? `за ${MONTH_NAMES[month].toLowerCase()} ${year}`
-    : `за ${year} рік`;
+  const periodLabel =
+    viewMode === "month"
+      ? `за ${MONTH_NAMES[month].toLowerCase()} ${year}`
+      : `за ${year} рік`;
 
   const countForMonth = useCallback(
     (m: number) => {
@@ -203,12 +204,18 @@ export default function HistoryScreen() {
           values={["Місяць", "Рік"]}
           selectedIndex={viewMode === "month" ? 0 : 1}
           onChange={(e) => {
-            setViewMode(e.nativeEvent.selectedSegmentIndex === 0 ? "month" : "year");
+            setViewMode(
+              e.nativeEvent.selectedSegmentIndex === 0 ? "month" : "year",
+            );
           }}
           style={styles.segmented}
           tintColor={colors.accent}
           fontStyle={{ color: colors.textSecondary, fontSize: 14 }}
-          activeFontStyle={{ color: colors.white, fontWeight: "600", fontSize: 14 }}
+          activeFontStyle={{
+            color: colors.white,
+            fontWeight: "600",
+            fontSize: 14,
+          }}
         />
       </View>
 
@@ -429,12 +436,17 @@ export default function HistoryScreen() {
       {/* Recent records */}
       <View style={styles.recentSection}>
         <View style={styles.recentHeader}>
-          <Text style={[styles.recentTitle, { color: colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.recentTitle, { color: colors.text }]}
+            numberOfLines={1}
+          >
             Останні записи {periodLabel}
           </Text>
           <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
             <Text style={[styles.showAll, { color: colors.accent }]}>
-              {periodItems.length > 3 ? `Усі ${periodItems.length}` : "Показати все"}
+              {periodItems.length > 3
+                ? `Усі ${periodItems.length}`
+                : "Показати все"}
             </Text>
           </Pressable>
         </View>

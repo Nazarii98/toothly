@@ -97,7 +97,7 @@ export default function ToothDetailScreen() {
               hitSlop={8}
               style={styles.headerAddBtn}
             >
-              <Ionicons name="add" size={26} color={colors.white} />
+              <Ionicons name="add" size={26} color={colors.text} />
             </Pressable>
           ),
         }}
