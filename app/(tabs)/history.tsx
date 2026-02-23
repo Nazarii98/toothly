@@ -52,7 +52,7 @@ function toDateKey(d: Date): string {
 }
 
 function isoToDateKey(iso: string): string {
-  return iso.slice(0, 10);
+  return toDateKey(new Date(iso));
 }
 
 function formatTime(iso: string) {

@@ -2,6 +2,8 @@ import React from "react";
 import {
   Modal,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   type ViewStyle,
   type StyleProp,
@@ -36,36 +38,44 @@ export function GlassModal({
       animationType={animationType}
       onRequestClose={onClose}
     >
-      <Pressable
-        style={[
-          styles.backdrop,
-          { backgroundColor: colors.overlay },
-          isBottom && styles.backdropBottom,
-        ]}
-        onPress={onClose}
+      <KeyboardAvoidingView
+        style={styles.kbAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <BlurView
-          intensity={80}
-          tint={colors.isDark ? "dark" : "light"}
+        <Pressable
           style={[
-            styles.card,
-            {
-              backgroundColor: colors.glassCard,
-              shadowColor: colors.shadow,
-            },
-            isBottom ? styles.cardBottom : styles.cardCenter,
-            cardStyle,
+            styles.backdrop,
+            { backgroundColor: colors.overlay },
+            isBottom && styles.backdropBottom,
           ]}
-          onStartShouldSetResponder={() => true}
+          onPress={onClose}
         >
-          {children}
-        </BlurView>
-      </Pressable>
+          <BlurView
+            intensity={80}
+            tint={colors.isDark ? "dark" : "light"}
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.glassCard,
+                shadowColor: colors.shadow,
+              },
+              isBottom ? styles.cardBottom : styles.cardCenter,
+              cardStyle,
+            ]}
+            onStartShouldSetResponder={() => true}
+          >
+            {children}
+          </BlurView>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  kbAvoid: {
+    flex: 1,
+  },
   backdrop: {
     flex: 1,
     justifyContent: "center",
