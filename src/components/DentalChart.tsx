@@ -8,6 +8,7 @@ import {
   Text,
 } from "react-native";
 import type { ToothId, ToothStatus } from "../types";
+import { useAppTheme } from "../theme";
 
 const IMAGE_ASPECT = 399 / 600;
 
@@ -70,6 +71,7 @@ export function DentalChart({
   statusColors,
   statusBorderColors,
 }: Props) {
+  const { colors } = useAppTheme();
   const { width } = useWindowDimensions();
   const imgWidth = Math.min(width, 500);
   const imgHeight = imgWidth / IMAGE_ASPECT;
@@ -84,10 +86,10 @@ export function DentalChart({
         style={{ width: imgWidth, height: imgHeight }}
         resizeMode="contain"
       />
-      <Text style={[styles.helpText, { top: imgHeight * 0.48, right: 10 }]}>
+      <Text style={[styles.helpText, { top: imgHeight * 0.48, right: 10, color: colors.accent }]}>
         Ліва
       </Text>
-      <Text style={[styles.helpText, { top: imgHeight * 0.48, left: 10 }]}>
+      <Text style={[styles.helpText, { top: imgHeight * 0.48, left: 10, color: colors.accent }]}>
         Права
       </Text>
       {TOOTH_POSITIONS.map(({ id, x, y }) => {
@@ -143,7 +145,6 @@ const styles = StyleSheet.create({
   helpText: {
     position: "absolute",
     fontSize: 20,
-    color: "#008000",
     fontWeight: "bold",
   },
 });

@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet } from "react-native";
+import { ThemeProvider, useAppTheme } from "../src/theme";
 
 function GradientHeader() {
   return (
@@ -31,10 +32,11 @@ const headerOptions = {
   headerBackground: () => <GradientHeader />,
 };
 
-export default function RootLayout() {
+function RootStack() {
+  const { colors } = useAppTheme();
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
+    <>
+      <StatusBar style={colors.isDark ? "light" : "auto"} />
       <Stack screenOptions={headerOptions}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -86,6 +88,16 @@ export default function RootLayout() {
           }}
         />
       </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <RootStack />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

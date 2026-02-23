@@ -37,6 +37,7 @@ import {
   decryptProfileJson,
   isEncryptedPayload,
 } from "../src/utils/profileCrypto";
+import { useAppTheme } from "../src/theme";
 
 const EXPORT_VERSION = 1;
 
@@ -75,6 +76,7 @@ function parseExportedProfile(json: string): ExportedProfile | null {
 }
 
 export default function ProfilesScreen() {
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -270,14 +272,14 @@ export default function ProfilesScreen() {
         }}
       />
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, { backgroundColor: colors.bg }]}
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + 68 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.hint}>
+        <Text style={[styles.hint, { color: colors.textTertiary }]}>
           Оберіть людину, чиї записи ви переглядаєте. Можна експортувати та
           імпортувати профіль разом з усіма даними.
         </Text>
@@ -288,30 +290,30 @@ export default function ProfilesScreen() {
 
             if (editingId === p.id) {
               return (
-                <View key={p.id} style={styles.profileCard}>
+                <View key={p.id} style={[styles.profileCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
                   <View style={styles.editRow}>
                     <TextInput
-                      style={styles.editInput}
+                      style={[styles.editInput, { backgroundColor: colors.inputBg, color: colors.text }]}
                       value={editName}
                       onChangeText={setEditName}
                       placeholder="Ім'я профілю"
-                      placeholderTextColor="#8a9a90"
+                      placeholderTextColor={colors.textTertiary}
                       autoFocus
                     />
                     <Pressable
                       onPress={handleSaveEdit}
-                      style={styles.editConfirm}
+                      style={[styles.editConfirm, { backgroundColor: colors.accent }]}
                     >
-                      <Ionicons name="checkmark" size={20} color="#fff" />
+                      <Ionicons name="checkmark" size={20} color={colors.white} />
                     </Pressable>
                     <Pressable
                       onPress={() => {
                         setEditingId(null);
                         setEditName("");
                       }}
-                      style={styles.editCancel}
+                      style={[styles.editCancel, { backgroundColor: colors.border }]}
                     >
-                      <Ionicons name="close" size={20} color="#6a7a70" />
+                      <Ionicons name="close" size={20} color={colors.textTertiary} />
                     </Pressable>
                   </View>
                 </View>
@@ -323,7 +325,9 @@ export default function ProfilesScreen() {
                 key={p.id}
                 style={[
                   styles.profileCard,
+                  { backgroundColor: colors.card, shadowColor: colors.shadow },
                   isActive && styles.profileCardActive,
+                  isActive && { backgroundColor: colors.accentBg, borderColor: colors.accent },
                 ]}
                 onPress={() => handleSelectProfile(p.id)}
               >
@@ -331,12 +335,15 @@ export default function ProfilesScreen() {
                   style={[
                     styles.avatar,
                     isActive ? styles.avatarActive : styles.avatarInactive,
+                    { backgroundColor: isActive ? colors.accent : colors.border },
                   ]}
                 >
                   <Text
                     style={[
                       styles.avatarText,
+                      { color: colors.textSecondary },
                       isActive && styles.avatarTextActive,
+                      isActive && { color: colors.white },
                     ]}
                   >
                     {initial}
@@ -346,17 +353,18 @@ export default function ProfilesScreen() {
                   <Text
                     style={[
                       styles.profileName,
+                      { color: colors.text },
                       isActive && styles.profileNameActive,
                     ]}
                   >
                     {p.name}
                   </Text>
                   {isActive && (
-                    <Text style={styles.activeLabel}>Активний профіль</Text>
+                    <Text style={[styles.activeLabel, { color: colors.textSecondary }]}>Активний профіль</Text>
                   )}
                 </View>
                 {isActive && (
-                  <Ionicons name="checkmark-circle" size={24} color="#2d5a4a" />
+                  <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
                 )}
                 {!isActive && profiles.length > 1 && (
                   <View style={styles.profileActions}>
@@ -371,7 +379,7 @@ export default function ProfilesScreen() {
                       <Ionicons
                         name="pencil-outline"
                         size={16}
-                        color="#8a9a90"
+                        color={colors.textTertiary}
                       />
                     </Pressable>
                     <Pressable
@@ -382,7 +390,7 @@ export default function ProfilesScreen() {
                       <Ionicons
                         name="trash-outline"
                         size={16}
-                        color="#c06060"
+                        color={colors.destructive}
                       />
                     </Pressable>
                   </View>
@@ -396,7 +404,7 @@ export default function ProfilesScreen() {
                     style={[styles.iconBtn, { marginLeft: 4 }]}
                     hitSlop={8}
                   >
-                    <Ionicons name="pencil-outline" size={16} color="#5a7a6a" />
+                    <Ionicons name="pencil-outline" size={16} color={colors.textSecondary} />
                   </Pressable>
                 )}
               </Pressable>
@@ -407,57 +415,57 @@ export default function ProfilesScreen() {
         {adding ? (
           <View style={styles.addRow}>
             <TextInput
-              style={styles.addInput}
+              style={[styles.addInput, { backgroundColor: colors.card }]}
               value={newName}
               onChangeText={setNewName}
               placeholder="Ім'я нового профілю"
-              placeholderTextColor="#8a9a90"
+              placeholderTextColor={colors.textTertiary}
               autoFocus
             />
-            <Pressable onPress={handleAddProfile} style={styles.addConfirmBtn}>
-              <Text style={styles.addConfirmText}>Додати</Text>
+            <Pressable onPress={handleAddProfile} style={[styles.addConfirmBtn, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.addConfirmText, { color: colors.white }]}>Додати</Text>
             </Pressable>
             <Pressable
               onPress={() => {
                 setAdding(false);
                 setNewName("");
               }}
-              style={styles.editCancel}
+              style={[styles.editCancel, { backgroundColor: colors.border }]}
             >
-              <Ionicons name="close" size={20} color="#6a7a70" />
+              <Ionicons name="close" size={20} color={colors.textTertiary} />
             </Pressable>
           </View>
         ) : (
           <Pressable
-            style={styles.addProfileBtn}
+            style={[styles.addProfileBtn, { backgroundColor: colors.accent }]}
             onPress={() => setAdding(true)}
           >
-            <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addProfileBtnText}>Додати профіль</Text>
+            <Ionicons name="add" size={20} color={colors.white} />
+            <Text style={[styles.addProfileBtnText, { color: colors.white }]}>Додати профіль</Text>
           </Pressable>
         )}
 
-        <Text style={styles.sectionLabel}>Експорт та імпорт</Text>
-        <View style={styles.actionCard}>
+        <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>Експорт та імпорт</Text>
+        <View style={[styles.actionCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
           <Pressable
-            style={styles.actionRow}
+            style={[styles.actionRow, { borderBottomColor: colors.border }]}
             onPress={handleExportOpen}
             disabled={exporting}
           >
             {exporting ? (
-              <ActivityIndicator size="small" color="#2d5a4a" />
+              <ActivityIndicator size="small" color={colors.accent} />
             ) : (
-              <Ionicons name="share-outline" size={22} color="#2d5a4a" />
+              <Ionicons name="share-outline" size={22} color={colors.accent} />
             )}
             <View style={styles.actionRowTextWrap}>
-              <Text style={styles.actionRowText}>
+              <Text style={[styles.actionRowText, { color: colors.text }]}>
                 Експортувати поточний профіль
               </Text>
-              <Text style={styles.actionRowHint}>
+              <Text style={[styles.actionRowHint, { color: colors.textTertiary }]}>
                 Усі дані, кастомні статуси та процедури
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#8a9a90" />
+            <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
           </Pressable>
           <Pressable
             style={[styles.actionRow, styles.actionRowLast]}
@@ -466,13 +474,13 @@ export default function ProfilesScreen() {
             <Ionicons
               name="document-attach-outline"
               size={22}
-              color="#2d5a4a"
+              color={colors.accent}
             />
             <View style={styles.actionRowTextWrap}>
-              <Text style={styles.actionRowText}>Імпортувати профіль</Text>
-              <Text style={styles.actionRowHint}>Вставте JSON з експорту</Text>
+              <Text style={[styles.actionRowText, { color: colors.text }]}>Імпортувати профіль</Text>
+              <Text style={[styles.actionRowHint, { color: colors.textTertiary }]}>Вставте JSON з експорту</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#8a9a90" />
+            <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
           </Pressable>
         </View>
       </ScrollView>
@@ -482,17 +490,17 @@ export default function ProfilesScreen() {
         onClose={() => setExportModalVisible(false)}
         cardStyle={styles.modalCardPadded}
       >
-        <Text style={styles.modalTitle}>Експорт профілю</Text>
-        <Text style={styles.modalHint}>
+        <Text style={[styles.modalTitle, { color: colors.text }]}>Експорт профілю</Text>
+        <Text style={[styles.modalHint, { color: colors.textTertiary }]}>
           Введіть пароль, щоб зашифрувати дані. Або залиште порожнім для
           експорту без шифрування.
         </Text>
         <TextInput
-          style={styles.passwordInput}
+          style={[styles.passwordInput, { backgroundColor: colors.inputBg, color: colors.text }]}
           value={exportPassword}
           onChangeText={setExportPassword}
           placeholder="Пароль (необов'язково)"
-          placeholderTextColor="#8a9a90"
+          placeholderTextColor={colors.textTertiary}
           secureTextEntry
           autoCapitalize="none"
         />
@@ -504,17 +512,17 @@ export default function ProfilesScreen() {
               setExportPassword("");
             }}
           >
-            <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
+            <Text style={[styles.modalBtnSecondaryText, { color: colors.textTertiary }]}>Скасувати</Text>
           </Pressable>
           <Pressable
-            style={styles.modalBtnPrimary}
+            style={[styles.modalBtnPrimary, { backgroundColor: colors.accent }]}
             onPress={handleExport}
             disabled={exporting}
           >
             {exporting ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.white} />
             ) : (
-              <Text style={styles.modalBtnPrimaryText}>Експортувати</Text>
+              <Text style={[styles.modalBtnPrimaryText, { color: colors.white }]}>Експортувати</Text>
             )}
           </Pressable>
         </View>
@@ -525,34 +533,34 @@ export default function ProfilesScreen() {
         onClose={() => setImportVisible(false)}
         cardStyle={styles.modalCardPadded}
       >
-        <Text style={styles.modalTitle}>Імпорт профілю</Text>
-        <Text style={styles.modalHint}>
+        <Text style={[styles.modalTitle, { color: colors.text }]}>Імпорт профілю</Text>
+        <Text style={[styles.modalHint, { color: colors.textTertiary }]}>
           Вставте JSON з експорту або оберіть файл
         </Text>
-        <Pressable style={styles.importFileBtn} onPress={handlePickFile}>
-          <Ionicons name="document-outline" size={20} color="#2d5a4a" />
-          <Text style={styles.importFileBtnText}>Обрати JSON-файл</Text>
+        <Pressable style={[styles.importFileBtn, { backgroundColor: colors.accentBg }]} onPress={handlePickFile}>
+          <Ionicons name="document-outline" size={20} color={colors.accent} />
+          <Text style={[styles.importFileBtnText, { color: colors.accent }]}>Обрати JSON-файл</Text>
         </Pressable>
         <TextInput
-          style={styles.importInput}
+          style={[styles.importInput, { backgroundColor: colors.inputBg, color: colors.text }]}
           value={importJson}
           onChangeText={(text) => {
             setImportJson(text);
             setImportPassword("");
           }}
           placeholder='{"version":1,"profileName":"...","data":{...}}'
-          placeholderTextColor="#8a9a90"
+          placeholderTextColor={colors.textTertiary}
           multiline
           numberOfLines={8}
         />
         {importJson.trim().length > 0 &&
           isEncryptedPayload(importJson.trim()) && (
             <TextInput
-              style={styles.passwordInput}
+              style={[styles.passwordInput, { backgroundColor: colors.inputBg, color: colors.text }]}
               value={importPassword}
               onChangeText={setImportPassword}
               placeholder="Пароль для розшифровки"
-              placeholderTextColor="#8a9a90"
+              placeholderTextColor={colors.textTertiary}
               secureTextEntry
               autoCapitalize="none"
             />
@@ -566,17 +574,17 @@ export default function ProfilesScreen() {
               setImportPassword("");
             }}
           >
-            <Text style={styles.modalBtnSecondaryText}>Скасувати</Text>
+            <Text style={[styles.modalBtnSecondaryText, { color: colors.textTertiary }]}>Скасувати</Text>
           </Pressable>
           <Pressable
-            style={styles.modalBtnPrimary}
+            style={[styles.modalBtnPrimary, { backgroundColor: colors.accent }]}
             onPress={handleImportApply}
             disabled={importing || !importJson.trim()}
           >
             {importing ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.white} />
             ) : (
-              <Text style={styles.modalBtnPrimaryText}>Імпортувати</Text>
+              <Text style={[styles.modalBtnPrimaryText, { color: colors.white }]}>Імпортувати</Text>
             )}
           </Pressable>
         </View>
@@ -586,7 +594,7 @@ export default function ProfilesScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: "#f2f6f4" },
+  scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
   hint: {
     fontSize: 14,

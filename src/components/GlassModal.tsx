@@ -7,6 +7,7 @@ import {
   type StyleProp,
 } from "react-native";
 import { BlurView } from "expo-blur";
+import { useAppTheme } from "../theme";
 
 type Props = {
   visible: boolean;
@@ -25,6 +26,7 @@ export function GlassModal({
   cardStyle,
   children,
 }: Props) {
+  const { colors } = useAppTheme();
   const isBottom = position === "bottom";
 
   return (
@@ -35,14 +37,22 @@ export function GlassModal({
       onRequestClose={onClose}
     >
       <Pressable
-        style={[styles.backdrop, isBottom && styles.backdropBottom]}
+        style={[
+          styles.backdrop,
+          { backgroundColor: colors.overlay },
+          isBottom && styles.backdropBottom,
+        ]}
         onPress={onClose}
       >
         <BlurView
           intensity={80}
-          tint="light"
+          tint={colors.isDark ? "dark" : "light"}
           style={[
             styles.card,
+            {
+              backgroundColor: colors.glassCard,
+              shadowColor: colors.shadow,
+            },
             isBottom ? styles.cardBottom : styles.cardCenter,
             cardStyle,
           ]}
@@ -60,7 +70,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
     padding: 24,
   },
   backdropBottom: {
@@ -68,9 +77,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   card: {
-    backgroundColor: "rgba(255,255,255,0.65)",
     overflow: "hidden",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,

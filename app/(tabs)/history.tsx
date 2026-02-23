@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAppTheme } from '../../src/theme';
 import { loadData } from '../../src/store/teethStore';
 import { QUADRANT_LABELS, TOOTH_NAMES, GLOBAL_PROCEDURE_TYPES, buildStatusMaps } from '../../src/types';
 import type { ToothChange, GlobalProcedure, StatusMaps } from '../../src/types';
@@ -46,6 +47,7 @@ function groupByDate(items: HistoryItem[]): { title: string; data: HistoryItem[]
 }
 
 export default function HistoryScreen() {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const [sections, setSections] = useState<{ title: string; data: HistoryItem[] }[]>([]);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
@@ -75,65 +77,65 @@ export default function HistoryScreen() {
       const t = c.toothId[1];
       return (
         <Pressable
-          style={styles.card}
+          style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}
           onPress={() => router.push(`/tooth/${c.toothId}`)}
         >
           <View style={styles.cardRow}>
-            <View style={styles.badge}>
+            <View style={[styles.badge, { backgroundColor: colors.accent }]}>
               <Text style={styles.badgeText}>{c.toothId}</Text>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{c.title}</Text>
-              <Text style={styles.cardSub}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>{c.title}</Text>
+              <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
                 {TOOTH_NAMES[t] ?? ''} · {QUADRANT_LABELS[q] ?? ''}
               </Text>
               {c.status && (
-                <Text style={styles.cardStatus}>{statusMaps.labels[c.status] ?? c.status}</Text>
+                <Text style={[styles.cardStatus, { color: colors.accent }]}>{statusMaps.labels[c.status] ?? c.status}</Text>
               )}
-              {c.notes ? <Text style={styles.cardNotes}>{c.notes}</Text> : null}
+              {c.notes ? <Text style={[styles.cardNotes, { color: colors.textSecondary }]}>{c.notes}</Text> : null}
             </View>
-            <Text style={styles.cardTime}>{formatTime(c.date)}</Text>
+            <Text style={[styles.cardTime, { color: colors.textTertiary }]}>{formatTime(c.date)}</Text>
           </View>
           {c.imageUri && (
-            <Image source={{ uri: c.imageUri }} style={styles.cardImage} />
+            <Image source={{ uri: c.imageUri }} style={[styles.cardImage, { backgroundColor: colors.border }]} />
           )}
         </Pressable>
       );
     }
     const p = item.data;
     return (
-      <View style={[styles.card, styles.globalCard]}>
+      <View style={[styles.card, styles.globalCard, { backgroundColor: colors.cardSecondary, shadowColor: colors.shadow }]}>
         <View style={styles.cardRow}>
-          <View style={[styles.badge, styles.globalBadge]}>
+          <View style={[styles.badge, styles.globalBadge, { backgroundColor: colors.textSecondary }]}>
             <Text style={styles.badgeText}>GP</Text>
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{p.title}</Text>
-            <Text style={styles.cardStatus}>{GLOBAL_PROCEDURE_TYPES[p.type]}</Text>
-            {p.notes ? <Text style={styles.cardNotes}>{p.notes}</Text> : null}
+            <Text style={[styles.cardTitle, { color: colors.text }]}>{p.title}</Text>
+            <Text style={[styles.cardStatus, { color: colors.textSecondary }]}>{GLOBAL_PROCEDURE_TYPES[p.type]}</Text>
+            {p.notes ? <Text style={[styles.cardNotes, { color: colors.textSecondary }]}>{p.notes}</Text> : null}
           </View>
-          <Text style={styles.cardTime}>{formatTime(p.date)}</Text>
+          <Text style={[styles.cardTime, { color: colors.textTertiary }]}>{formatTime(p.date)}</Text>
         </View>
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]} edges={['top']}>
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.data.id}
         renderItem={renderItem}
         renderSectionHeader={({ section }) => (
-          <Text style={styles.sectionHeader}>{section.title}</Text>
+          <Text style={[styles.sectionHeader, { color: colors.text, backgroundColor: colors.bg }]}>{section.title}</Text>
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { backgroundColor: colors.bg }]}
         ListEmptyComponent={
-          <Text style={styles.empty}>Історія порожня. Додайте перший запис.</Text>
+          <Text style={[styles.empty, { color: colors.textSecondary }]}>Історія порожня. Додайте перший запис.</Text>
         }
       />
       <Pressable
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+        style={({ pressed }) => [styles.fab, { backgroundColor: colors.accent }, pressed && styles.fabPressed]}
         onPress={() => router.push('/add-record')}
       >
         <Ionicons name="add" size={28} color="#fff" />
@@ -143,18 +145,15 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f0f5f2' },
+  safe: { flex: 1 },
   listContent: { paddingBottom: 120, paddingHorizontal: 16 },
   sectionHeader: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a3d32',
     paddingVertical: 10,
     marginTop: 8,
-    backgroundColor: '#f0f5f2',
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 18,
     padding: 14,
     marginBottom: 10,
@@ -163,7 +162,6 @@ const styles = StyleSheet.create({
   },
   globalCard: {
     borderColor: '#d0dcd6',
-    backgroundColor: '#f6faf8',
   },
   cardRow: {
     flexDirection: 'row',
@@ -173,14 +171,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 22,
-    backgroundColor: '#2d5a4a',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  globalBadge: {
-    backgroundColor: '#5a8a7a',
-  },
+  globalBadge: {},
   badgeText: {
     color: '#fff',
     fontSize: 12,
@@ -192,37 +187,30 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a3d32',
   },
   cardSub: {
     fontSize: 12,
-    color: '#5a7a6a',
     marginTop: 2,
   },
   cardStatus: {
     fontSize: 12,
-    color: '#2d5a4a',
     marginTop: 2,
   },
   cardNotes: {
     fontSize: 13,
-    color: '#3d5a4a',
     marginTop: 6,
   },
   cardTime: {
     fontSize: 12,
-    color: '#8a9a90',
   },
   cardImage: {
     width: '100%',
     height: 160,
     borderRadius: 14,
     marginTop: 10,
-    backgroundColor: '#e0e0e0',
   },
   empty: {
     textAlign: 'center',
-    color: '#7a9a8a',
     marginTop: 48,
     fontSize: 15,
   },
@@ -233,7 +221,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 32,
-    backgroundColor: '#2d5a4a',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#1a3d32',

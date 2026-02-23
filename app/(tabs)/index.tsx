@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
@@ -12,6 +13,7 @@ import { buildStatusMaps, TOOTH_NAMES } from "../../src/types";
 import type { ToothId, ToothStatus, StatusMaps } from "../../src/types";
 
 export default function ChartScreen() {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [teethStatuses, setTeethStatuses] = useState<
@@ -63,16 +65,17 @@ export default function ChartScreen() {
     ...new Set(Object.values(teethStatuses).filter(Boolean)),
   ] as ToothStatus[];
 
+  const profileBadgeBg = colors.isDark ? "rgba(30,50,40,0.85)" : "rgba(255,255,255,0.85)";
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       {profileName ? (
         <Pressable
-          style={[styles.profileBadge, { top: insets.top + 10 }]}
+          style={[styles.profileBadge, { top: insets.top + 10, backgroundColor: profileBadgeBg }]}
           onPress={() => router.push("/profiles")}
           hitSlop={6}
         >
           <Ionicons name="person-circle-outline" size={18} color="#2d5a4a" />
-          <Text style={styles.profileBadgeText} numberOfLines={1}>
+          <Text style={[styles.profileBadgeText, { color: colors.text }]} numberOfLines={1}>
             {profileName}
           </Text>
         </Pressable>
@@ -80,7 +83,7 @@ export default function ChartScreen() {
 
       <Pressable
         onPress={() => setShowStatuses((v) => !v)}
-        style={[styles.eyeBtn, { top: insets.top + 8 }]}
+        style={[styles.eyeBtn, { top: insets.top + 8, backgroundColor: profileBadgeBg }]}
         hitSlop={8}
       >
         <Ionicons
@@ -112,7 +115,7 @@ export default function ChartScreen() {
                     { backgroundColor: statusMaps.borderColors[s] ?? "#999" },
                   ]}
                 />
-                <Text style={styles.legendText}>
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>
                   {statusMaps.labels[s] ?? s}
                 </Text>
               </View>
@@ -133,7 +136,7 @@ export default function ChartScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", justifyContent: "center" },
+  container: { flex: 1, justifyContent: "center" },
   chartArea: { alignItems: "center" },
   profileBadge: {
     position: "absolute",
@@ -145,7 +148,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.85)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
@@ -156,7 +158,6 @@ const styles = StyleSheet.create({
   profileBadgeText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1a3d32",
   },
   eyeBtn: {
     position: "absolute",
@@ -165,7 +166,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.85)",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -194,6 +194,5 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: "#444",
   },
 });

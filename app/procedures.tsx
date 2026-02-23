@@ -199,7 +199,7 @@ export default function GlobalProceduresScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f0f5f2" },
+  safe: { flex: 1 },
   container: { flex: 1 },
   title: {
     fontSize: 20,

@@ -9,6 +9,7 @@ import {
   Platform,
   Image,
 } from "react-native";
+import { useAppTheme } from "../src/theme";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
@@ -25,6 +26,7 @@ import { TOOTH_NAMES, buildStatusMaps } from "../src/types";
 import type { ToothId, ToothChange, StatusMaps } from "../src/types";
 
 export default function EditRecordScreen() {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ toothId: string; changeId: string }>();
   const toothId = params.toothId as ToothId;
@@ -91,7 +93,7 @@ export default function EditRecordScreen() {
   return (
     <>
       <Stack.Screen options={{ title: "Редагувати запис" }} />
-      <View style={styles.root}>
+      <View style={[styles.root, { backgroundColor: colors.bg }]}>
         <KeyboardAwareScrollView
           style={styles.scroll}
           contentContainerStyle={styles.content}
@@ -102,21 +104,21 @@ export default function EditRecordScreen() {
           keyboardOpeningTime={0}
         >
           {/* ── Tooth info ── */}
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
             <View style={styles.cardRow}>
-              <View style={styles.cardRowIcon}>
-                <Ionicons name="lock-closed" size={14} color="#5a7a6a" />
+              <View style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}>
+                <Ionicons name="lock-closed" size={14} color={colors.textSecondary} />
               </View>
               <View style={styles.cardRowBody}>
-                <Text style={styles.cardRowLabel}>Зуб</Text>
-                <Text style={styles.cardRowValue}>{toothLabel}</Text>
+                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Зуб</Text>
+                <Text style={[styles.cardRowValue, { color: colors.text }]}>{toothLabel}</Text>
               </View>
             </View>
           </View>
 
           {/* ── Category ── */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Категорія</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Категорія</Text>
             <View style={styles.chipGrid}>
               {statusMaps.options.map(([value, label]) => {
                 const active = status === value;
@@ -127,7 +129,7 @@ export default function EditRecordScreen() {
                     onPress={() => setStatus(value as ToothChange["status"])}
                     style={[
                       styles.chip,
-                      active && { backgroundColor: dotColor },
+                      { backgroundColor: active ? colors.accent : colors.accentBg },
                     ]}
                   >
                     <View
@@ -137,7 +139,7 @@ export default function EditRecordScreen() {
                       ]}
                     />
                     <Text
-                      style={[styles.chipText, active && styles.chipTextActive]}
+                      style={[styles.chipText, { color: active ? colors.white : colors.textSecondary }]}
                     >
                       {label}
                     </Text>
@@ -148,28 +150,28 @@ export default function EditRecordScreen() {
           </View>
 
           {/* ── Details ── */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Деталі</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Деталі</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text }]}
               placeholder="Назва (наприклад: пломба, огляд)"
               value={title}
               onChangeText={setTitle}
-              placeholderTextColor="#b0bab4"
+              placeholderTextColor={colors.textTertiary}
             />
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, color: colors.text }]}
               placeholder="Нотатки..."
               value={notes}
               onChangeText={setNotes}
               multiline
-              placeholderTextColor="#b0bab4"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           {/* ── Photo ── */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Фото</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Фото</Text>
             {imageUri ? (
               <View style={styles.imagePreview}>
                 <Image source={{ uri: imageUri }} style={styles.previewImg} />
@@ -178,17 +180,17 @@ export default function EditRecordScreen() {
                     <Ionicons
                       name="swap-horizontal"
                       size={16}
-                      color="#2d5a4a"
+                      color={colors.accent}
                     />
-                    <Text style={styles.imageActionText}>Змінити</Text>
+                    <Text style={[styles.imageActionText, { color: colors.accent }]}>Змінити</Text>
                   </Pressable>
                   <Pressable
                     style={styles.imageActionBtn}
                     onPress={() => setImageUri(null)}
                   >
-                    <Ionicons name="trash-outline" size={16} color="#c0392b" />
+                    <Ionicons name="trash-outline" size={16} color={colors.destructive} />
                     <Text
-                      style={[styles.imageActionText, { color: "#c0392b" }]}
+                      style={[styles.imageActionText, { color: colors.destructive }]}
                     >
                       Видалити
                     </Text>
@@ -196,9 +198,9 @@ export default function EditRecordScreen() {
                 </View>
               </View>
             ) : (
-              <Pressable style={styles.imagePlaceholder} onPress={pickImage}>
-                <Ionicons name="camera-outline" size={24} color="#8a9a90" />
-                <Text style={styles.imagePlaceholderText}>
+              <Pressable style={[styles.imagePlaceholder, { backgroundColor: colors.inputBg, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }]} onPress={pickImage}>
+                <Ionicons name="camera-outline" size={24} color={colors.textTertiary} />
+                <Text style={[styles.imagePlaceholderText, { color: colors.textTertiary }]}>
                   Обрати з галереї
                 </Text>
               </Pressable>
@@ -206,13 +208,13 @@ export default function EditRecordScreen() {
           </View>
 
           {/* ── Date ── */}
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
             <View style={styles.cardRow}>
-              <View style={styles.cardRowIcon}>
-                <Ionicons name="calendar-outline" size={18} color="#2d5a4a" />
+              <View style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}>
+                <Ionicons name="calendar-outline" size={18} color={colors.accent} />
               </View>
               <View style={styles.cardRowBody}>
-                <Text style={styles.cardRowLabel}>Дата</Text>
+                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Дата</Text>
               </View>
               {Platform.OS === "ios" ? (
                 <DateTimePicker
@@ -222,7 +224,7 @@ export default function EditRecordScreen() {
                   maximumDate={new Date()}
                   onChange={onDateChange}
                   locale="uk"
-                  accentColor="#2d5a4a"
+                  accentColor={colors.accent}
                   style={{ alignSelf: "center" }}
                 />
               ) : (
@@ -231,7 +233,7 @@ export default function EditRecordScreen() {
                     onPress={() => setShowDatePicker(true)}
                     style={{ alignSelf: "center" }}
                   >
-                    <Text style={styles.cardRowValue}>
+                    <Text style={[styles.cardRowValue, { color: colors.text }]}>
                       {date.toLocaleDateString("uk-UA", {
                         day: "2-digit",
                         month: "long",
@@ -257,11 +259,12 @@ export default function EditRecordScreen() {
           <Pressable
             style={({ pressed }) => [
               styles.saveBtn,
+              { backgroundColor: colors.accent, shadowColor: colors.accent },
               pressed && styles.saveBtnPressed,
             ]}
             onPress={save}
           >
-            <Text style={styles.saveBtnText}>Зберегти</Text>
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
           </Pressable>
         </KeyboardAwareScrollView>
       </View>

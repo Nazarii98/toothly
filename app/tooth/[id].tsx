@@ -9,6 +9,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +34,7 @@ export default function ToothDetailScreen() {
   const toothId = id as ToothId;
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
 
   const [record, setRecord] = useState<ToothRecord | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
@@ -112,12 +114,12 @@ export default function ToothDetailScreen() {
               hitSlop={8}
               style={styles.headerAddBtn}
             >
-              <Ionicons name="add" size={26} color="#fff" />
+              <Ionicons name="add" size={26} color={colors.white} />
             </Pressable>
           ),
         }}
       />
-      <View style={styles.safe}>
+      <View style={[styles.safe, { backgroundColor: colors.bg }]}>
         <ScrollView
           style={styles.container}
           contentContainerStyle={[
@@ -129,10 +131,10 @@ export default function ToothDetailScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.statusCard}>
-            <Text style={styles.sectionLabel}>Поточний статус</Text>
+          <View style={[styles.statusCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>Поточний статус</Text>
             <Pressable
-              style={styles.statusTrigger}
+              style={[styles.statusTrigger, { backgroundColor: colors.inputBg }]}
               onPress={() => setPickerVisible(true)}
             >
               <View
@@ -141,8 +143,8 @@ export default function ToothDetailScreen() {
                   { backgroundColor: currentStatusColor },
                 ]}
               />
-              <Text style={styles.statusTriggerText}>{currentStatusLabel}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#8a9a90" />
+              <Text style={[styles.statusTriggerText, { color: colors.text }]}>{currentStatusLabel}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
             </Pressable>
             <StatusPickerModal
               visible={pickerVisible}
@@ -152,7 +154,7 @@ export default function ToothDetailScreen() {
               statusMaps={statusMaps}
               onSelect={handleStatusChange}
               footer={
-                <View style={styles.statusSectionFooter}>
+                <View style={[styles.statusSectionFooter, { borderTopColor: colors.border }]}>
                   <Pressable
                     style={styles.manageBtn}
                     hitSlop={12}
@@ -164,9 +166,9 @@ export default function ToothDetailScreen() {
                     <Ionicons
                       name="settings-outline"
                       size={16}
-                      color="#5a7a6a"
+                      color={colors.textSecondary}
                     />
-                    <Text style={styles.manageBtnText}>
+                    <Text style={[styles.manageBtnText, { color: colors.textSecondary }]}>
                       Керувати статусами
                     </Text>
                   </Pressable>
@@ -176,37 +178,37 @@ export default function ToothDetailScreen() {
           </View>
 
           <View style={styles.historySection}>
-            <Text style={styles.sectionLabel}>Історія змін</Text>
+            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>Історія змін</Text>
             {record && record.changes.length === 0 ? (
-              <View style={styles.emptyState}>
+              <View style={[styles.emptyState, { backgroundColor: colors.cardSecondary, shadowColor: colors.shadow }]}>
                 <Ionicons
                   name="document-text-outline"
                   size={40}
-                  color="#b0c0b8"
+                  color={colors.textTertiary}
                 />
-                <Text style={styles.emptyTitle}>Ще немає записів</Text>
-                <Text style={styles.emptyHint}>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>Ще немає записів</Text>
+                <Text style={[styles.emptyHint, { color: colors.textSecondary }]}>
                   Додайте перший запис про лікування або огляд
                 </Text>
-                <Pressable style={styles.emptyCta} onPress={openAdd}>
-                  <Ionicons name="add" size={20} color="#fff" />
-                  <Text style={styles.emptyCtaText}>Додати запис</Text>
+                <Pressable style={[styles.emptyCta, { backgroundColor: colors.accent }]} onPress={openAdd}>
+                  <Ionicons name="add" size={20} color={colors.white} />
+                  <Text style={[styles.emptyCtaText, { color: colors.white }]}>Додати запис</Text>
                 </Pressable>
               </View>
             ) : (
               <View style={styles.recordList}>
                 {record?.changes.map((c) => (
-                  <View key={c.id} style={styles.recordCard}>
+                  <View key={c.id} style={[styles.recordCard, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
                     <View style={styles.recordCardTop}>
-                      <Text style={styles.recordTitle} numberOfLines={2}>
+                      <Text style={[styles.recordTitle, { color: colors.text }]} numberOfLines={2}>
                         {c.title}
                       </Text>
-                      <Text style={styles.recordDate}>
+                      <Text style={[styles.recordDate, { color: colors.textTertiary }]}>
                         {formatDate(c.date)}
                       </Text>
                     </View>
                     {c.status && (
-                      <View style={styles.recordBadge}>
+                      <View style={[styles.recordBadge, { backgroundColor: colors.accentBg, borderColor: colors.border, borderWidth: 1 }]}>
                         <View
                           style={[
                             styles.recordBadgeDot,
@@ -216,20 +218,20 @@ export default function ToothDetailScreen() {
                             },
                           ]}
                         />
-                        <Text style={styles.recordBadgeText}>
+                        <Text style={[styles.recordBadgeText, { color: colors.accent }]}>
                           {statusMaps.labels[c.status] ?? c.status}
                         </Text>
                       </View>
                     )}
                     {c.notes ? (
-                      <Text style={styles.recordNotes} numberOfLines={2}>
+                      <Text style={[styles.recordNotes, { color: colors.textSecondary }]} numberOfLines={2}>
                         {c.notes}
                       </Text>
                     ) : null}
                     {c.imageUri && (
                       <Image
                         source={{ uri: c.imageUri }}
-                        style={styles.recordImage}
+                        style={[styles.recordImage, { backgroundColor: colors.border }]}
                       />
                     )}
                     <View style={styles.recordActions}>
@@ -237,8 +239,8 @@ export default function ToothDetailScreen() {
                         onPress={() => openEdit(c)}
                         style={styles.recordBtnEdit}
                       >
-                        <Ionicons name="pencil" size={14} color="#2d5a4a" />
-                        <Text style={styles.recordBtnEditText}>Редагувати</Text>
+                        <Ionicons name="pencil" size={14} color={colors.accent} />
+                        <Text style={[styles.recordBtnEditText, { color: colors.accent }]}>Редагувати</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => deleteChange(c)}
@@ -247,9 +249,9 @@ export default function ToothDetailScreen() {
                         <Ionicons
                           name="trash-outline"
                           size={14}
-                          color="#a04040"
+                          color={colors.destructive}
                         />
-                        <Text style={styles.recordBtnDeleteText}>Видалити</Text>
+                        <Text style={[styles.recordBtnDeleteText, { color: colors.destructive }]}>Видалити</Text>
                       </Pressable>
                     </View>
                   </View>

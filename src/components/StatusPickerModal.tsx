@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassModal } from "./GlassModal";
+import { useAppTheme } from "../theme";
 import type { ToothStatus, StatusMaps } from "../types";
 
 type Props = {
@@ -23,6 +24,7 @@ export function StatusPickerModal({
   onSelect,
   footer,
 }: Props) {
+  const { colors } = useAppTheme();
   const options: [string, string][] = [
     ["", "Не встановлено"],
     ...statusMaps.options,
@@ -30,12 +32,12 @@ export function StatusPickerModal({
 
   return (
     <GlassModal visible={visible} onClose={onClose}>
-      <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={1}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {title}
         </Text>
         <Pressable onPress={onClose} hitSlop={12}>
-          <Text style={styles.done}>Готово</Text>
+          <Text style={[styles.done, { color: colors.accent }]}>Готово</Text>
         </Pressable>
       </View>
       <View style={styles.list}>
@@ -48,14 +50,19 @@ export function StatusPickerModal({
               key={value || "empty"}
               style={({ pressed }) => [
                 styles.option,
-                isSelected && styles.optionSelected,
-                pressed && styles.optionPressed,
+                isSelected && { backgroundColor: colors.badgeBg },
+                pressed && { backgroundColor: colors.statusOptionBg },
               ]}
               onPress={() => onSelect(value as ToothStatus)}
             >
               <View style={[styles.dot, { backgroundColor: color }]} />
               <Text
-                style={[styles.label, isSelected && styles.labelSelected]}
+                style={[
+                  styles.label,
+                  { color: colors.textSecondary },
+                  isSelected && styles.labelSelected,
+                  isSelected && { color: colors.text },
+                ]}
               >
                 {label}
               </Text>
@@ -63,7 +70,7 @@ export function StatusPickerModal({
                 <Ionicons
                   name="checkmark-circle"
                   size={22}
-                  color="#2d5a4a"
+                  color={colors.accent}
                   style={styles.check}
                 />
               )}
@@ -84,19 +91,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e8ece8",
   },
   title: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a3d32",
     flex: 1,
     marginRight: 12,
   },
   done: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#2d5a4a",
   },
   list: {
     padding: 12,
@@ -109,12 +113,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 12,
   },
-  optionSelected: {
-    backgroundColor: "#e8f5ee",
-  },
-  optionPressed: {
-    backgroundColor: "#f0f5f2",
-  },
   dot: {
     width: 12,
     height: 12,
@@ -123,11 +121,9 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     fontSize: 16,
-    color: "#3d5a4a",
   },
   labelSelected: {
     fontWeight: "600",
-    color: "#1a3d32",
   },
   check: {
     marginLeft: "auto",

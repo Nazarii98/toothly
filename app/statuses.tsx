@@ -18,6 +18,7 @@ import {
 } from "../src/store/teethStore";
 import { STATUS_LABELS, STATUS_BORDER_COLORS } from "../src/types";
 import type { CustomStatus } from "../src/types";
+import { useAppTheme } from "../src/theme";
 
 const PRESET_COLORS = [
   "#E91E63",
@@ -45,6 +46,7 @@ const BUILTIN_STATUSES = Object.entries(STATUS_LABELS).map(([id, label]) => ({
 }));
 
 export default function ManageStatusesScreen() {
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [customStatuses, setCustomStatuses] = useState<CustomStatus[]>([]);
   const [adding, setAdding] = useState(false);
@@ -90,63 +92,97 @@ export default function ManageStatusesScreen() {
   };
 
   return (
-    <View style={styles.safe}>
+    <View style={[styles.safe, { backgroundColor: colors.bg }]}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 56, paddingBottom: insets.bottom + 20 },
+          { paddingTop: insets.top + 68, paddingBottom: insets.bottom + 20 },
         ]}
       >
-        <Text style={styles.sectionTitle}>Стандартні статуси</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Стандартні статуси
+        </Text>
         {BUILTIN_STATUSES.map((s) => (
-          <View key={s.id} style={styles.statusRow}>
+          <View
+            key={s.id}
+            style={[styles.statusRow, { borderBottomColor: colors.border }]}
+          >
             <View style={[styles.dot, { backgroundColor: s.color }]} />
-            <Text style={styles.statusLabel}>{s.label}</Text>
+            <Text style={[styles.statusLabel, { color: colors.text }]}>
+              {s.label}
+            </Text>
           </View>
         ))}
 
-        <View style={styles.divider} />
-
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Кастомні статуси</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Кастомні статуси
+          </Text>
           {!adding && (
             <Pressable
               onPress={() => setAdding(true)}
               style={styles.addIconBtn}
             >
-              <Ionicons name="add-circle" size={28} color="#2d5a4a" />
+              <Ionicons name="add-circle" size={28} color={colors.accent} />
             </Pressable>
           )}
         </View>
 
         {customStatuses.length === 0 && !adding && (
-          <Text style={styles.empty}>Ще немає кастомних статусів.</Text>
+          <Text style={[styles.empty, { color: colors.textTertiary }]}>
+            Ще немає кастомних статусів.
+          </Text>
         )}
 
         {customStatuses.map((s) => (
-          <View key={s.id} style={styles.statusRow}>
+          <View
+            key={s.id}
+            style={[styles.statusRow, { borderBottomColor: colors.border }]}
+          >
             <View style={[styles.dot, { backgroundColor: s.color }]} />
-            <Text style={[styles.statusLabel, { flex: 1 }]}>{s.label}</Text>
+            <Text style={[styles.statusLabel, { flex: 1, color: colors.text }]}>
+              {s.label}
+            </Text>
             <Pressable onPress={() => handleDelete(s)} hitSlop={8}>
-              <Ionicons name="trash-outline" size={20} color="#a04040" />
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color={colors.destructive}
+              />
             </Pressable>
           </View>
         ))}
 
         {adding && (
-          <View style={styles.addForm}>
-            <Text style={styles.formLabel}>Назва</Text>
+          <View
+            style={[
+              styles.addForm,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.formLabel, { color: colors.text }]}>
+              Назва
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBg,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
               placeholder="наприклад: Імплант, Брекети"
               value={newLabel}
               onChangeText={setNewLabel}
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
               autoFocus
             />
 
-            <Text style={styles.formLabel}>Колір</Text>
+            <Text style={[styles.formLabel, { color: colors.text }]}>
+              Колір
+            </Text>
             <View style={styles.colorGrid}>
               {PRESET_COLORS.map((c) => (
                 <Pressable
@@ -156,6 +192,7 @@ export default function ManageStatusesScreen() {
                     styles.colorOption,
                     { backgroundColor: c },
                     newColor === c && styles.colorOptionSelected,
+                    newColor === c && { borderColor: colors.text },
                   ]}
                 />
               ))}
@@ -169,16 +206,26 @@ export default function ManageStatusesScreen() {
                 }}
                 style={styles.cancelBtn}
               >
-                <Text style={styles.cancelBtnText}>Скасувати</Text>
+                <Text
+                  style={[
+                    styles.cancelBtnText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Скасувати
+                </Text>
               </Pressable>
               <Pressable
                 onPress={handleAdd}
                 style={({ pressed }) => [
                   styles.saveBtn,
+                  { backgroundColor: colors.accent },
                   pressed && styles.pressed,
                 ]}
               >
-                <Text style={styles.saveBtnText}>Додати</Text>
+                <Text style={[styles.saveBtnText, { color: colors.white }]}>
+                  Додати
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -189,24 +236,21 @@ export default function ManageStatusesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f0f5f2" },
+  safe: { flex: 1 },
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 100 },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginTop: 20,
   },
   sectionTitle: {
     fontSize: 17,
+    lineHeight: 28,
     fontWeight: "700",
     color: "#1a3d32",
     marginBottom: 12,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#d0dcd6",
-    marginVertical: 20,
   },
   statusRow: {
     flexDirection: "row",
