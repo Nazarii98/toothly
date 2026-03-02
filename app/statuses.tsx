@@ -31,6 +31,7 @@ import {
 } from "../src/types";
 import type { CustomStatus, CustomCategory } from "../src/types";
 import { useAppTheme } from "../src/theme";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const PRESET_COLORS = [
   "#E91E63",
@@ -175,6 +176,8 @@ export default function ManageStatusesScreen() {
         onChangeText={setFormLabel}
         placeholderTextColor={colors.textTertiary}
         autoFocus
+        keyboardType="ascii-capable"
+        autoCorrect={false}
       />
       <Text style={[styles.formLabel, { color: colors.text }]}>Колір</Text>
       <View style={styles.colorGrid}>
@@ -240,12 +243,20 @@ export default function ManageStatusesScreen() {
   );
 
   return (
-    <View style={[styles.safe, { backgroundColor: colors.bg }]}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.safe]}
+      keyboardShouldPersistTaps="handled"
+      enableOnAndroid
+    >
       <ScrollView
         style={styles.container}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: headerHeight + 12, paddingBottom: insets.bottom + 20 },
+          {
+            paddingTop: headerHeight + 12,
+            paddingBottom: insets.bottom + 20,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
       >
@@ -382,7 +393,7 @@ export default function ManageStatusesScreen() {
           {addingSection === "globalCategories" && renderAddForm()}
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAwareScrollView>
   );
 }
 
