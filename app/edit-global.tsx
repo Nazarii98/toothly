@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,7 +16,7 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { CategoryPicker } from "../src/components/CategoryPicker";
+import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import {
   loadData,
   updateGlobalProcedure,
@@ -27,6 +28,7 @@ import type { StatusMaps } from "../src/types";
 export default function EditGlobalScreen() {
   const { colors } = useAppTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id: string }>();
   const procedureId = params.id!;
 
@@ -36,6 +38,7 @@ export default function EditGlobalScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildGlobalCategoryMaps());
+  const [typePickerVisible, setTypePickerVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -103,16 +106,22 @@ export default function EditGlobalScreen() {
         >
           {/* Type */}
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <CategoryPicker
-              title="Тип процедури"
-              options={categoryMaps.options.map(([value, label]) => ({
-                value,
-                label,
-                color: categoryMaps.borderColors[value] ?? "#9E9E9E",
-              }))}
-              selected={type}
-              onSelect={setType}
-            />
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Тип процедури</Text>
+            <Pressable
+              style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
+              onPress={() => setTypePickerVisible(true)}
+            >
+              <View
+                style={[
+                  styles.categoryDot,
+                  { backgroundColor: categoryMaps.borderColors[type] ?? "#9E9E9E" },
+                ]}
+              />
+              <Text style={[styles.categoryTriggerText, { color: colors.text }]}>
+                {categoryMaps.labels[type] ?? type}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
+            </Pressable>
           </View>
 
           {/* Details */}
@@ -183,18 +192,6 @@ export default function EditGlobalScreen() {
             </View>
           </View>
 
-          {/* Save */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.saveBtn,
-              { backgroundColor: colors.accent, shadowColor: colors.accent },
-              pressed && styles.saveBtnPressed,
-            ]}
-            onPress={save}
-          >
-            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
-          </Pressable>
-
           {/* Delete */}
           <Pressable
             style={({ pressed }) => [
@@ -209,7 +206,30 @@ export default function EditGlobalScreen() {
             </Text>
           </Pressable>
         </KeyboardAwareScrollView>
+        <View style={[styles.bottomBar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.saveBtn,
+              { backgroundColor: colors.accent, shadowColor: colors.accent },
+              pressed && styles.saveBtnPressed,
+            ]}
+            onPress={save}
+          >
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
+          </Pressable>
+        </View>
       </View>
+      <StatusPickerModal
+        visible={typePickerVisible}
+        onClose={() => setTypePickerVisible(false)}
+        title="Тип процедури"
+        selected={type}
+        maps={categoryMaps}
+        onSelect={(v) => { setType(v); setTypePickerVisible(false); }}
+        onManage={() => { router.push("/statuses"); setTypePickerVisible(false); }}
+        manageLabel="Керувати категоріями"
+        showEmpty={false}
+      />
     </>
   );
 }
@@ -217,7 +237,13 @@ export default function EditGlobalScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 120 },
+  content: { padding: 16, paddingBottom: 24 },
+
+  bottomBar: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 
   card: {
     borderRadius: 20,
@@ -260,6 +286,25 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
+  categoryTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  categoryDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  categoryTriggerText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
   input: {
     borderRadius: 16,
     paddingVertical: 14,
@@ -270,7 +315,6 @@ const styles = StyleSheet.create({
   textArea: { minHeight: 80, textAlignVertical: "top" },
 
   saveBtn: {
-    marginTop: 4,
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: "center",

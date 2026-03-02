@@ -9,6 +9,7 @@ import {
   Platform,
   Image,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,6 +31,7 @@ import type { ToothId, StatusMaps } from "../src/types";
 export default function EditRecordScreen() {
   const { colors } = useAppTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ toothId: string; changeId: string }>();
   const toothId = params.toothId as ToothId;
   const changeId = params.changeId!;
@@ -365,20 +367,6 @@ export default function EditRecordScreen() {
             </View>
           </View>
 
-          {/* ── Save ── */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.saveBtn,
-              { backgroundColor: colors.accent, shadowColor: colors.accent },
-              pressed && styles.saveBtnPressed,
-            ]}
-            onPress={save}
-          >
-            <Text style={[styles.saveBtnText, { color: colors.white }]}>
-              Зберегти
-            </Text>
-          </Pressable>
-
           {/* ── Delete ── */}
           <Pressable
             style={({ pressed }) => [
@@ -397,6 +385,20 @@ export default function EditRecordScreen() {
             </Text>
           </Pressable>
         </KeyboardAwareScrollView>
+        <View style={[styles.bottomBar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.saveBtn,
+              { backgroundColor: colors.accent, shadowColor: colors.accent },
+              pressed && styles.saveBtnPressed,
+            ]}
+            onPress={save}
+          >
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>
+              Зберегти
+            </Text>
+          </Pressable>
+        </View>
       </View>
       <StatusPickerModal
         visible={categoryPickerVisible}
@@ -416,7 +418,13 @@ export default function EditRecordScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 120 },
+  content: { padding: 16, paddingBottom: 24 },
+
+  bottomBar: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 
   card: {
     borderRadius: 20,
@@ -511,7 +519,6 @@ const styles = StyleSheet.create({
   imageActionText: { fontSize: 13, fontWeight: "500" },
 
   saveBtn: {
-    marginTop: 4,
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: "center",

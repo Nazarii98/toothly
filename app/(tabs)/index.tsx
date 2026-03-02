@@ -150,6 +150,11 @@ export default function ChartScreen() {
         selected={popupTooth ? teethStatuses[popupTooth] : undefined}
         maps={statusMaps}
         onSelect={handleStatusSelect}
+        onManage={() => {
+          router.push("/statuses");
+          setPopupTooth(null);
+        }}
+        manageLabel="Керувати статусами"
       />
     </View>
   );

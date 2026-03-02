@@ -10,6 +10,7 @@ import {
   Image,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
 import { GlassModal } from "../src/components/GlassModal";
 import { StatusPickerModal } from "../src/components/StatusPickerModal";
@@ -48,6 +49,7 @@ const QUADRANTS = ["1", "2", "3", "4"] as const;
 export default function AddRecordModal() {
   const { colors } = useAppTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ toothId?: string }>();
   const locked = !!params.toothId;
 
@@ -295,7 +297,8 @@ export default function AddRecordModal() {
             </View>
           </View>
 
-          {/* ── Save ── */}
+        </KeyboardAwareScrollView>
+        <View style={[styles.bottomBar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
           <Pressable
             style={({ pressed }) => [
               styles.saveBtn,
@@ -306,7 +309,7 @@ export default function AddRecordModal() {
           >
             <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
           </Pressable>
-        </KeyboardAwareScrollView>
+        </View>
       </View>
 
       <StatusPickerModal
@@ -420,7 +423,13 @@ export default function AddRecordModal() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 120 },
+  content: { padding: 16, paddingBottom: 24 },
+
+  bottomBar: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 
   card: {
     borderRadius: 20,
@@ -565,7 +574,6 @@ const styles = StyleSheet.create({
   },
 
   saveBtn: {
-    marginTop: 4,
     paddingVertical: 16,
     borderRadius: 18,
     alignItems: "center",
