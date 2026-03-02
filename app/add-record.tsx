@@ -62,8 +62,12 @@ export default function AddRecordModal() {
   const [category, setCategory] = useState<string>("checkup");
   const [procedureType, setProcedureType] = useState<string>("checkup");
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [toothCategoryMaps, setToothCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
-  const [globalCategoryMaps, setGlobalCategoryMaps] = useState<StatusMaps>(buildGlobalCategoryMaps());
+  const [toothCategoryMaps, setToothCategoryMaps] = useState<StatusMaps>(
+    buildToothCategoryMaps(),
+  );
+  const [globalCategoryMaps, setGlobalCategoryMaps] = useState<StatusMaps>(
+    buildGlobalCategoryMaps(),
+  );
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
   const [globalPickerVisible, setGlobalPickerVisible] = useState(false);
 
@@ -91,7 +95,9 @@ export default function AddRecordModal() {
   useEffect(() => {
     loadData().then((data) => {
       setToothCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
-      setGlobalCategoryMaps(buildGlobalCategoryMaps(data.customGlobalCategories));
+      setGlobalCategoryMaps(
+        buildGlobalCategoryMaps(data.customGlobalCategories),
+      );
     });
   }, []);
 
@@ -108,7 +114,9 @@ export default function AddRecordModal() {
   const save = () => {
     const dateISO = date.toISOString();
     if (isGeneral) {
-      const t = title.trim() || (globalCategoryMaps.labels[procedureType] ?? procedureType);
+      const t =
+        title.trim() ||
+        (globalCategoryMaps.labels[procedureType] ?? procedureType);
       addGlobalProcedure({
         date: dateISO,
         title: t,
@@ -150,11 +158,17 @@ export default function AddRecordModal() {
         >
           {/* ── Target + Date card ── */}
           <Pressable
-            style={[styles.card, styles.cardRow, { backgroundColor: colors.card, shadowColor: colors.shadow }]}
+            style={[
+              styles.card,
+              styles.cardRow,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
             onPress={locked ? undefined : () => setPickerOpen(true)}
             disabled={locked}
           >
-            <View style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons
                 name={locked ? "lock-closed" : "medical-outline"}
                 size={20}
@@ -162,40 +176,84 @@ export default function AddRecordModal() {
               />
             </View>
             <View style={styles.cardRowBody}>
-              <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Прив'язка</Text>
-              <Text style={[styles.cardRowValue, { color: colors.text }]} numberOfLines={1}>
+              <Text
+                style={[styles.cardRowLabel, { color: colors.textTertiary }]}
+              >
+                Прив'язка
+              </Text>
+              <Text
+                style={[styles.cardRowValue, { color: colors.text }]}
+                numberOfLines={1}
+              >
                 {locked
                   ? `Зуб ${toothShort(target as ToothId)}`
                   : displayTarget}
               </Text>
             </View>
             {!locked && (
-              <Ionicons name="chevron-forward" size={22} color={colors.chevron} />
+              <Ionicons
+                name="chevron-forward"
+                size={22}
+                color={colors.chevron}
+              />
             )}
           </Pressable>
 
           {/* ── Category card ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
               {isGeneral ? "Тип процедури" : "Категорія"}
             </Text>
             <Pressable
-              style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
-              onPress={() => isGeneral ? setGlobalPickerVisible(true) : setCategoryPickerVisible(true)}
+              style={[
+                styles.categoryTrigger,
+                { backgroundColor: colors.inputBg },
+              ]}
+              onPress={() =>
+                isGeneral
+                  ? setGlobalPickerVisible(true)
+                  : setCategoryPickerVisible(true)
+              }
             >
-              <View style={[styles.categoryDot, { backgroundColor: currentCategoryColor }]} />
-              <Text style={[styles.categoryTriggerText, { color: colors.text }]}>
+              <View
+                style={[
+                  styles.categoryDot,
+                  { backgroundColor: currentCategoryColor },
+                ]}
+              />
+              <Text
+                style={[styles.categoryTriggerText, { color: colors.text }]}
+              >
                 {currentCategoryLabel}
               </Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={colors.chevron}
+              />
             </Pressable>
           </View>
 
           {/* ── Details card ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Деталі</Text>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+              Деталі
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text }]}
+              style={[
+                styles.input,
+                { backgroundColor: colors.inputBg, color: colors.text },
+              ]}
               placeholder={
                 isGeneral
                   ? "Назва (наприклад: профілактичний огляд)"
@@ -206,7 +264,11 @@ export default function AddRecordModal() {
               placeholderTextColor={colors.textTertiary}
             />
             <TextInput
-              style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, color: colors.text }]}
+              style={[
+                styles.input,
+                styles.textArea,
+                { backgroundColor: colors.inputBg, color: colors.text },
+              ]}
               placeholder="Нотатки..."
               value={notes}
               onChangeText={setNotes}
@@ -216,27 +278,55 @@ export default function AddRecordModal() {
           </View>
 
           {/* ── Photo card ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Фото</Text>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+              Фото
+            </Text>
             {imageUri ? (
-              <View style={[styles.imagePreview, { backgroundColor: colors.border }]}>
+              <View
+                style={[
+                  styles.imagePreview,
+                  { backgroundColor: colors.border },
+                ]}
+              >
                 <Image source={{ uri: imageUri }} style={styles.previewImg} />
-                <View style={[styles.imageActions, { backgroundColor: colors.inputBg }]}>
+                <View
+                  style={[
+                    styles.imageActions,
+                    { backgroundColor: colors.inputBg },
+                  ]}
+                >
                   <Pressable style={styles.imageActionBtn} onPress={pickImage}>
                     <Ionicons
                       name="swap-horizontal"
                       size={16}
                       color={colors.accent}
                     />
-                    <Text style={[styles.imageActionText, { color: colors.accent }]}>Змінити</Text>
+                    <Text
+                      style={[styles.imageActionText, { color: colors.accent }]}
+                    >
+                      Змінити
+                    </Text>
                   </Pressable>
                   <Pressable
                     style={styles.imageActionBtn}
                     onPress={() => setImageUri(null)}
                   >
-                    <Ionicons name="trash-outline" size={16} color={colors.destructive} />
+                    <Ionicons
+                      name="trash-outline"
+                      size={16}
+                      color={colors.destructive}
+                    />
                     <Text
-                      style={[styles.imageActionText, { color: colors.destructive }]}
+                      style={[
+                        styles.imageActionText,
+                        { color: colors.destructive },
+                      ]}
                     >
                       Видалити
                     </Text>
@@ -244,9 +334,28 @@ export default function AddRecordModal() {
                 </View>
               </View>
             ) : (
-              <Pressable style={[styles.imagePlaceholder, { backgroundColor: colors.inputBg, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }]} onPress={pickImage}>
-                <Ionicons name="camera-outline" size={24} color={colors.textTertiary} />
-                <Text style={[styles.imagePlaceholderText, { color: colors.textTertiary }]}>
+              <Pressable
+                style={[
+                  styles.imagePlaceholder,
+                  {
+                    backgroundColor: colors.inputBg,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: colors.border,
+                  },
+                ]}
+                onPress={pickImage}
+              >
+                <Ionicons
+                  name="camera-outline"
+                  size={24}
+                  color={colors.textTertiary}
+                />
+                <Text
+                  style={[
+                    styles.imagePlaceholderText,
+                    { color: colors.textTertiary },
+                  ]}
+                >
                   Обрати з галереї
                 </Text>
               </Pressable>
@@ -254,13 +363,31 @@ export default function AddRecordModal() {
           </View>
 
           {/* ── Date card (optional) ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
             <View style={styles.cardRow}>
-              <View style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}>
-                <Ionicons name="calendar-outline" size={18} color={colors.accent} />
+              <View
+                style={[
+                  styles.cardRowIcon,
+                  { backgroundColor: colors.accentBg },
+                ]}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={colors.accent}
+                />
               </View>
               <View style={styles.cardRowBody}>
-                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Дата (необов'язково)</Text>
+                <Text
+                  style={[styles.cardRowLabel, { color: colors.textTertiary }]}
+                >
+                  Дата (необов'язково)
+                </Text>
               </View>
               {Platform.OS === "ios" ? (
                 <DateTimePicker
@@ -296,9 +423,13 @@ export default function AddRecordModal() {
               )}
             </View>
           </View>
-
         </KeyboardAwareScrollView>
-        <View style={[styles.bottomBar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
+        <View
+          style={[
+            styles.bottomBar,
+            { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 },
+          ]}
+        >
           <Pressable
             style={({ pressed }) => [
               styles.saveBtn,
@@ -307,7 +438,9 @@ export default function AddRecordModal() {
             ]}
             onPress={save}
           >
-            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>
+              Зберегти
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -318,8 +451,14 @@ export default function AddRecordModal() {
         title="Категорія"
         selected={category}
         maps={toothCategoryMaps}
-        onSelect={(v) => { setCategory(v); setCategoryPickerVisible(false); }}
-        onManage={() => { router.push("/statuses"); setCategoryPickerVisible(false); }}
+        onSelect={(v) => {
+          setCategory(v);
+          setCategoryPickerVisible(false);
+        }}
+        onManage={() => {
+          router.push("/statuses");
+          setCategoryPickerVisible(false);
+        }}
         manageLabel="Керувати категоріями"
         showEmpty={false}
       />
@@ -329,17 +468,29 @@ export default function AddRecordModal() {
         title="Тип процедури"
         selected={procedureType}
         maps={globalCategoryMaps}
-        onSelect={(v) => { setProcedureType(v); setGlobalPickerVisible(false); }}
-        onManage={() => { router.push("/statuses"); setGlobalPickerVisible(false); }}
+        onSelect={(v) => {
+          setProcedureType(v);
+          setGlobalPickerVisible(false);
+        }}
+        onManage={() => {
+          router.push("/statuses");
+          setGlobalPickerVisible(false);
+        }}
         manageLabel="Керувати категоріями"
         showEmpty={false}
       />
 
       <GlassModal visible={pickerOpen} onClose={() => setPickerOpen(false)}>
-        <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
-          <Text style={[styles.pickerTitle, { color: colors.text }]}>Прив'язка</Text>
+        <View
+          style={[styles.pickerHeader, { borderBottomColor: colors.border }]}
+        >
+          <Text style={[styles.pickerTitle, { color: colors.text }]}>
+            Прив'язка
+          </Text>
           <Pressable onPress={() => setPickerOpen(false)} hitSlop={12}>
-            <Text style={[styles.pickerDone, { color: colors.accent }]}>Готово</Text>
+            <Text style={[styles.pickerDone, { color: colors.accent }]}>
+              Готово
+            </Text>
           </Pressable>
         </View>
         <ScrollView style={styles.pickerScroll}>
@@ -361,7 +512,10 @@ export default function AddRecordModal() {
             <Text
               style={[
                 styles.pickerItemText,
-                { color: target === GENERAL_KEY ? colors.text : colors.textSecondary },
+                {
+                  color:
+                    target === GENERAL_KEY ? colors.text : colors.textSecondary,
+                },
                 target === GENERAL_KEY && { fontWeight: "600" },
               ]}
             >
@@ -379,7 +533,11 @@ export default function AddRecordModal() {
 
           {QUADRANTS.map((q) => (
             <View key={q}>
-              <Text style={[styles.pickerGroup, { color: colors.textTertiary }]}>{QUADRANT_LABELS[q]}</Text>
+              <Text
+                style={[styles.pickerGroup, { color: colors.textTertiary }]}
+              >
+                {QUADRANT_LABELS[q]}
+              </Text>
               {ALL_TOOTH_IDS.filter((id) => id[0] === q).map((id) => (
                 <Pressable
                   key={id}
@@ -392,11 +550,18 @@ export default function AddRecordModal() {
                     setPickerOpen(false);
                   }}
                 >
-                  <Text style={[styles.pickerToothNum, { color: colors.accent }]}>{id}</Text>
+                  <Text
+                    style={[styles.pickerToothNum, { color: colors.accent }]}
+                  >
+                    {id}
+                  </Text>
                   <Text
                     style={[
                       styles.pickerItemText,
-                      { color: target === id ? colors.text : colors.textSecondary },
+                      {
+                        color:
+                          target === id ? colors.text : colors.textSecondary,
+                      },
                       target === id && { fontWeight: "600" },
                     ]}
                   >

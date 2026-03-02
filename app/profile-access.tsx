@@ -155,7 +155,6 @@ export default function ProfileAccessScreen() {
       <Stack.Screen
         options={{
           title: profileName ? decodeURIComponent(profileName) : "Доступ",
-          headerTintColor: "#fff",
         }}
       />
       <ScrollView
