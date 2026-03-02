@@ -60,6 +60,10 @@ function normalizeAppData(raw: unknown): AppData | null {
     teeth: o.teeth as AppData["teeth"],
     globalProcedures: o.globalProcedures as AppData["globalProcedures"],
     customStatuses: o.customStatuses as AppData["customStatuses"],
+    customToothCategories:
+      o.customToothCategories as AppData["customToothCategories"],
+    customGlobalCategories:
+      o.customGlobalCategories as AppData["customGlobalCategories"],
   };
 }
 
