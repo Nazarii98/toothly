@@ -1,4 +1,4 @@
-# Teeth Manager
+# Toothly
 
 Додаток на React Native (Expo) для ведення статусу зубів та історії змін за нотаціями FDI.
 
@@ -17,6 +17,21 @@ npm start
 ```
 
 Далі відкрити в Expo Go на телефоні або емуляторі (iOS/Android), або `npm run web` для веб-версії.
+
+## Публікація в App Store через Xcode
+
+1. Згенерувати нативний iOS-проєкт:
+   ```bash
+   npx expo prebuild --platform ios
+   ```
+2. Відкрити в Xcode:
+   ```bash
+   open ios/toothly.xcworkspace
+   ```
+3. У Xcode: обрати команду **Product → Archive**, потім у Organizer — **Distribute App** → **App Store Connect** і пройти кроки завантаження.
+4. У [App Store Connect](https://appstoreconnect.apple.com) додати новий додаток (якщо ще немає), заповнити метадані й відправити збірку на перевірку.
+
+Перед архівуванням переконайся, що в Xcode обрано правильний **Team** і **Signing** у налаштуваннях таргету.
 
 ## Структура проєкту
 

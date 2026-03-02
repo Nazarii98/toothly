@@ -1,16 +1,14 @@
 {
   "expo": {
-    "name": "teeth-manager",
-    "slug": "teeth-manager",
+    "name": "Toothly",
+    "slug": "toothly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "teeth-manager",
-    "plugins": [
-      "expo-router"
-    ],
+    "scheme": "toothly",
+    "plugins": ["expo-router"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -18,7 +16,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nazarii98.teeth-manager"
+      "bundleIdentifier": "com.tooth-manager.app",
+      "infoPlist": {
+        "CFBundleDisplayName": "Toothly",
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +35,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.nazarii98.teethmanager"
+      "package": "com.tooth-manager.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"

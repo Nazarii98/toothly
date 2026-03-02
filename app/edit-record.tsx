@@ -72,19 +72,19 @@ export default function EditRecordScreen() {
     if (selected) setDate(selected);
   };
 
-  const save = async () => {
+  const save = () => {
     const t = title.trim();
     if (!t) {
       Alert.alert("Помилка", "Введіть назву запису");
       return;
     }
-    await updateToothChange(toothId, changeId, {
+    updateToothChange(toothId, changeId, {
       title: t,
       notes: notes.trim() || undefined,
       status,
       date: date.toISOString(),
       imageUri: imageUri ?? undefined,
-    });
+    }).catch(() => {});
     router.back();
   };
 
@@ -94,8 +94,8 @@ export default function EditRecordScreen() {
       {
         text: "Видалити",
         style: "destructive",
-        onPress: async () => {
-          await deleteToothChange(toothId, changeId);
+        onPress: () => {
+          deleteToothChange(toothId, changeId).catch(() => {});
           router.back();
         },
       },
@@ -120,20 +120,45 @@ export default function EditRecordScreen() {
           keyboardOpeningTime={0}
         >
           {/* ── Tooth info ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
             <View style={styles.cardRow}>
-              <View style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}>
-                <Ionicons name="lock-closed" size={14} color={colors.textSecondary} />
+              <View
+                style={[
+                  styles.cardRowIcon,
+                  { backgroundColor: colors.accentBg },
+                ]}
+              >
+                <Ionicons
+                  name="lock-closed"
+                  size={14}
+                  color={colors.textSecondary}
+                />
               </View>
               <View style={styles.cardRowBody}>
-                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Зуб</Text>
-                <Text style={[styles.cardRowValue, { color: colors.text }]}>{toothLabel}</Text>
+                <Text
+                  style={[styles.cardRowLabel, { color: colors.textTertiary }]}
+                >
+                  Зуб
+                </Text>
+                <Text style={[styles.cardRowValue, { color: colors.text }]}>
+                  {toothLabel}
+                </Text>
               </View>
             </View>
           </View>
 
           {/* ── Category ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
             <CategoryPicker
               title="Категорія"
               options={statusMaps.options.map(([value, label]) => ({
@@ -147,17 +172,31 @@ export default function EditRecordScreen() {
           </View>
 
           {/* ── Details ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Деталі</Text>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+              Деталі
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text }]}
+              style={[
+                styles.input,
+                { backgroundColor: colors.inputBg, color: colors.text },
+              ]}
               placeholder="Назва (наприклад: пломба, огляд)"
               value={title}
               onChangeText={setTitle}
               placeholderTextColor={colors.textTertiary}
             />
             <TextInput
-              style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, color: colors.text }]}
+              style={[
+                styles.input,
+                styles.textArea,
+                { backgroundColor: colors.inputBg, color: colors.text },
+              ]}
               placeholder="Нотатки..."
               value={notes}
               onChangeText={setNotes}
@@ -167,27 +206,55 @@ export default function EditRecordScreen() {
           </View>
 
           {/* ── Photo ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Фото</Text>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+              Фото
+            </Text>
             {imageUri ? (
-              <View style={[styles.imagePreview, { backgroundColor: colors.border }]}>
+              <View
+                style={[
+                  styles.imagePreview,
+                  { backgroundColor: colors.border },
+                ]}
+              >
                 <Image source={{ uri: imageUri }} style={styles.previewImg} />
-                <View style={[styles.imageActions, { backgroundColor: colors.inputBg }]}>
+                <View
+                  style={[
+                    styles.imageActions,
+                    { backgroundColor: colors.inputBg },
+                  ]}
+                >
                   <Pressable style={styles.imageActionBtn} onPress={pickImage}>
                     <Ionicons
                       name="swap-horizontal"
                       size={16}
                       color={colors.accent}
                     />
-                    <Text style={[styles.imageActionText, { color: colors.accent }]}>Змінити</Text>
+                    <Text
+                      style={[styles.imageActionText, { color: colors.accent }]}
+                    >
+                      Змінити
+                    </Text>
                   </Pressable>
                   <Pressable
                     style={styles.imageActionBtn}
                     onPress={() => setImageUri(null)}
                   >
-                    <Ionicons name="trash-outline" size={16} color={colors.destructive} />
+                    <Ionicons
+                      name="trash-outline"
+                      size={16}
+                      color={colors.destructive}
+                    />
                     <Text
-                      style={[styles.imageActionText, { color: colors.destructive }]}
+                      style={[
+                        styles.imageActionText,
+                        { color: colors.destructive },
+                      ]}
                     >
                       Видалити
                     </Text>
@@ -195,9 +262,28 @@ export default function EditRecordScreen() {
                 </View>
               </View>
             ) : (
-              <Pressable style={[styles.imagePlaceholder, { backgroundColor: colors.inputBg, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }]} onPress={pickImage}>
-                <Ionicons name="camera-outline" size={24} color={colors.textTertiary} />
-                <Text style={[styles.imagePlaceholderText, { color: colors.textTertiary }]}>
+              <Pressable
+                style={[
+                  styles.imagePlaceholder,
+                  {
+                    backgroundColor: colors.inputBg,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: colors.border,
+                  },
+                ]}
+                onPress={pickImage}
+              >
+                <Ionicons
+                  name="camera-outline"
+                  size={24}
+                  color={colors.textTertiary}
+                />
+                <Text
+                  style={[
+                    styles.imagePlaceholderText,
+                    { color: colors.textTertiary },
+                  ]}
+                >
                   Обрати з галереї
                 </Text>
               </Pressable>
@@ -205,13 +291,31 @@ export default function EditRecordScreen() {
           </View>
 
           {/* ── Date ── */}
-          <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, shadowColor: colors.shadow },
+            ]}
+          >
             <View style={styles.cardRow}>
-              <View style={[styles.cardRowIcon, { backgroundColor: colors.accentBg }]}>
-                <Ionicons name="calendar-outline" size={18} color={colors.accent} />
+              <View
+                style={[
+                  styles.cardRowIcon,
+                  { backgroundColor: colors.accentBg },
+                ]}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={colors.accent}
+                />
               </View>
               <View style={styles.cardRowBody}>
-                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Дата</Text>
+                <Text
+                  style={[styles.cardRowLabel, { color: colors.textTertiary }]}
+                >
+                  Дата
+                </Text>
               </View>
               {Platform.OS === "ios" ? (
                 <DateTimePicker
@@ -261,7 +365,9 @@ export default function EditRecordScreen() {
             ]}
             onPress={save}
           >
-            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>
+              Зберегти
+            </Text>
           </Pressable>
 
           {/* ── Delete ── */}
@@ -272,7 +378,11 @@ export default function EditRecordScreen() {
             ]}
             onPress={handleDelete}
           >
-            <Ionicons name="trash-outline" size={18} color={colors.destructive} />
+            <Ionicons
+              name="trash-outline"
+              size={18}
+              color={colors.destructive}
+            />
             <Text style={[styles.deleteBtnText, { color: colors.destructive }]}>
               Видалити запис
             </Text>

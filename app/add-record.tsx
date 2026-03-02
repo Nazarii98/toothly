@@ -99,29 +99,29 @@ export default function AddRecordModal() {
     }
   };
 
-  const save = async () => {
+  const save = () => {
     const dateISO = date.toISOString();
     if (isGeneral) {
       const t = title.trim() || GLOBAL_PROCEDURE_TYPES[procedureType];
-      await addGlobalProcedure({
+      addGlobalProcedure({
         date: dateISO,
         title: t,
         notes: notes.trim() || undefined,
         type: procedureType,
-      });
+      }).catch(() => {});
     } else {
       const t = title.trim();
       if (!t) {
         Alert.alert("Помилка", "Введіть назву запису");
         return;
       }
-      await addToothChange(target as ToothId, {
+      addToothChange(target as ToothId, {
         date: dateISO,
         title: t,
         notes: notes.trim() || undefined,
         status: category as ToothChange["status"],
         imageUri: imageUri ?? undefined,
-      });
+      }).catch(() => {});
     }
     router.back();
   };

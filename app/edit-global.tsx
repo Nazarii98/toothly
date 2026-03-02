@@ -55,18 +55,18 @@ export default function EditGlobalScreen() {
     if (selected) setDate(selected);
   };
 
-  const save = async () => {
+  const save = () => {
     const t = title.trim();
     if (!t) {
       Alert.alert("Помилка", "Введіть назву");
       return;
     }
-    await updateGlobalProcedure(procedureId, {
+    updateGlobalProcedure(procedureId, {
       title: t,
       notes: notes.trim() || undefined,
       type,
       date: date.toISOString(),
-    });
+    }).catch(() => {});
     router.back();
   };
 
@@ -76,8 +76,8 @@ export default function EditGlobalScreen() {
       {
         text: "Видалити",
         style: "destructive",
-        onPress: async () => {
-          await deleteGlobalProcedure(procedureId);
+        onPress: () => {
+          deleteGlobalProcedure(procedureId).catch(() => {});
           router.back();
         },
       },
