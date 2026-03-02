@@ -105,8 +105,8 @@ export function DentalChart({
                 {id}
               </Text>
               <Pressable
-                onPress={() => onToothPress(id)}
-                onLongPress={() => onToothLongPress?.(id)}
+                onPress={() => onToothLongPress?.(id)}
+                onLongPress={() => onToothPress(id)}
                 delayLongPress={150}
                 style={({ pressed }) => [
                   styles.touchArea,
