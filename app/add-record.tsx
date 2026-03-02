@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useAppTheme } from "../src/theme";
 import { GlassModal } from "../src/components/GlassModal";
+import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,21 +25,14 @@ import {
   addToothChange,
   addGlobalProcedure,
 } from "../src/store/teethStore";
-import { CategoryPicker } from "../src/components/CategoryPicker";
-import type { CategoryOption } from "../src/components/CategoryPicker";
 import {
   ALL_TOOTH_IDS,
   QUADRANT_LABELS,
   TOOTH_NAMES,
-  GLOBAL_PROCEDURE_TYPES,
-  buildStatusMaps,
+  buildToothCategoryMaps,
+  buildGlobalCategoryMaps,
 } from "../src/types";
-import type {
-  ToothChange,
-  GlobalProcedure,
-  ToothId,
-  StatusMaps,
-} from "../src/types";
+import type { ToothChange, ToothId, StatusMaps } from "../src/types";
 const GENERAL_KEY = "__general__";
 
 function toothShort(id: ToothId): string {
@@ -63,13 +57,22 @@ export default function AddRecordModal() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
-  const [category, setCategory] = useState<string>("other");
-  const [procedureType, setProcedureType] =
-    useState<GlobalProcedure["type"]>("checkup");
+  const [category, setCategory] = useState<string>("checkup");
+  const [procedureType, setProcedureType] = useState<string>("checkup");
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
+  const [toothCategoryMaps, setToothCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
+  const [globalCategoryMaps, setGlobalCategoryMaps] = useState<StatusMaps>(buildGlobalCategoryMaps());
+  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
+  const [globalPickerVisible, setGlobalPickerVisible] = useState(false);
 
   const isGeneral = target === GENERAL_KEY;
+
+  const currentCategoryColor = isGeneral
+    ? (globalCategoryMaps.borderColors[procedureType] ?? "#9E9E9E")
+    : (toothCategoryMaps.borderColors[category] ?? "#9E9E9E");
+  const currentCategoryLabel = isGeneral
+    ? (globalCategoryMaps.labels[procedureType] ?? procedureType)
+    : (toothCategoryMaps.labels[category] ?? category);
 
   const onDateChange = (_event: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === "android") setShowDatePicker(false);
@@ -84,9 +87,10 @@ export default function AddRecordModal() {
     });
 
   useEffect(() => {
-    loadData().then((data) =>
-      setStatusMaps(buildStatusMaps(data.customStatuses)),
-    );
+    loadData().then((data) => {
+      setToothCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
+      setGlobalCategoryMaps(buildGlobalCategoryMaps(data.customGlobalCategories));
+    });
   }, []);
 
   const pickImage = async () => {
@@ -102,7 +106,7 @@ export default function AddRecordModal() {
   const save = () => {
     const dateISO = date.toISOString();
     if (isGeneral) {
-      const t = title.trim() || GLOBAL_PROCEDURE_TYPES[procedureType];
+      const t = title.trim() || (globalCategoryMaps.labels[procedureType] ?? procedureType);
       addGlobalProcedure({
         date: dateISO,
         title: t,
@@ -170,28 +174,19 @@ export default function AddRecordModal() {
 
           {/* ── Category card ── */}
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            {isGeneral ? (
-              <CategoryPicker
-                title="Тип процедури"
-                options={Object.entries(GLOBAL_PROCEDURE_TYPES).map(([value, label]) => ({
-                  value,
-                  label,
-                }))}
-                selected={procedureType}
-                onSelect={(v) => setProcedureType(v as GlobalProcedure["type"])}
-              />
-            ) : (
-              <CategoryPicker
-                title="Категорія"
-                options={statusMaps.options.map(([value, label]) => ({
-                  value,
-                  label,
-                  color: statusMaps.borderColors[value] ?? "#9E9E9E",
-                }))}
-                selected={category}
-                onSelect={setCategory}
-              />
-            )}
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+              {isGeneral ? "Тип процедури" : "Категорія"}
+            </Text>
+            <Pressable
+              style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
+              onPress={() => isGeneral ? setGlobalPickerVisible(true) : setCategoryPickerVisible(true)}
+            >
+              <View style={[styles.categoryDot, { backgroundColor: currentCategoryColor }]} />
+              <Text style={[styles.categoryTriggerText, { color: colors.text }]}>
+                {currentCategoryLabel}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
+            </Pressable>
           </View>
 
           {/* ── Details card ── */}
@@ -313,6 +308,29 @@ export default function AddRecordModal() {
           </Pressable>
         </KeyboardAwareScrollView>
       </View>
+
+      <StatusPickerModal
+        visible={categoryPickerVisible}
+        onClose={() => setCategoryPickerVisible(false)}
+        title="Категорія"
+        selected={category}
+        maps={toothCategoryMaps}
+        onSelect={(v) => { setCategory(v); setCategoryPickerVisible(false); }}
+        onManage={() => { router.push("/statuses"); setCategoryPickerVisible(false); }}
+        manageLabel="Керувати категоріями"
+        showEmpty={false}
+      />
+      <StatusPickerModal
+        visible={globalPickerVisible}
+        onClose={() => setGlobalPickerVisible(false)}
+        title="Тип процедури"
+        selected={procedureType}
+        maps={globalCategoryMaps}
+        onSelect={(v) => { setProcedureType(v); setGlobalPickerVisible(false); }}
+        onManage={() => { router.push("/statuses"); setGlobalPickerVisible(false); }}
+        manageLabel="Керувати категоріями"
+        showEmpty={false}
+      />
 
       <GlassModal visible={pickerOpen} onClose={() => setPickerOpen(false)}>
         <View style={[styles.pickerHeader, { borderBottomColor: colors.border }]}>
@@ -526,6 +544,25 @@ const styles = StyleSheet.create({
   },
   imageActionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
   imageActionText: { fontSize: 13, fontWeight: "500" },
+
+  categoryTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  categoryDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  categoryTriggerText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+  },
 
   saveBtn: {
     marginTop: 4,

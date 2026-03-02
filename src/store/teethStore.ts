@@ -1,8 +1,5 @@
 import { ensureCurrentProfileId } from "./profileStore";
-import {
-  getProfileData,
-  saveProfileData,
-} from "./firestoreService";
+import { getProfileData, saveProfileData } from "./firestoreService";
 import type {
   AppData,
   ToothId,
@@ -11,6 +8,7 @@ import type {
   ToothStatus,
   GlobalProcedure,
   CustomStatus,
+  CustomCategory,
 } from "../types";
 import { ALL_TOOTH_IDS } from "../types";
 
@@ -24,7 +22,13 @@ function getDefaultData(): AppData {
   ALL_TOOTH_IDS.forEach((id) => {
     teeth[id] = defaultToothRecord(id);
   });
-  return { teeth, globalProcedures: [], customStatuses: [] };
+  return {
+    teeth,
+    globalProcedures: [],
+    customStatuses: [],
+    customToothCategories: [],
+    customGlobalCategories: [],
+  };
 }
 
 let cached: { profileId: string; data: AppData } | null = null;
@@ -173,5 +177,47 @@ export async function addCustomStatus(
 export async function deleteCustomStatus(id: string): Promise<void> {
   const data = await loadData();
   data.customStatuses = data.customStatuses.filter((s) => s.id !== id);
+  await saveData(data);
+}
+
+export async function addCustomToothCategory(
+  category: Omit<CustomCategory, "id">,
+): Promise<CustomCategory> {
+  const data = await loadData();
+  const entry: CustomCategory = {
+    ...category,
+    id: `tcat_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+  };
+  data.customToothCategories = [...data.customToothCategories, entry];
+  await saveData(data);
+  return entry;
+}
+
+export async function deleteCustomToothCategory(id: string): Promise<void> {
+  const data = await loadData();
+  data.customToothCategories = data.customToothCategories.filter(
+    (c) => c.id !== id,
+  );
+  await saveData(data);
+}
+
+export async function addCustomGlobalCategory(
+  category: Omit<CustomCategory, "id">,
+): Promise<CustomCategory> {
+  const data = await loadData();
+  const entry: CustomCategory = {
+    ...category,
+    id: `gcat_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+  };
+  data.customGlobalCategories = [...data.customGlobalCategories, entry];
+  await saveData(data);
+  return entry;
+}
+
+export async function deleteCustomGlobalCategory(id: string): Promise<void> {
+  const data = await loadData();
+  data.customGlobalCategories = data.customGlobalCategories.filter(
+    (c) => c.id !== id,
+  );
   await saveData(data);
 }

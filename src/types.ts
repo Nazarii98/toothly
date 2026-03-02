@@ -8,24 +8,9 @@ export interface ToothChange {
   title: string;
   notes?: string;
   imageUri?: string;
-  status?:
-    | "healthy"
-    | "treatment"
-    | "cavity"
-    | "filled"
-    | "extracted"
-    | "crown"
-    | "other";
+  status?: string; // tooth record category id
 }
 
-export type BuiltinStatus =
-  | "healthy"
-  | "treatment"
-  | "cavity"
-  | "filled"
-  | "extracted"
-  | "crown"
-  | "other";
 export type ToothStatus = string;
 
 export interface ToothRecord {
@@ -40,7 +25,7 @@ export interface GlobalProcedure {
   date: string;
   title: string;
   notes?: string;
-  type: "cleaning" | "whitening" | "fluoride" | "checkup" | "other";
+  type: string; // global procedure category id
 }
 
 export interface CustomStatus {
@@ -49,10 +34,19 @@ export interface CustomStatus {
   color: string; // hex, e.g. "#E91E63"
 }
 
+/** Custom item for tooth-record categories or global-procedure categories */
+export interface CustomCategory {
+  id: string;
+  label: string;
+  color: string; // hex
+}
+
 export interface AppData {
   teeth: Record<ToothId, ToothRecord>;
   globalProcedures: GlobalProcedure[];
   customStatuses: CustomStatus[];
+  customToothCategories: CustomCategory[];
+  customGlobalCategories: CustomCategory[];
 }
 
 /** Format for exported profile (backup/restore) */
@@ -78,6 +72,7 @@ export interface StatusMaps {
   options: [string, string][];
 }
 
+/** Tooth status maps (for ToothRecord.currentStatus) */
 export function buildStatusMaps(
   customStatuses: CustomStatus[] = [],
 ): StatusMaps {
@@ -88,6 +83,46 @@ export function buildStatusMaps(
     labels[cs.id] = cs.label;
     colors[cs.id] = hexToRgba(cs.color, 0.4);
     borderColors[cs.id] = cs.color;
+  }
+  return {
+    labels,
+    colors,
+    borderColors,
+    options: Object.entries(labels),
+  };
+}
+
+/** Tooth record category maps (for ToothChange.status) */
+export function buildToothCategoryMaps(
+  custom: CustomCategory[] = [],
+): StatusMaps {
+  const labels = { ...TOOTH_CATEGORY_LABELS };
+  const colors = { ...TOOTH_CATEGORY_COLORS };
+  const borderColors = { ...TOOTH_CATEGORY_BORDER_COLORS };
+  for (const c of custom) {
+    labels[c.id] = c.label;
+    colors[c.id] = hexToRgba(c.color, 0.4);
+    borderColors[c.id] = c.color;
+  }
+  return {
+    labels,
+    colors,
+    borderColors,
+    options: Object.entries(labels),
+  };
+}
+
+/** Global procedure category maps (for GlobalProcedure.type) */
+export function buildGlobalCategoryMaps(
+  custom: CustomCategory[] = [],
+): StatusMaps {
+  const labels = { ...GLOBAL_PROCEDURE_TYPES };
+  const colors = { ...GLOBAL_CATEGORY_COLORS };
+  const borderColors = { ...GLOBAL_CATEGORY_BORDER_COLORS };
+  for (const c of custom) {
+    labels[c.id] = c.label;
+    colors[c.id] = hexToRgba(c.color, 0.4);
+    borderColors[c.id] = c.color;
   }
   return {
     labels,
@@ -114,6 +149,8 @@ export const TOOTH_NAMES: Record<string, string> = {
   "7": "Другий моляр",
   "8": "Третій моляр (зуб мудрості)",
 };
+
+// ── Tooth statuses (ToothRecord.currentStatus) ──────────────────────────────
 
 export const STATUS_LABELS: Record<string, string> = {
   healthy: "Здоровий",
@@ -145,12 +182,62 @@ export const STATUS_BORDER_COLORS: Record<string, string> = {
   other: "#9E9E9E",
 };
 
+// ── Tooth record categories (ToothChange.status) ─────────────────────────────
+
+export const TOOTH_CATEGORY_LABELS: Record<string, string> = {
+  checkup: "Огляд",
+  treatment: "Лікування",
+  filling: "Пломбування",
+  extraction: "Видалення",
+  xray: "Знімок",
+  cleaning: "Чистка",
+  other: "Інше",
+};
+
+export const TOOTH_CATEGORY_COLORS: Record<string, string> = {
+  checkup: "rgba(33, 150, 243, 0.4)",
+  treatment: "rgba(255, 152, 0, 0.45)",
+  filling: "rgba(156, 39, 176, 0.4)",
+  extraction: "rgba(244, 67, 54, 0.4)",
+  xray: "rgba(96, 125, 139, 0.4)",
+  cleaning: "rgba(76, 175, 80, 0.4)",
+  other: "rgba(158, 158, 158, 0.3)",
+};
+
+export const TOOTH_CATEGORY_BORDER_COLORS: Record<string, string> = {
+  checkup: "#2196F3",
+  treatment: "#FF9800",
+  filling: "#9C27B0",
+  extraction: "#F44336",
+  xray: "#607D8B",
+  cleaning: "#4CAF50",
+  other: "#9E9E9E",
+};
+
+// ── Global procedure categories (GlobalProcedure.type) ────────────────────────
+
 export const GLOBAL_PROCEDURE_TYPES: Record<string, string> = {
   cleaning: "Чистка",
   whitening: "Відбілювання",
   fluoride: "Фторування",
   checkup: "Огляд",
   other: "Інше",
+};
+
+export const GLOBAL_CATEGORY_COLORS: Record<string, string> = {
+  cleaning: "rgba(76, 175, 80, 0.4)",
+  whitening: "rgba(255, 193, 7, 0.4)",
+  fluoride: "rgba(0, 188, 212, 0.4)",
+  checkup: "rgba(33, 150, 243, 0.4)",
+  other: "rgba(158, 158, 158, 0.3)",
+};
+
+export const GLOBAL_CATEGORY_BORDER_COLORS: Record<string, string> = {
+  cleaning: "#4CAF50",
+  whitening: "#FFC107",
+  fluoride: "#00BCD4",
+  checkup: "#2196F3",
+  other: "#9E9E9E",
 };
 
 // Усі 32 зуби за FDI

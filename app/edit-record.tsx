@@ -17,15 +17,15 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
-import { CategoryPicker } from "../src/components/CategoryPicker";
+import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import {
   loadData,
   getToothRecord,
   updateToothChange,
   deleteToothChange,
 } from "../src/store/teethStore";
-import { TOOTH_NAMES, buildStatusMaps } from "../src/types";
-import type { ToothId, ToothChange, StatusMaps } from "../src/types";
+import { TOOTH_NAMES, buildToothCategoryMaps } from "../src/types";
+import type { ToothId, StatusMaps } from "../src/types";
 
 export default function EditRecordScreen() {
   const { colors } = useAppTheme();
@@ -36,22 +36,23 @@ export default function EditRecordScreen() {
 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
-  const [status, setStatus] = useState<ToothChange["status"]>("other");
+  const [status, setStatus] = useState<string>("checkup");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
+  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
+  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     loadData().then((data) => {
-      setStatusMaps(buildStatusMaps(data.customStatuses));
+      setCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
       const record = getToothRecord(data, toothId);
       const change = record.changes.find((c) => c.id === changeId);
       if (change) {
         setTitle(change.title);
         setNotes(change.notes ?? "");
-        setStatus(change.status ?? "other");
+        setStatus(change.status ?? "checkup");
         setDate(new Date(change.date));
         setImageUri(change.imageUri ?? null);
         setLoaded(true);
@@ -159,16 +160,24 @@ export default function EditRecordScreen() {
               { backgroundColor: colors.card, shadowColor: colors.shadow },
             ]}
           >
-            <CategoryPicker
-              title="Категорія"
-              options={statusMaps.options.map(([value, label]) => ({
-                value,
-                label,
-                color: statusMaps.borderColors[value] ?? "#9E9E9E",
-              }))}
-              selected={status ?? "other"}
-              onSelect={(v) => setStatus(v as ToothChange["status"])}
-            />
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+              Категорія
+            </Text>
+            <Pressable
+              style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
+              onPress={() => setCategoryPickerVisible(true)}
+            >
+              <View
+                style={[
+                  styles.categoryDot,
+                  { backgroundColor: categoryMaps.borderColors[status] ?? "#9E9E9E" },
+                ]}
+              />
+              <Text style={[styles.categoryTriggerText, { color: colors.text }]}>
+                {categoryMaps.labels[status] ?? status}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
+            </Pressable>
           </View>
 
           {/* ── Details ── */}
@@ -389,6 +398,17 @@ export default function EditRecordScreen() {
           </Pressable>
         </KeyboardAwareScrollView>
       </View>
+      <StatusPickerModal
+        visible={categoryPickerVisible}
+        onClose={() => setCategoryPickerVisible(false)}
+        title="Категорія"
+        selected={status}
+        maps={categoryMaps}
+        onSelect={(v) => { setStatus(v); setCategoryPickerVisible(false); }}
+        onManage={() => { router.push("/statuses"); setCategoryPickerVisible(false); }}
+        manageLabel="Керувати категоріями"
+        showEmpty={false}
+      />
     </>
   );
 }
@@ -435,6 +455,25 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   cardRowValue: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  categoryTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  categoryDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  categoryTriggerText: {
+    flex: 1,
     fontSize: 15,
     fontWeight: "600",
   },

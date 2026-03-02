@@ -167,40 +167,14 @@ export default function ToothDetailScreen() {
               visible={pickerVisible}
               onClose={() => setPickerVisible(false)}
               title="Оберіть статус"
-              currentStatus={currentStatus}
-              statusMaps={statusMaps}
+              selected={currentStatus}
+              maps={statusMaps}
               onSelect={handleStatusChange}
-              footer={
-                <View
-                  style={[
-                    styles.statusSectionFooter,
-                    { borderTopColor: colors.border },
-                  ]}
-                >
-                  <Pressable
-                    style={styles.manageBtn}
-                    hitSlop={12}
-                    onPress={() => {
-                      router.push("/statuses");
-                      setPickerVisible(false);
-                    }}
-                  >
-                    <Ionicons
-                      name="settings-outline"
-                      size={16}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={[
-                        styles.manageBtnText,
-                        { color: colors.textSecondary },
-                      ]}
-                    >
-                      Керувати статусами
-                    </Text>
-                  </Pressable>
-                </View>
-              }
+              onManage={() => {
+                router.push("/statuses");
+                setPickerVisible(false);
+              }}
+              manageLabel="Керувати статусами"
             />
           </View>
 
@@ -408,21 +382,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 12,
-  },
-  statusSectionFooter: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  manageBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  manageBtnText: {
-    fontSize: 14,
-    fontWeight: "500",
   },
   historySection: {},
   emptyState: {

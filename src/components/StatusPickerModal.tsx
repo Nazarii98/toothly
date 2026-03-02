@@ -3,32 +3,35 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassModal } from "./GlassModal";
 import { useAppTheme } from "../theme";
-import type { ToothStatus, StatusMaps } from "../types";
+import type { StatusMaps } from "../types";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   title: string;
-  currentStatus?: ToothStatus;
-  statusMaps: StatusMaps;
-  onSelect: (status: ToothStatus) => void;
-  footer?: React.ReactNode;
+  selected?: string;
+  maps: StatusMaps;
+  onSelect: (value: string) => void;
+  onManage?: () => void;
+  manageLabel?: string;
+  showEmpty?: boolean;
 };
 
 export function StatusPickerModal({
   visible,
   onClose,
   title,
-  currentStatus,
-  statusMaps,
+  selected,
+  maps,
   onSelect,
-  footer,
+  onManage,
+  manageLabel = "Керувати",
+  showEmpty = true,
 }: Props) {
   const { colors } = useAppTheme();
-  const options: [string, string][] = [
-    ["", "Не встановлено"],
-    ...statusMaps.options,
-  ];
+  const options: [string, string][] = showEmpty
+    ? [["", "Не встановлено"], ...maps.options]
+    : maps.options;
 
   return (
     <GlassModal visible={visible} onClose={onClose}>
@@ -42,9 +45,9 @@ export function StatusPickerModal({
       </View>
       <View style={styles.list}>
         {options.map(([value, label]) => {
-          const isSelected = (currentStatus ?? "") === value;
+          const isSelected = (selected ?? "") === value;
           const color =
-            value === "" ? "#999" : (statusMaps.borderColors[value] ?? "#999");
+            value === "" ? "#999" : (maps.borderColors[value] ?? "#999");
           return (
             <Pressable
               key={value || "empty"}
@@ -53,7 +56,7 @@ export function StatusPickerModal({
                 isSelected && { backgroundColor: colors.badgeBg },
                 pressed && { backgroundColor: colors.statusOptionBg },
               ]}
-              onPress={() => onSelect(value as ToothStatus)}
+              onPress={() => onSelect(value)}
             >
               <View style={[styles.dot, { backgroundColor: color }]} />
               <Text
@@ -78,7 +81,20 @@ export function StatusPickerModal({
           );
         })}
       </View>
-      {footer}
+      {onManage && (
+        <View style={[styles.footer, { borderTopColor: colors.border }]}>
+          <Pressable style={styles.manageBtn} hitSlop={12} onPress={onManage}>
+            <Ionicons
+              name="settings-outline"
+              size={16}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.manageBtnText, { color: colors.textSecondary }]}>
+              {manageLabel}
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </GlassModal>
   );
 }
@@ -127,5 +143,20 @@ const styles = StyleSheet.create({
   },
   check: {
     marginLeft: "auto",
+  },
+  footer: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  manageBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  manageBtnText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
 });

@@ -147,8 +147,8 @@ export default function ChartScreen() {
         visible={popupTooth !== null}
         onClose={() => setPopupTooth(null)}
         title={`Зуб ${popupTooth} — ${popupTooth ? (TOOTH_NAMES[popupTooth[1]] ?? "") : ""}`}
-        currentStatus={popupTooth ? teethStatuses[popupTooth] : undefined}
-        statusMaps={statusMaps}
+        selected={popupTooth ? teethStatuses[popupTooth] : undefined}
+        maps={statusMaps}
         onSelect={handleStatusSelect}
       />
     </View>

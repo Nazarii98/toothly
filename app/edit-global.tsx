@@ -21,8 +21,8 @@ import {
   updateGlobalProcedure,
   deleteGlobalProcedure,
 } from "../src/store/teethStore";
-import { GLOBAL_PROCEDURE_TYPES } from "../src/types";
-import type { GlobalProcedure } from "../src/types";
+import { buildGlobalCategoryMaps } from "../src/types";
+import type { StatusMaps } from "../src/types";
 
 export default function EditGlobalScreen() {
   const { colors } = useAppTheme();
@@ -32,13 +32,15 @@ export default function EditGlobalScreen() {
 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
-  const [type, setType] = useState<GlobalProcedure["type"]>("cleaning");
+  const [type, setType] = useState<string>("cleaning");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildGlobalCategoryMaps());
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     loadData().then((data) => {
+      setCategoryMaps(buildGlobalCategoryMaps(data.customGlobalCategories));
       const proc = data.globalProcedures.find((p) => p.id === procedureId);
       if (proc) {
         setTitle(proc.title);
@@ -103,12 +105,13 @@ export default function EditGlobalScreen() {
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
             <CategoryPicker
               title="Тип процедури"
-              options={Object.entries(GLOBAL_PROCEDURE_TYPES).map(([value, label]) => ({
+              options={categoryMaps.options.map(([value, label]) => ({
                 value,
                 label,
+                color: categoryMaps.borderColors[value] ?? "#9E9E9E",
               }))}
               selected={type}
-              onSelect={(v) => setType(v as GlobalProcedure["type"])}
+              onSelect={setType}
             />
           </View>
 

@@ -101,6 +101,8 @@ function toSnakeAppData(data: AppData): Record<string, any> {
     teeth,
     global_procedures: data.globalProcedures,
     custom_statuses: data.customStatuses,
+    custom_tooth_categories: data.customToothCategories,
+    custom_global_categories: data.customGlobalCategories,
   };
 }
 
@@ -122,6 +124,8 @@ function fromSnakeAppData(raw: any): AppData {
     teeth,
     globalProcedures: raw.global_procedures ?? raw.globalProcedures ?? [],
     customStatuses: raw.custom_statuses ?? raw.customStatuses ?? [],
+    customToothCategories: raw.custom_tooth_categories ?? raw.customToothCategories ?? [],
+    customGlobalCategories: raw.custom_global_categories ?? raw.customGlobalCategories ?? [],
   };
 }
 
@@ -136,7 +140,7 @@ function getDefaultData(): AppData {
   ALL_TOOTH_IDS.forEach((id) => {
     teeth[id] = defaultToothRecord(id);
   });
-  return { teeth, globalProcedures: [], customStatuses: [] };
+  return { teeth, globalProcedures: [], customStatuses: [], customToothCategories: [], customGlobalCategories: [] };
 }
 
 // --------------- Users ---------------

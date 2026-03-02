@@ -16,9 +16,20 @@ import {
   loadData,
   addCustomStatus,
   deleteCustomStatus,
+  addCustomToothCategory,
+  deleteCustomToothCategory,
+  addCustomGlobalCategory,
+  deleteCustomGlobalCategory,
 } from "../src/store/teethStore";
-import { STATUS_LABELS, STATUS_BORDER_COLORS } from "../src/types";
-import type { CustomStatus } from "../src/types";
+import {
+  STATUS_LABELS,
+  STATUS_BORDER_COLORS,
+  TOOTH_CATEGORY_LABELS,
+  TOOTH_CATEGORY_BORDER_COLORS,
+  GLOBAL_PROCEDURE_TYPES,
+  GLOBAL_CATEGORY_BORDER_COLORS,
+} from "../src/types";
+import type { CustomStatus, CustomCategory } from "../src/types";
 import { useAppTheme } from "../src/theme";
 
 const PRESET_COLORS = [
@@ -40,24 +51,30 @@ const PRESET_COLORS = [
   "#1E88E5",
 ];
 
-const BUILTIN_STATUSES = Object.entries(STATUS_LABELS).map(([id, label]) => ({
-  id,
-  label,
-  color: STATUS_BORDER_COLORS[id],
-}));
+type SectionKey = "statuses" | "toothCategories" | "globalCategories";
 
 export default function ManageStatusesScreen() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const headerHeight = useStableHeaderHeight();
+
   const [customStatuses, setCustomStatuses] = useState<CustomStatus[]>([]);
-  const [adding, setAdding] = useState(false);
-  const [newLabel, setNewLabel] = useState("");
-  const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
+  const [customToothCategories, setCustomToothCategories] = useState<
+    CustomCategory[]
+  >([]);
+  const [customGlobalCategories, setCustomGlobalCategories] = useState<
+    CustomCategory[]
+  >([]);
+
+  const [addingSection, setAddingSection] = useState<SectionKey | null>(null);
+  const [formLabel, setFormLabel] = useState("");
+  const [formColor, setFormColor] = useState(PRESET_COLORS[0]);
 
   const refresh = useCallback(async () => {
     const data = await loadData();
     setCustomStatuses(data.customStatuses);
+    setCustomToothCategories(data.customToothCategories);
+    setCustomGlobalCategories(data.customGlobalCategories);
   }, []);
 
   useFocusEffect(
@@ -66,32 +83,161 @@ export default function ManageStatusesScreen() {
     }, [refresh]),
   );
 
+  const openAdd = (section: SectionKey) => {
+    setFormLabel("");
+    setFormColor(PRESET_COLORS[0]);
+    setAddingSection(section);
+  };
+
+  const cancelAdd = () => {
+    setAddingSection(null);
+    setFormLabel("");
+  };
+
   const handleAdd = async () => {
-    const label = newLabel.trim();
+    const label = formLabel.trim();
     if (!label) {
-      Alert.alert("Введіть назву статусу");
+      Alert.alert("Введіть назву");
       return;
     }
-    await addCustomStatus({ label, color: newColor });
-    setNewLabel("");
-    setNewColor(PRESET_COLORS[0]);
-    setAdding(false);
+    if (addingSection === "statuses") {
+      addCustomStatus({ label, color: formColor }).catch(() => {});
+    } else if (addingSection === "toothCategories") {
+      addCustomToothCategory({ label, color: formColor }).catch(() => {});
+    } else if (addingSection === "globalCategories") {
+      addCustomGlobalCategory({ label, color: formColor }).catch(() => {});
+    }
+    cancelAdd();
     refresh();
   };
 
-  const handleDelete = (status: CustomStatus) => {
-    Alert.alert("Видалити статус?", `"${status.label}"`, [
+  const handleDeleteStatus = (item: CustomStatus) => {
+    Alert.alert("Видалити статус?", `"${item.label}"`, [
       { text: "Скасувати", style: "cancel" },
       {
         text: "Видалити",
         style: "destructive",
-        onPress: async () => {
-          await deleteCustomStatus(status.id);
+        onPress: () => {
+          deleteCustomStatus(item.id).catch(() => {});
           refresh();
         },
       },
     ]);
   };
+
+  const handleDeleteToothCat = (item: CustomCategory) => {
+    Alert.alert("Видалити категорію?", `"${item.label}"`, [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Видалити",
+        style: "destructive",
+        onPress: () => {
+          deleteCustomToothCategory(item.id).catch(() => {});
+          refresh();
+        },
+      },
+    ]);
+  };
+
+  const handleDeleteGlobalCat = (item: CustomCategory) => {
+    Alert.alert("Видалити категорію?", `"${item.label}"`, [
+      { text: "Скасувати", style: "cancel" },
+      {
+        text: "Видалити",
+        style: "destructive",
+        onPress: () => {
+          deleteCustomGlobalCategory(item.id).catch(() => {});
+          refresh();
+        },
+      },
+    ]);
+  };
+
+  const renderAddForm = () => (
+    <View
+      style={[
+        styles.addForm,
+        { backgroundColor: colors.inputBg, borderColor: colors.border },
+      ]}
+    >
+      <Text style={[styles.formLabel, { color: colors.text }]}>Назва</Text>
+      <TextInput
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            color: colors.text,
+          },
+        ]}
+        placeholder="наприклад: Імплант, Брекети"
+        value={formLabel}
+        onChangeText={setFormLabel}
+        placeholderTextColor={colors.textTertiary}
+        autoFocus
+      />
+      <Text style={[styles.formLabel, { color: colors.text }]}>Колір</Text>
+      <View style={styles.colorGrid}>
+        {PRESET_COLORS.map((c) => (
+          <Pressable
+            key={c}
+            onPress={() => setFormColor(c)}
+            style={[
+              styles.colorOption,
+              { backgroundColor: c },
+              formColor === c && styles.colorOptionSelected,
+              formColor === c && { borderColor: colors.text },
+            ]}
+          />
+        ))}
+      </View>
+      <View style={styles.formActions}>
+        <Pressable onPress={cancelAdd} style={styles.cancelBtn}>
+          <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>
+            Скасувати
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={handleAdd}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            { backgroundColor: colors.accent },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.saveBtnText, { color: colors.white }]}>
+            Додати
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const renderBuiltinItem = (id: string, label: string, color: string) => (
+    <View key={id} style={[styles.row, { borderBottomColor: colors.border }]}>
+      <View style={[styles.dot, { backgroundColor: color }]} />
+      <Text style={[styles.rowLabel, { flex: 1, color: colors.textSecondary }]}>
+        {label}
+      </Text>
+    </View>
+  );
+
+  const renderCustomItem = (
+    id: string,
+    label: string,
+    color: string,
+    onDelete: () => void,
+  ) => (
+    <View key={id} style={[styles.row, { borderBottomColor: colors.border }]}>
+      <View style={[styles.dot, { backgroundColor: color }]} />
+      <Text style={[styles.rowLabel, { flex: 1, color: colors.text }]}>
+        {label}
+      </Text>
+      <Pressable onPress={onDelete} hitSlop={8}>
+        <Ionicons name="trash-outline" size={20} color={colors.destructive} />
+      </Pressable>
+    </View>
+  );
 
   return (
     <View style={[styles.safe, { backgroundColor: colors.bg }]}>
@@ -101,137 +247,140 @@ export default function ManageStatusesScreen() {
           styles.content,
           { paddingTop: headerHeight + 12, paddingBottom: insets.bottom + 20 },
         ]}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Стандартні статуси
-        </Text>
-        {BUILTIN_STATUSES.map((s) => (
-          <View
-            key={s.id}
-            style={[styles.statusRow, { borderBottomColor: colors.border }]}
-          >
-            <View style={[styles.dot, { backgroundColor: s.color }]} />
-            <Text style={[styles.statusLabel, { color: colors.text }]}>
-              {s.label}
-            </Text>
+        {/* ── Section 1: Tooth statuses ── */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Статуси зубів
+              </Text>
+              <Text
+                style={[styles.sectionHint, { color: colors.textTertiary }]}
+              >
+                Поточний стан зуба на схемі
+              </Text>
+            </View>
+            {addingSection !== "statuses" && (
+              <Pressable onPress={() => openAdd("statuses")} hitSlop={8}>
+                <Ionicons name="add-circle" size={28} color={colors.accent} />
+              </Pressable>
+            )}
           </View>
-        ))}
-
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Кастомні статуси
-          </Text>
-          {!adding && (
-            <Pressable
-              onPress={() => setAdding(true)}
-              style={styles.addIconBtn}
-            >
-              <Ionicons name="add-circle" size={28} color={colors.accent} />
-            </Pressable>
+          {Object.entries(STATUS_LABELS).map(([id, label]) =>
+            renderBuiltinItem(id, label, STATUS_BORDER_COLORS[id] ?? "#9E9E9E"),
           )}
+          {customStatuses.map((s) =>
+            renderCustomItem(s.id, s.label, s.color, () =>
+              handleDeleteStatus(s),
+            ),
+          )}
+          {customStatuses.length === 0 && addingSection !== "statuses" && (
+            <Text style={[styles.empty, { color: colors.textTertiary }]}>
+              Кастомних статусів ще немає
+            </Text>
+          )}
+          {addingSection === "statuses" && renderAddForm()}
         </View>
 
-        {customStatuses.length === 0 && !adding && (
-          <Text style={[styles.empty, { color: colors.textTertiary }]}>
-            Ще немає кастомних статусів.
-          </Text>
-        )}
-
-        {customStatuses.map((s) => (
-          <View
-            key={s.id}
-            style={[styles.statusRow, { borderBottomColor: colors.border }]}
-          >
-            <View style={[styles.dot, { backgroundColor: s.color }]} />
-            <Text style={[styles.statusLabel, { flex: 1, color: colors.text }]}>
-              {s.label}
-            </Text>
-            <Pressable onPress={() => handleDelete(s)} hitSlop={8}>
-              <Ionicons
-                name="trash-outline"
-                size={20}
-                color={colors.destructive}
-              />
-            </Pressable>
-          </View>
-        ))}
-
-        {adding && (
-          <View
-            style={[
-              styles.addForm,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <Text style={[styles.formLabel, { color: colors.text }]}>
-              Назва
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.inputBg,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              placeholder="наприклад: Імплант, Брекети"
-              value={newLabel}
-              onChangeText={setNewLabel}
-              placeholderTextColor={colors.textTertiary}
-              autoFocus
-            />
-
-            <Text style={[styles.formLabel, { color: colors.text }]}>
-              Колір
-            </Text>
-            <View style={styles.colorGrid}>
-              {PRESET_COLORS.map((c) => (
-                <Pressable
-                  key={c}
-                  onPress={() => setNewColor(c)}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: c },
-                    newColor === c && styles.colorOptionSelected,
-                    newColor === c && { borderColor: colors.text },
-                  ]}
-                />
-              ))}
-            </View>
-
-            <View style={styles.formActions}>
-              <Pressable
-                onPress={() => {
-                  setAdding(false);
-                  setNewLabel("");
-                }}
-                style={styles.cancelBtn}
+        {/* ── Section 2: Tooth record categories ── */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Категорії записів зуба
+              </Text>
+              <Text
+                style={[styles.sectionHint, { color: colors.textTertiary }]}
               >
-                <Text
-                  style={[
-                    styles.cancelBtnText,
-                    { color: colors.textSecondary },
-                  ]}
-                >
-                  Скасувати
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleAdd}
-                style={({ pressed }) => [
-                  styles.saveBtn,
-                  { backgroundColor: colors.accent },
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={[styles.saveBtnText, { color: colors.white }]}>
-                  Додати
-                </Text>
-              </Pressable>
+                Тип процедури у записах конкретного зуба
+              </Text>
             </View>
+            {addingSection !== "toothCategories" && (
+              <Pressable onPress={() => openAdd("toothCategories")} hitSlop={8}>
+                <Ionicons name="add-circle" size={28} color={colors.accent} />
+              </Pressable>
+            )}
           </View>
-        )}
+          {Object.entries(TOOTH_CATEGORY_LABELS).map(([id, label]) =>
+            renderBuiltinItem(
+              id,
+              label,
+              TOOTH_CATEGORY_BORDER_COLORS[id] ?? "#9E9E9E",
+            ),
+          )}
+          {customToothCategories.map((c) =>
+            renderCustomItem(c.id, c.label, c.color, () =>
+              handleDeleteToothCat(c),
+            ),
+          )}
+          {customToothCategories.length === 0 &&
+            addingSection !== "toothCategories" && (
+              <Text style={[styles.empty, { color: colors.textTertiary }]}>
+                Кастомних категорій ще немає
+              </Text>
+            )}
+          {addingSection === "toothCategories" && renderAddForm()}
+        </View>
+
+        {/* ── Section 3: Global procedure categories ── */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Категорії глобальних процедур
+              </Text>
+              <Text
+                style={[styles.sectionHint, { color: colors.textTertiary }]}
+              >
+                Тип загальних процедур ротової порожнини
+              </Text>
+            </View>
+            {addingSection !== "globalCategories" && (
+              <Pressable
+                onPress={() => openAdd("globalCategories")}
+                hitSlop={8}
+              >
+                <Ionicons name="add-circle" size={28} color={colors.accent} />
+              </Pressable>
+            )}
+          </View>
+          {Object.entries(GLOBAL_PROCEDURE_TYPES).map(([id, label]) =>
+            renderBuiltinItem(
+              id,
+              label,
+              GLOBAL_CATEGORY_BORDER_COLORS[id] ?? "#9E9E9E",
+            ),
+          )}
+          {customGlobalCategories.map((c) =>
+            renderCustomItem(c.id, c.label, c.color, () =>
+              handleDeleteGlobalCat(c),
+            ),
+          )}
+          {customGlobalCategories.length === 0 &&
+            addingSection !== "globalCategories" && (
+              <Text style={[styles.empty, { color: colors.textTertiary }]}>
+                Кастомних категорій ще немає
+              </Text>
+            )}
+          {addingSection === "globalCategories" && renderAddForm()}
+        </View>
       </ScrollView>
     </View>
   );
@@ -240,20 +389,30 @@ export default function ManageStatusesScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 100 },
+  content: { padding: 16, gap: 16 },
+
+  card: {
+    borderRadius: 20,
+    padding: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   sectionHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    lineHeight: 28,
-    fontWeight: "700",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
-  statusRow: {
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  sectionHint: {
+    fontSize: 12,
+  },
+  row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
@@ -266,62 +425,53 @@ const styles = StyleSheet.create({
     height: 14,
     borderRadius: 7,
   },
-  statusLabel: {
-    fontSize: 15,
-  },
-  empty: {
-    fontSize: 14,
-    paddingVertical: 12,
-  },
-  addIconBtn: {
-    marginBottom: 12,
-  },
+  rowLabel: { fontSize: 15 },
+  empty: { fontSize: 13, paddingVertical: 10 },
+
   addForm: {
-    marginTop: 16,
-    borderRadius: 18,
-    padding: 16,
+    marginTop: 14,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
   },
   formLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 12,
     padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
+    fontSize: 15,
+    marginBottom: 14,
   },
   colorGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 18,
   },
   colorOption: {
-    width: 36,
-    height: 36,
-    borderRadius: 22,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 2,
     borderColor: "transparent",
   },
-  colorOptionSelected: {
-    borderWidth: 3,
-  },
+  colorOptionSelected: { borderWidth: 3 },
   formActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: 12,
   },
   cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
-  cancelBtnText: { fontSize: 15 },
+  cancelBtnText: { fontSize: 14 },
   saveBtn: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 14,
+    borderRadius: 12,
   },
   pressed: { opacity: 0.85 },
-  saveBtnText: { fontSize: 15, fontWeight: "600" },
+  saveBtnText: { fontSize: 14, fontWeight: "600" },
 });
