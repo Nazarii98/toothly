@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SectionList,
   Pressable,
-  Image,
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Ionicons } from "@expo/vector-icons";
@@ -212,12 +211,6 @@ export default function HistoryListScreen() {
               {formatTime(c.date)}
             </Text>
           </View>
-          {c.imageUri && (
-            <Image
-              source={{ uri: c.imageUri }}
-              style={[styles.cardImage, { backgroundColor: colors.border }]}
-            />
-          )}
         </Pressable>
       );
     }
@@ -423,12 +416,6 @@ const styles = StyleSheet.create({
   },
   cardTime: {
     fontSize: 12,
-  },
-  cardImage: {
-    width: "100%",
-    height: 160,
-    borderRadius: 14,
-    marginTop: 10,
   },
   emptyWrap: {
     alignItems: "center",

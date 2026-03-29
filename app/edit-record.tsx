@@ -7,7 +7,6 @@ import {
   Pressable,
   Alert,
   Platform,
-  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
@@ -17,7 +16,6 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import * as ImagePicker from "expo-image-picker";
 import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import {
   loadData,
@@ -41,7 +39,6 @@ export default function EditRecordScreen() {
   const [status, setStatus] = useState<string>("checkup");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [imageUri, setImageUri] = useState<string | null>(null);
   const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -56,19 +53,10 @@ export default function EditRecordScreen() {
         setNotes(change.notes ?? "");
         setStatus(change.status ?? "checkup");
         setDate(new Date(change.date));
-        setImageUri(change.imageUri ?? null);
         setLoaded(true);
       }
     });
   }, [toothId, changeId]);
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]) setImageUri(result.assets[0].uri);
-  };
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === "android") setShowDatePicker(false);
@@ -86,7 +74,6 @@ export default function EditRecordScreen() {
       notes: notes.trim() || undefined,
       status,
       date: date.toISOString(),
-      imageUri: imageUri ?? undefined,
     }).catch(() => {});
     router.back();
   };
@@ -214,91 +201,6 @@ export default function EditRecordScreen() {
               multiline
               placeholderTextColor={colors.textTertiary}
             />
-          </View>
-
-          {/* ── Photo ── */}
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.card, shadowColor: colors.shadow },
-            ]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              Фото
-            </Text>
-            {imageUri ? (
-              <View
-                style={[
-                  styles.imagePreview,
-                  { backgroundColor: colors.border },
-                ]}
-              >
-                <Image source={{ uri: imageUri }} style={styles.previewImg} />
-                <View
-                  style={[
-                    styles.imageActions,
-                    { backgroundColor: colors.inputBg },
-                  ]}
-                >
-                  <Pressable style={styles.imageActionBtn} onPress={pickImage}>
-                    <Ionicons
-                      name="swap-horizontal"
-                      size={16}
-                      color={colors.accent}
-                    />
-                    <Text
-                      style={[styles.imageActionText, { color: colors.accent }]}
-                    >
-                      Змінити
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.imageActionBtn}
-                    onPress={() => setImageUri(null)}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={16}
-                      color={colors.destructive}
-                    />
-                    <Text
-                      style={[
-                        styles.imageActionText,
-                        { color: colors.destructive },
-                      ]}
-                    >
-                      Видалити
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <Pressable
-                style={[
-                  styles.imagePlaceholder,
-                  {
-                    backgroundColor: colors.inputBg,
-                    borderWidth: StyleSheet.hairlineWidth,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={pickImage}
-              >
-                <Ionicons
-                  name="camera-outline"
-                  size={24}
-                  color={colors.textTertiary}
-                />
-                <Text
-                  style={[
-                    styles.imagePlaceholderText,
-                    { color: colors.textTertiary },
-                  ]}
-                >
-                  Обрати з галереї
-                </Text>
-              </Pressable>
-            )}
           </View>
 
           {/* ── Date ── */}
@@ -494,29 +396,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
-
-  imagePlaceholder: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 20,
-    borderRadius: 16,
-  },
-  imagePlaceholderText: { fontSize: 14, fontWeight: "500" },
-  imagePreview: {
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  previewImg: { width: "100%", height: 200 },
-  imageActions: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 24,
-    paddingVertical: 10,
-  },
-  imageActionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
-  imageActionText: { fontSize: 13, fontWeight: "500" },
 
   saveBtn: {
     paddingVertical: 16,

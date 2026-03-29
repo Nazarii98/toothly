@@ -7,7 +7,6 @@ import {
   TextInput,
   Pressable,
   Alert,
-  Image,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +19,6 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import * as ImagePicker from "expo-image-picker";
 import {
   loadData,
   addToothChange,
@@ -61,7 +59,6 @@ export default function AddRecordModal() {
   const [notes, setNotes] = useState("");
   const [category, setCategory] = useState<string>("checkup");
   const [procedureType, setProcedureType] = useState<string>("checkup");
-  const [imageUri, setImageUri] = useState<string | null>(null);
   const [toothCategoryMaps, setToothCategoryMaps] = useState<StatusMaps>(
     buildToothCategoryMaps(),
   );
@@ -101,16 +98,6 @@ export default function AddRecordModal() {
     });
   }, []);
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
-
   const save = () => {
     const dateISO = date.toISOString();
     if (isGeneral) {
@@ -134,7 +121,6 @@ export default function AddRecordModal() {
         title: t,
         notes: notes.trim() || undefined,
         status: category as ToothChange["status"],
-        imageUri: imageUri ?? undefined,
       }).catch(() => {});
     }
     router.back();
@@ -275,91 +261,6 @@ export default function AddRecordModal() {
               multiline
               placeholderTextColor={colors.textTertiary}
             />
-          </View>
-
-          {/* ── Photo card ── */}
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.card, shadowColor: colors.shadow },
-            ]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              Фото
-            </Text>
-            {imageUri ? (
-              <View
-                style={[
-                  styles.imagePreview,
-                  { backgroundColor: colors.border },
-                ]}
-              >
-                <Image source={{ uri: imageUri }} style={styles.previewImg} />
-                <View
-                  style={[
-                    styles.imageActions,
-                    { backgroundColor: colors.inputBg },
-                  ]}
-                >
-                  <Pressable style={styles.imageActionBtn} onPress={pickImage}>
-                    <Ionicons
-                      name="swap-horizontal"
-                      size={16}
-                      color={colors.accent}
-                    />
-                    <Text
-                      style={[styles.imageActionText, { color: colors.accent }]}
-                    >
-                      Змінити
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.imageActionBtn}
-                    onPress={() => setImageUri(null)}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={16}
-                      color={colors.destructive}
-                    />
-                    <Text
-                      style={[
-                        styles.imageActionText,
-                        { color: colors.destructive },
-                      ]}
-                    >
-                      Видалити
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <Pressable
-                style={[
-                  styles.imagePlaceholder,
-                  {
-                    backgroundColor: colors.inputBg,
-                    borderWidth: StyleSheet.hairlineWidth,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={pickImage}
-              >
-                <Ionicons
-                  name="camera-outline"
-                  size={24}
-                  color={colors.textTertiary}
-                />
-                <Text
-                  style={[
-                    styles.imagePlaceholderText,
-                    { color: colors.textTertiary },
-                  ]}
-                >
-                  Обрати з галереї
-                </Text>
-              </Pressable>
-            )}
           </View>
 
           {/* ── Date card (optional) ── */}
@@ -694,30 +595,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
-
-  imagePlaceholder: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 20,
-    borderRadius: 16,
-  },
-  imagePlaceholderText: { fontSize: 14, fontWeight: "500" },
-
-  imagePreview: {
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  previewImg: { width: "100%", height: 200 },
-  imageActions: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 24,
-    paddingVertical: 10,
-  },
-  imageActionBtn: { flexDirection: "row", alignItems: "center", gap: 5 },
-  imageActionText: { fontSize: 13, fontWeight: "500" },
 
   categoryTrigger: {
     flexDirection: "row",
