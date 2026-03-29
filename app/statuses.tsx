@@ -176,7 +176,6 @@ export default function ManageStatusesScreen() {
         onChangeText={setFormLabel}
         placeholderTextColor={colors.textTertiary}
         autoFocus
-        keyboardType="ascii-capable"
         autoCorrect={false}
       />
       <Text style={[styles.formLabel, { color: colors.text }]}>Колір</Text>
