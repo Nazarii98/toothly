@@ -178,7 +178,7 @@ export default function HistoryListScreen() {
             styles.card,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
-          onPress={() => router.push(`/tooth/${c.toothId}`)}
+          onPress={() => router.push(`/edit-record?toothId=${c.toothId}&changeId=${c.id}`)}
         >
           <View style={styles.cardRow}>
             <View style={[styles.badge, { backgroundColor: colors.accent }]}>
@@ -222,7 +222,7 @@ export default function HistoryListScreen() {
           styles.globalCard,
           { backgroundColor: colors.cardSecondary, borderColor: colors.border },
         ]}
-        onPress={() => router.push("/global-detail")}
+        onPress={() => router.push(`/edit-global?id=${p.id}`)}
       >
         <View style={styles.cardRow}>
           <View

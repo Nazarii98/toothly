@@ -13,9 +13,18 @@ export interface ToothChange {
 
 export type ToothStatus = string;
 
+export interface StatusHistoryEntry {
+  id: string;
+  status: string;
+  date: string; // ISO
+  changedBy: string; // user UID
+  changedByEmail: string;
+}
+
 export interface ToothRecord {
   toothId: ToothId;
   currentStatus?: ToothStatus;
+  statusHistory?: StatusHistoryEntry[];
   changes: ToothChange[];
   lastUpdated?: string;
 }

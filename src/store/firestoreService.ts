@@ -20,6 +20,7 @@ import type {
   ToothChange,
   GlobalProcedure,
   CustomStatus,
+  StatusHistoryEntry,
 } from "../types";
 import { ALL_TOOTH_IDS } from "../types";
 import type { ToothId } from "../types";
@@ -73,6 +74,26 @@ function fromSnakeChange(raw: any): ToothChange {
   };
 }
 
+function toSnakeStatusHistory(e: StatusHistoryEntry): Record<string, any> {
+  return {
+    id: e.id,
+    status: e.status,
+    date: e.date,
+    changed_by: e.changedBy,
+    changed_by_email: e.changedByEmail,
+  };
+}
+
+function fromSnakeStatusHistory(raw: any): StatusHistoryEntry {
+  return {
+    id: raw.id,
+    status: raw.status,
+    date: raw.date,
+    changedBy: raw.changed_by ?? raw.changedBy,
+    changedByEmail: raw.changed_by_email ?? raw.changedByEmail ?? "",
+  };
+}
+
 function toSnakeTooth(r: ToothRecord): Record<string, any> {
   const out: Record<string, any> = {
     tooth_id: r.toothId,
@@ -80,6 +101,7 @@ function toSnakeTooth(r: ToothRecord): Record<string, any> {
   };
   if (r.currentStatus !== undefined) out.current_status = r.currentStatus;
   if (r.lastUpdated !== undefined) out.last_updated = r.lastUpdated;
+  if (r.statusHistory?.length) out.status_history = r.statusHistory.map(toSnakeStatusHistory);
   return out;
 }
 
@@ -89,6 +111,7 @@ function fromSnakeTooth(raw: any): ToothRecord {
     currentStatus: raw.current_status ?? raw.currentStatus,
     lastUpdated: raw.last_updated ?? raw.lastUpdated,
     changes: (raw.changes ?? []).map(fromSnakeChange),
+    statusHistory: (raw.status_history ?? raw.statusHistory ?? []).map(fromSnakeStatusHistory),
   };
 }
 

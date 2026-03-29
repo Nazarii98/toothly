@@ -299,6 +299,8 @@ export default function AddRecordModal() {
                   onChange={onDateChange}
                   locale="uk"
                   accentColor={colors.accent}
+                  textColor={colors.text}
+                  themeVariant={colors.isDark ? "dark" : "light"}
                   style={{ alignSelf: "center" }}
                 />
               ) : (

@@ -9,6 +9,7 @@ import type {
   GlobalProcedure,
   CustomStatus,
   CustomCategory,
+  StatusHistoryEntry,
 } from "../types";
 import { ALL_TOOTH_IDS } from "../types";
 
@@ -145,14 +146,55 @@ export async function deleteGlobalProcedure(id: string): Promise<void> {
 export async function setToothStatus(
   toothId: ToothId,
   status: ToothStatus,
+  changedBy: string,
+  changedByEmail: string,
 ): Promise<void> {
   const data = await loadData();
   const old = getToothRecord(data, toothId);
+  const entry: StatusHistoryEntry = {
+    id: `sh-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    status,
+    date: new Date().toISOString(),
+    changedBy,
+    changedByEmail,
+  };
   data.teeth[toothId] = {
     ...old,
     currentStatus: status,
+    statusHistory: [entry, ...(old.statusHistory ?? [])],
     lastUpdated: new Date().toISOString(),
   };
+  await saveData(data);
+}
+
+export async function updateStatusHistoryEntry(
+  toothId: ToothId,
+  entryId: string,
+  updates: { status?: string; date?: string },
+): Promise<void> {
+  const data = await loadData();
+  const record = getToothRecord(data, toothId);
+  const history = record.statusHistory ?? [];
+  const idx = history.findIndex((e) => e.id === entryId);
+  if (idx === -1) return;
+  history[idx] = { ...history[idx], ...updates };
+  // re-sort by date descending
+  history.sort((a, b) => b.date.localeCompare(a.date));
+  record.statusHistory = history;
+  // update currentStatus to the most recent entry's status
+  if (history.length > 0) record.currentStatus = history[0].status;
+  data.teeth[toothId] = record;
+  await saveData(data);
+}
+
+export async function deleteStatusHistoryEntry(
+  toothId: ToothId,
+  entryId: string,
+): Promise<void> {
+  const data = await loadData();
+  const record = getToothRecord(data, toothId);
+  record.statusHistory = (record.statusHistory ?? []).filter((e) => e.id !== entryId);
+  data.teeth[toothId] = record;
   await saveData(data);
 }
 

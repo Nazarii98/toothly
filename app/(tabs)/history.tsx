@@ -468,8 +468,8 @@ export default function HistoryScreen() {
             const badge = isGlobal ? "GP" : (data as ToothChange).toothId;
             const badgeBg = isGlobal ? colors.textSecondary : colors.accent;
             const onPress = isGlobal
-              ? () => router.push("/global-detail")
-              : () => router.push(`/tooth/${(data as ToothChange).toothId}`);
+              ? () => router.push(`/edit-global?id=${data.id}`)
+              : () => router.push(`/edit-record?toothId=${(data as ToothChange).toothId}&changeId=${data.id}`);
             return (
               <Pressable
                 key={data.id}

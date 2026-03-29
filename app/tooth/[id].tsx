@@ -5,7 +5,12 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Alert,
+  Platform,
 } from "react-native";
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStableHeaderHeight } from "../../src/hooks/useStableHeaderHeight";
 import { useAppTheme } from "../../src/theme";
@@ -18,6 +23,8 @@ import {
   loadData,
   getToothRecord,
   setToothStatus,
+  deleteStatusHistoryEntry,
+  updateStatusHistoryEntry,
 } from "../../src/store/teethStore";
 import { getCurrentProfileRole } from "../../src/store/profileStore";
 import { buildStatusMaps, buildToothCategoryMaps } from "../../src/types";
@@ -27,7 +34,9 @@ import type {
   ToothStatus,
   ToothRecord,
   StatusMaps,
+  StatusHistoryEntry,
 } from "../../src/types";
+import { useAuth } from "../../src/AuthProvider";
 
 export default function ToothDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,10 +48,17 @@ export default function ToothDetailScreen() {
 
   const [record, setRecord] = useState<ToothRecord | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
-  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
+  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(
+    buildToothCategoryMaps(),
+  );
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [statusEditEntry, setStatusEditEntry] =
+    useState<StatusHistoryEntry | null>(null);
+  const [androidDateEntry, setAndroidDateEntry] =
+    useState<StatusHistoryEntry | null>(null);
   const [role, setRole] = useState<string>("owner");
   const { dataRevision } = useDataSync();
+  const { user } = useAuth();
 
   const canEdit = role !== "viewer";
 
@@ -70,8 +86,43 @@ export default function ToothDetailScreen() {
 
   const handleStatusChange = async (status: ToothStatus) => {
     setPickerVisible(false);
-    await setToothStatus(toothId, status);
+    await setToothStatus(toothId, status, user?.uid ?? "", user?.email ?? "");
     refresh();
+  };
+
+  const handleUpdateEntryDate = async (
+    entry: StatusHistoryEntry,
+    date: Date,
+  ) => {
+    await updateStatusHistoryEntry(toothId, entry.id, {
+      date: date.toISOString(),
+    });
+    refresh();
+  };
+
+  const handleUpdateEntryStatus = async (status: string) => {
+    if (!statusEditEntry) return;
+    await updateStatusHistoryEntry(toothId, statusEditEntry.id, { status });
+    setStatusEditEntry(null);
+    refresh();
+  };
+
+  const handleDeleteHistoryEntry = (entry: StatusHistoryEntry) => {
+    Alert.alert(
+      "Видалити запис?",
+      `Статус "${statusMaps.labels[entry.status] ?? entry.status}"`,
+      [
+        { text: "Скасувати", style: "cancel" },
+        {
+          text: "Видалити",
+          style: "destructive",
+          onPress: async () => {
+            await deleteStatusHistoryEntry(toothId, entry.id);
+            refresh();
+          },
+        },
+      ],
+    );
   };
 
   const openAdd = () => {
@@ -179,6 +230,155 @@ export default function ToothDetailScreen() {
             />
           </View>
 
+          {(record?.statusHistory?.length ?? 0) > 0 && (
+            <View
+              style={[
+                styles.statusCard,
+                { backgroundColor: colors.card, shadowColor: colors.shadow },
+              ]}
+            >
+              <Text
+                style={[styles.sectionLabel, { color: colors.textTertiary }]}
+              >
+                Історія статусів
+              </Text>
+              {record!.statusHistory!.map((entry, index) => {
+                const canDelete =
+                  role === "owner" || entry.changedBy === user?.uid;
+                const isLast = index === record!.statusHistory!.length - 1;
+                return (
+                  <View key={entry.id}>
+                    <View style={styles.historyEntry}>
+                      {/* Left: dot + status + email */}
+                      <View style={styles.historyLeft}>
+                        <View style={styles.historyTopRow}>
+                          <View
+                            style={[
+                              styles.historyDot,
+                              {
+                                backgroundColor:
+                                  statusMaps.borderColors[entry.status] ??
+                                  "#999",
+                              },
+                            ]}
+                          />
+                          <Text
+                            style={[
+                              styles.historyStatus,
+                              { color: colors.text },
+                            ]}
+                          >
+                            {statusMaps.labels[entry.status] ?? entry.status}
+                          </Text>
+                        </View>
+                        {entry.changedByEmail &&
+                          entry.changedByEmail !== user?.email && (
+                            <Text
+                              style={[
+                                styles.historyMeta,
+                                { color: colors.textTertiary },
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {entry.changedByEmail}
+                            </Text>
+                          )}
+                      </View>
+                      {/* Right: date picker + edit + delete */}
+                      <View style={styles.historyRight}>
+                        {canDelete && Platform.OS === "ios" ? (
+                          <DateTimePicker
+                            value={new Date(entry.date)}
+                            mode="date"
+                            display="compact"
+                            maximumDate={new Date()}
+                            onChange={(_: DateTimePickerEvent, d?: Date) => {
+                              if (d) handleUpdateEntryDate(entry, d);
+                            }}
+                            locale="uk"
+                            accentColor={colors.accent}
+                            textColor={colors.text}
+                            themeVariant={colors.isDark ? "dark" : "light"}
+                          />
+                        ) : (
+                          <Pressable
+                            onPress={
+                              canDelete
+                                ? () => setAndroidDateEntry(entry)
+                                : undefined
+                            }
+                            hitSlop={4}
+                          >
+                            <Text
+                              style={[
+                                styles.historyMeta,
+                                { color: colors.textTertiary },
+                              ]}
+                            >
+                              {new Date(entry.date).toLocaleDateString(
+                                "uk-UA",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                },
+                              )}
+                            </Text>
+                          </Pressable>
+                        )}
+                        {canDelete && (
+                          <>
+                            <Pressable
+                              onPress={() => setStatusEditEntry(entry)}
+                              hitSlop={8}
+                            >
+                              <Ionicons
+                                name="pencil-outline"
+                                size={16}
+                                color={colors.accent}
+                              />
+                            </Pressable>
+                            <Pressable
+                              onPress={() => handleDeleteHistoryEntry(entry)}
+                              hitSlop={8}
+                            >
+                              <Ionicons
+                                name="trash-outline"
+                                size={16}
+                                color={colors.destructive}
+                              />
+                            </Pressable>
+                          </>
+                        )}
+                      </View>
+                    </View>
+                    {!isLast && (
+                      <View style={styles.historyConnector}>
+                        <View
+                          style={[
+                            styles.historyLine,
+                            { backgroundColor: colors.border },
+                          ]}
+                        />
+                        <Ionicons
+                          name="chevron-up"
+                          size={14}
+                          color={colors.textTertiary}
+                        />
+                        <View
+                          style={[
+                            styles.historyLine,
+                            { backgroundColor: colors.border },
+                          ]}
+                        />
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
           <View style={styles.historySection}>
             <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
               Історія змін
@@ -262,7 +462,8 @@ export default function ToothDetailScreen() {
                                 styles.recordStatusDot,
                                 {
                                   backgroundColor:
-                                    categoryMaps.borderColors[c.status] ?? "#999",
+                                    categoryMaps.borderColors[c.status] ??
+                                    "#999",
                                 },
                               ]}
                             />
@@ -308,6 +509,34 @@ export default function ToothDetailScreen() {
           </View>
         </ScrollView>
       </View>
+
+      <StatusPickerModal
+        visible={statusEditEntry !== null}
+        onClose={() => setStatusEditEntry(null)}
+        title="Оберіть статус"
+        selected={statusEditEntry?.status}
+        maps={statusMaps}
+        onSelect={handleUpdateEntryStatus}
+        onManage={() => {
+          router.push("/statuses");
+          setStatusEditEntry(null);
+        }}
+        manageLabel="Керувати статусами"
+      />
+
+      {androidDateEntry !== null && (
+        <DateTimePicker
+          value={new Date(androidDateEntry.date)}
+          mode="date"
+          display="default"
+          maximumDate={new Date()}
+          onChange={(_: DateTimePickerEvent, d?: Date) => {
+            const entry = androidDateEntry;
+            setAndroidDateEntry(null);
+            if (d) handleUpdateEntryDate(entry, d);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -408,6 +637,53 @@ const styles = StyleSheet.create({
   emptyCtaText: {
     fontSize: 15,
     fontWeight: "600",
+  },
+  historyEntry: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 8,
+  },
+  historyLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  historyTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  historyDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    flexShrink: 0,
+  },
+  historyStatus: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  historyRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flexShrink: 0,
+  },
+  historyMeta: {
+    fontSize: 12,
+    flexShrink: 1,
+  },
+  historyConnector: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 4,
+    paddingVertical: 2,
+    gap: 4,
+  },
+  historyLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
   },
   recordList: { gap: 12 },
   recordCard: {
