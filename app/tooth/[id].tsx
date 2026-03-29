@@ -37,8 +37,10 @@ import type {
   StatusHistoryEntry,
 } from "../../src/types";
 import { useAuth } from "../../src/AuthProvider";
+import { useTranslation } from "react-i18next";
 
 export default function ToothDetailScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const toothId = id as ToothId;
   const router = useRouter();
@@ -109,12 +111,12 @@ export default function ToothDetailScreen() {
 
   const handleDeleteHistoryEntry = (entry: StatusHistoryEntry) => {
     Alert.alert(
-      "Видалити запис?",
-      `Статус "${statusMaps.labels[entry.status] ?? entry.status}"`,
+      t("tooth.deleteStatus"),
+      t("tooth.deleteStatusMessage", { label: statusMaps.labels[entry.status] ?? entry.status }),
       [
-        { text: "Скасувати", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Видалити",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             await deleteStatusHistoryEntry(toothId, entry.id);
@@ -146,7 +148,7 @@ export default function ToothDetailScreen() {
   const currentStatus = record?.currentStatus;
   const currentStatusLabel = currentStatus
     ? (statusMaps.labels[currentStatus] ?? currentStatus)
-    : "Не встановлено";
+    : t("tooth.noStatus");
   const currentStatusColor = currentStatus
     ? (statusMaps.borderColors[currentStatus] ?? "#999")
     : "#999";
@@ -155,7 +157,7 @@ export default function ToothDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: `Зуб ${toothId}`,
+          title: t("tooth.title", { id: toothId }),
           headerRight: canEdit
             ? () => (
                 <Pressable
@@ -188,7 +190,7 @@ export default function ToothDetailScreen() {
             ]}
           >
             <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-              Поточний статус
+              {t("tooth.currentStatus")}
             </Text>
             <Pressable
               style={[
@@ -218,7 +220,7 @@ export default function ToothDetailScreen() {
             <StatusPickerModal
               visible={pickerVisible}
               onClose={() => setPickerVisible(false)}
-              title="Оберіть статус"
+              title={t("tooth.pickStatus")}
               selected={currentStatus}
               maps={statusMaps}
               onSelect={handleStatusChange}
@@ -226,7 +228,7 @@ export default function ToothDetailScreen() {
                 router.push("/statuses");
                 setPickerVisible(false);
               }}
-              manageLabel="Керувати статусами"
+              manageLabel={t("tooth.manageStatuses")}
             />
           </View>
 
@@ -240,7 +242,7 @@ export default function ToothDetailScreen() {
               <Text
                 style={[styles.sectionLabel, { color: colors.textTertiary }]}
               >
-                Історія статусів
+                {t("tooth.statusHistory")}
               </Text>
               {record!.statusHistory!.map((entry, index) => {
                 const canDelete =
@@ -381,7 +383,7 @@ export default function ToothDetailScreen() {
 
           <View style={styles.historySection}>
             <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-              Історія змін
+              {t("tooth.changesHistory")}
             </Text>
             {record && record.changes.length === 0 ? (
               <View
@@ -399,12 +401,12 @@ export default function ToothDetailScreen() {
                   color={colors.textTertiary}
                 />
                 <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  Ще немає записів
+                  {t("tooth.noRecords")}
                 </Text>
                 <Text
                   style={[styles.emptyHint, { color: colors.textSecondary }]}
                 >
-                  Додайте перший запис про лікування або огляд
+                  {t("tooth.noRecordsHint")}
                 </Text>
                 {canEdit && (
                   <Pressable
@@ -418,7 +420,7 @@ export default function ToothDetailScreen() {
                     <Text
                       style={[styles.emptyCtaText, { color: colors.white }]}
                     >
-                      Додати запис
+                      {t("tooth.addRecord")}
                     </Text>
                   </Pressable>
                 )}
@@ -453,6 +455,7 @@ export default function ToothDetailScreen() {
                               {
                                 backgroundColor:
                                   (categoryMaps.borderColors[c.status] ??
+                                    statusMaps.borderColors[c.status] ??
                                     "#999") + "18",
                               },
                             ]}
@@ -463,6 +466,7 @@ export default function ToothDetailScreen() {
                                 {
                                   backgroundColor:
                                     categoryMaps.borderColors[c.status] ??
+                                    statusMaps.borderColors[c.status] ??
                                     "#999",
                                 },
                               ]}
@@ -473,11 +477,14 @@ export default function ToothDetailScreen() {
                                 {
                                   color:
                                     categoryMaps.borderColors[c.status] ??
+                                    statusMaps.borderColors[c.status] ??
                                     colors.textSecondary,
                                 },
                               ]}
                             >
-                              {categoryMaps.labels[c.status] ?? c.status}
+                              {categoryMaps.labels[c.status] ??
+                                statusMaps.labels[c.status] ??
+                                c.status}
                             </Text>
                           </View>
                         )}

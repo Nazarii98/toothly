@@ -25,8 +25,10 @@ import {
 } from "../src/store/teethStore";
 import { TOOTH_NAMES, buildToothCategoryMaps } from "../src/types";
 import type { ToothId, StatusMaps } from "../src/types";
+import { useTranslation } from "react-i18next";
 
 export default function EditRecordScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -64,13 +66,13 @@ export default function EditRecordScreen() {
   };
 
   const save = () => {
-    const t = title.trim();
-    if (!t) {
-      Alert.alert("Помилка", "Введіть назву запису");
+    const titleStr = title.trim();
+    if (!titleStr) {
+      Alert.alert(t("common.error"), t("common.enterTitle"));
       return;
     }
     updateToothChange(toothId, changeId, {
-      title: t,
+      title: titleStr,
       notes: notes.trim() || undefined,
       status,
       date: date.toISOString(),
@@ -79,10 +81,10 @@ export default function EditRecordScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert("Видалити запис?", title, [
-      { text: "Скасувати", style: "cancel" },
+    Alert.alert(t("record.deleteTitle"), title, [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Видалити",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           deleteToothChange(toothId, changeId).catch(() => {});
@@ -98,7 +100,7 @@ export default function EditRecordScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Редагувати запис" }} />
+      <Stack.Screen options={{ title: t("record.editTitle") }} />
       <View style={[styles.root, { backgroundColor: colors.bg }]}>
         <KeyboardAwareScrollView
           style={styles.scroll}
@@ -133,7 +135,7 @@ export default function EditRecordScreen() {
                 <Text
                   style={[styles.cardRowLabel, { color: colors.textTertiary }]}
                 >
-                  Зуб
+                  {t("common.tooth")}
                 </Text>
                 <Text style={[styles.cardRowValue, { color: colors.text }]}>
                   {toothLabel}
@@ -150,7 +152,7 @@ export default function EditRecordScreen() {
             ]}
           >
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              Категорія
+              {t("record.categoryLabel")}
             </Text>
             <Pressable
               style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
@@ -177,14 +179,14 @@ export default function EditRecordScreen() {
             ]}
           >
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              Деталі
+              {t("common.details")}
             </Text>
             <TextInput
               style={[
                 styles.input,
                 { backgroundColor: colors.inputBg, color: colors.text },
               ]}
-              placeholder="Назва (наприклад: пломба, огляд)"
+              placeholder={t("record.titlePlaceholder")}
               value={title}
               onChangeText={setTitle}
               placeholderTextColor={colors.textTertiary}
@@ -195,7 +197,7 @@ export default function EditRecordScreen() {
                 styles.textArea,
                 { backgroundColor: colors.inputBg, color: colors.text },
               ]}
-              placeholder="Нотатки..."
+              placeholder={t("record.notesPlaceholder")}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -227,7 +229,7 @@ export default function EditRecordScreen() {
                 <Text
                   style={[styles.cardRowLabel, { color: colors.textTertiary }]}
                 >
-                  Дата
+                  {t("record.dateLabel")}
                 </Text>
               </View>
               {Platform.OS === "ios" ? (
@@ -285,7 +287,7 @@ export default function EditRecordScreen() {
               color={colors.destructive}
             />
             <Text style={[styles.deleteBtnText, { color: colors.destructive }]}>
-              Видалити запис
+              {t("record.deleteRecord")}
             </Text>
           </Pressable>
         </KeyboardAwareScrollView>
@@ -299,7 +301,7 @@ export default function EditRecordScreen() {
             onPress={save}
           >
             <Text style={[styles.saveBtnText, { color: colors.white }]}>
-              Зберегти
+              {t("common.save")}
             </Text>
           </Pressable>
         </View>
@@ -307,12 +309,12 @@ export default function EditRecordScreen() {
       <StatusPickerModal
         visible={categoryPickerVisible}
         onClose={() => setCategoryPickerVisible(false)}
-        title="Категорія"
+        title={t("record.categoryLabel")}
         selected={status}
         maps={categoryMaps}
         onSelect={(v) => { setStatus(v); setCategoryPickerVisible(false); }}
         onManage={() => { router.push("/statuses"); setCategoryPickerVisible(false); }}
-        manageLabel="Керувати категоріями"
+        manageLabel={t("common.manageCategories")}
         showEmpty={false}
       />
     </>

@@ -6,6 +6,9 @@ import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { ThemeProvider, useAppTheme } from "../src/theme";
 import { AuthProvider, useAuth } from "../src/AuthProvider";
 import { DataSyncProvider } from "../src/DataSyncProvider";
+import { I18nextProvider, useTranslation } from "react-i18next";
+import i18n, { initI18n } from "../src/i18n";
+import { useEffect, useState } from "react";
 
 function hexToRgb(hex: string): string {
   const h = hex.replace("#", "");
@@ -59,6 +62,7 @@ const modalScreenOptions = (colors: any) => ({
 function RootStack() {
   const { colors } = useAppTheme();
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
   const headerOptions = {
     headerTransparent: true,
     headerTintColor: colors.text,
@@ -96,32 +100,32 @@ function RootStack() {
         <Stack.Screen name="tooth/[id]" redirect={!user} />
         <Stack.Screen
           name="procedures"
-          options={{ title: "Глобальні процедури" }}
+          options={{ title: t("nav.procedures") }}
           redirect={!user}
         />
         <Stack.Screen
           name="statuses"
-          options={{ title: "Керування статусами" }}
+          options={{ title: t("nav.statuses") }}
           redirect={!user}
         />
         <Stack.Screen
           name="profiles"
-          options={{ title: "Профіль" }}
+          options={{ title: t("nav.profiles") }}
           redirect={!user}
         />
         <Stack.Screen
           name="global-detail"
-          options={{ title: "Ротова порожнина" }}
+          options={{ title: t("nav.globalDetail") }}
           redirect={!user}
         />
         <Stack.Screen
           name="history-list"
-          options={{ title: "Історія" }}
+          options={{ title: t("nav.historyList") }}
           redirect={!user}
         />
         <Stack.Screen
           name="profile-access"
-          options={{ title: "Доступ до профілю" }}
+          options={{ title: t("nav.profileAccess") }}
           redirect={!user}
         />
         <Stack.Screen
@@ -136,19 +140,25 @@ function RootStack() {
         />
         <Stack.Screen
           name="add-record"
-          options={{ ...modalScreenOptions(colors), title: "Новий запис" }}
+          options={{
+            ...modalScreenOptions(colors),
+            title: t("record.addTitle"),
+          }}
           redirect={!user}
         />
         <Stack.Screen
           name="edit-record"
-          options={{ ...modalScreenOptions(colors), title: "Редагувати запис" }}
+          options={{
+            ...modalScreenOptions(colors),
+            title: t("record.editTitle"),
+          }}
           redirect={!user}
         />
         <Stack.Screen
           name="edit-global"
           options={{
             ...modalScreenOptions(colors),
-            title: "Редагувати процедуру",
+            title: t("global.editTitle"),
           }}
           redirect={!user}
         />
@@ -158,15 +168,25 @@ function RootStack() {
 }
 
 export default function RootLayout() {
+  const [i18nReady, setI18nReady] = useState(false);
+
+  useEffect(() => {
+    initI18n().then(() => setI18nReady(true));
+  }, []);
+
+  if (!i18nReady) return null;
+
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <DataSyncProvider>
-            <RootStack />
-          </DataSyncProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <I18nextProvider i18n={i18n}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <DataSyncProvider>
+              <RootStack />
+            </DataSyncProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </I18nextProvider>
   );
 }

@@ -32,6 +32,7 @@ import {
 import type { CustomStatus, CustomCategory } from "../src/types";
 import { useAppTheme } from "../src/theme";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useTranslation } from "react-i18next";
 
 const PRESET_COLORS = [
   "#E91E63",
@@ -55,6 +56,7 @@ const PRESET_COLORS = [
 type SectionKey = "statuses" | "toothCategories" | "globalCategories";
 
 export default function ManageStatusesScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const headerHeight = useStableHeaderHeight();
@@ -98,7 +100,7 @@ export default function ManageStatusesScreen() {
   const handleAdd = async () => {
     const label = formLabel.trim();
     if (!label) {
-      Alert.alert("Введіть назву");
+      Alert.alert(t("statuses.enterName"));
       return;
     }
     if (addingSection === "statuses") {
@@ -113,10 +115,10 @@ export default function ManageStatusesScreen() {
   };
 
   const handleDeleteStatus = (item: CustomStatus) => {
-    Alert.alert("Видалити статус?", `"${item.label}"`, [
-      { text: "Скасувати", style: "cancel" },
+    Alert.alert(t("statuses.deleteTitle"), `"${item.label}"`, [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Видалити",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           deleteCustomStatus(item.id).catch(() => {});
@@ -127,10 +129,10 @@ export default function ManageStatusesScreen() {
   };
 
   const handleDeleteToothCat = (item: CustomCategory) => {
-    Alert.alert("Видалити категорію?", `"${item.label}"`, [
-      { text: "Скасувати", style: "cancel" },
+    Alert.alert(t("statuses.deleteCategory"), `"${item.label}"`, [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Видалити",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           deleteCustomToothCategory(item.id).catch(() => {});
@@ -141,10 +143,10 @@ export default function ManageStatusesScreen() {
   };
 
   const handleDeleteGlobalCat = (item: CustomCategory) => {
-    Alert.alert("Видалити категорію?", `"${item.label}"`, [
-      { text: "Скасувати", style: "cancel" },
+    Alert.alert(t("statuses.deleteCategory"), `"${item.label}"`, [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Видалити",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           deleteCustomGlobalCategory(item.id).catch(() => {});
@@ -161,7 +163,7 @@ export default function ManageStatusesScreen() {
         { backgroundColor: colors.inputBg, borderColor: colors.border },
       ]}
     >
-      <Text style={[styles.formLabel, { color: colors.text }]}>Назва</Text>
+      <Text style={[styles.formLabel, { color: colors.text }]}>{t("statuses.nameLabel")}</Text>
       <TextInput
         style={[
           styles.input,
@@ -171,14 +173,14 @@ export default function ManageStatusesScreen() {
             color: colors.text,
           },
         ]}
-        placeholder="наприклад: Імплант, Брекети"
+        placeholder={t("statuses.examplePlaceholder")}
         value={formLabel}
         onChangeText={setFormLabel}
         placeholderTextColor={colors.textTertiary}
         autoFocus
         autoCorrect={false}
       />
-      <Text style={[styles.formLabel, { color: colors.text }]}>Колір</Text>
+      <Text style={[styles.formLabel, { color: colors.text }]}>{t("statuses.colorLabelFull")}</Text>
       <View style={styles.colorGrid}>
         {PRESET_COLORS.map((c) => (
           <Pressable
@@ -196,7 +198,7 @@ export default function ManageStatusesScreen() {
       <View style={styles.formActions}>
         <Pressable onPress={cancelAdd} style={styles.cancelBtn}>
           <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>
-            Скасувати
+            {t("common.cancel")}
           </Text>
         </Pressable>
         <Pressable
@@ -208,7 +210,7 @@ export default function ManageStatusesScreen() {
           ]}
         >
           <Text style={[styles.saveBtnText, { color: colors.white }]}>
-            Додати
+            {t("common.add")}
           </Text>
         </Pressable>
       </View>
@@ -269,12 +271,12 @@ export default function ManageStatusesScreen() {
           <View style={styles.sectionHeader}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Статуси зубів
+                {t("statuses.toothStatuses")}
               </Text>
               <Text
                 style={[styles.sectionHint, { color: colors.textTertiary }]}
               >
-                Поточний стан зуба на схемі
+                {t("statuses.defaultStatuses")}
               </Text>
             </View>
             {addingSection !== "statuses" && (
@@ -293,7 +295,7 @@ export default function ManageStatusesScreen() {
           )}
           {customStatuses.length === 0 && addingSection !== "statuses" && (
             <Text style={[styles.empty, { color: colors.textTertiary }]}>
-              Кастомних статусів ще немає
+              {t("statuses.customStatuses")}: —
             </Text>
           )}
           {addingSection === "statuses" && renderAddForm()}
@@ -309,12 +311,12 @@ export default function ManageStatusesScreen() {
           <View style={styles.sectionHeader}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Категорії записів зуба
+                {t("statuses.toothCategories")}
               </Text>
               <Text
                 style={[styles.sectionHint, { color: colors.textTertiary }]}
               >
-                Тип процедури у записах конкретного зуба
+                {t("statuses.defaultStatuses")}
               </Text>
             </View>
             {addingSection !== "toothCategories" && (
@@ -338,7 +340,7 @@ export default function ManageStatusesScreen() {
           {customToothCategories.length === 0 &&
             addingSection !== "toothCategories" && (
               <Text style={[styles.empty, { color: colors.textTertiary }]}>
-                Кастомних категорій ще немає
+                {t("statuses.customStatuses")}: —
               </Text>
             )}
           {addingSection === "toothCategories" && renderAddForm()}
@@ -354,12 +356,12 @@ export default function ManageStatusesScreen() {
           <View style={styles.sectionHeader}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Категорії глобальних процедур
+                {t("statuses.globalCategories")}
               </Text>
               <Text
                 style={[styles.sectionHint, { color: colors.textTertiary }]}
               >
-                Тип загальних процедур ротової порожнини
+                {t("statuses.defaultStatuses")}
               </Text>
             </View>
             {addingSection !== "globalCategories" && (
@@ -386,7 +388,7 @@ export default function ManageStatusesScreen() {
           {customGlobalCategories.length === 0 &&
             addingSection !== "globalCategories" && (
               <Text style={[styles.empty, { color: colors.textTertiary }]}>
-                Кастомних категорій ще немає
+                {t("statuses.customStatuses")}: —
               </Text>
             )}
           {addingSection === "globalCategories" && renderAddForm()}

@@ -10,10 +10,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useAppTheme, THEME_LABELS, THEME_COLORS } from "../../src/theme";
+import { useAppTheme, THEME_COLORS } from "../../src/theme";
 import type { ThemePreference } from "../../src/store/themeStore";
 import { GlassModal } from "../../src/components/GlassModal";
 import { useAuth } from "../../src/AuthProvider";
+import { useTranslation } from "react-i18next";
+import { LANGUAGES, changeLanguage } from "../../src/i18n";
 
 const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
   { value: "system", icon: "phone-portrait-outline" },
@@ -27,10 +29,12 @@ const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
 ];
 
 export default function SettingsScreen() {
-  const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { colors, preference, setPreference } = useAppTheme();
   const { user, signOut, changePassword, deleteAccount } = useAuth();
+  const router = useRouter();
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+  const [langModalOpen, setLangModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -40,20 +44,18 @@ export default function SettingsScreen() {
   const [confirmPw, setConfirmPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
 
+  const currentLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
+
   const handleSignOut = () => {
-    Alert.alert("Вихід", "Ви впевнені, що хочете вийти з акаунту?", [
-      { text: "Скасувати", style: "cancel" },
-      {
-        text: "Вийти",
-        style: "destructive",
-        onPress: () => signOut(),
-      },
+    Alert.alert(t("settings.signOutTitle"), t("settings.signOutMessage"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("settings.signOut"), style: "destructive", onPress: () => signOut() },
     ]);
   };
 
   const handleDeleteAccount = async () => {
     if (!deletePassword) {
-      Alert.alert("Помилка", "Введіть пароль для підтвердження");
+      Alert.alert(t("common.error"), t("settings.passwordLabel"));
       return;
     }
     setDeleteLoading(true);
@@ -62,9 +64,9 @@ export default function SettingsScreen() {
     } catch (e: any) {
       const msg =
         e.code === "auth/wrong-password" || e.code === "auth/invalid-credential"
-          ? "Невірний пароль"
-          : "Помилка видалення акаунту. Спробуйте ще раз";
-      Alert.alert("Помилка", msg);
+          ? t("settings.wrongPassword")
+          : t("settings.deleteError");
+      Alert.alert(t("common.error"), msg);
     } finally {
       setDeleteLoading(false);
     }
@@ -72,15 +74,15 @@ export default function SettingsScreen() {
 
   const handleChangePassword = async () => {
     if (!currentPw || !newPw) {
-      Alert.alert("Помилка", "Заповніть всі поля");
+      Alert.alert(t("common.error"), t("common.fillAllFields"));
       return;
     }
     if (newPw.length < 6) {
-      Alert.alert("Помилка", "Новий пароль має містити щонайменше 6 символів");
+      Alert.alert(t("common.error"), t("settings.passwordMinLength"));
       return;
     }
     if (newPw !== confirmPw) {
-      Alert.alert("Помилка", "Паролі не збігаються");
+      Alert.alert(t("common.error"), t("settings.passwordMismatch"));
       return;
     }
     setPwLoading(true);
@@ -90,13 +92,13 @@ export default function SettingsScreen() {
       setCurrentPw("");
       setNewPw("");
       setConfirmPw("");
-      Alert.alert("Готово", "Пароль успішно змінено");
+      Alert.alert(t("common.done"), t("settings.passwordChanged"));
     } catch (e: any) {
       const msg =
         e.code === "auth/wrong-password" || e.code === "auth/invalid-credential"
-          ? "Невірний поточний пароль"
-          : "Помилка зміни паролю. Спробуйте ще раз";
-      Alert.alert("Помилка", msg);
+          ? t("settings.wrongCurrentPassword")
+          : t("settings.changePasswordError");
+      Alert.alert(t("common.error"), msg);
     } finally {
       setPwLoading(false);
     }
@@ -108,7 +110,7 @@ export default function SettingsScreen() {
       edges={["top"]}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]}>Налаштування</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t("settings.title")}</Text>
         <View
           style={[
             styles.card,
@@ -119,41 +121,31 @@ export default function SettingsScreen() {
             style={styles.menuRow}
             onPress={() => router.push("/profiles")}
           >
-            <View
-              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
-            >
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
               <Ionicons name="person" size={22} color={colors.accent} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
-              Профіль
+              {t("settings.profile")}
             </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
-          <View
-            style={[styles.separator, { backgroundColor: colors.border }]}
-          />
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
           <Pressable
             style={styles.menuRow}
             onPress={() => router.push("/statuses")}
           >
-            <View
-              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
-            >
-              <Ionicons
-                name="color-palette-outline"
-                size={22}
-                color={colors.accent}
-              />
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+              <Ionicons name="color-palette-outline" size={22} color={colors.accent} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
-              Статуси
+              {t("settings.statusesMenu")}
             </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
         </View>
 
         <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-          Зовнішній вигляд
+          {t("settings.appearance")}
         </Text>
         <View
           style={[
@@ -165,24 +157,37 @@ export default function SettingsScreen() {
             style={styles.menuRow}
             onPress={() => setThemeModalOpen(true)}
           >
-            <View
-              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
-            >
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
               <Ionicons
-                name={
-                  (THEME_OPTIONS.find((o) => o.value === preference)?.icon ??
-                    "phone-portrait-outline") as any
-                }
+                name={(THEME_OPTIONS.find((o) => o.value === preference)?.icon ?? "phone-portrait-outline") as any}
                 size={22}
                 color={colors.accent}
               />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.menuLabel, { color: colors.text }]}>
-                Тема
+                {t("settings.theme")}
               </Text>
               <Text style={[styles.menuHint, { color: colors.textTertiary }]}>
-                {THEME_LABELS[preference]}
+                {t(`themes.${preference}`, { defaultValue: preference })}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
+          </Pressable>
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => setLangModalOpen(true)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+              <Ionicons name="language-outline" size={22} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>
+                {t("settings.language")}
+              </Text>
+              <Text style={[styles.menuHint, { color: colors.textTertiary }]}>
+                {currentLang.flag} {currentLang.label}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
@@ -190,7 +195,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-          Акаунт
+          {t("settings.account")}
         </Text>
         <View
           style={[
@@ -199,96 +204,53 @@ export default function SettingsScreen() {
           ]}
         >
           <View style={styles.menuRow}>
-            <View
-              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
-            >
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
               <Ionicons name="mail" size={22} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.menuLabel, { color: colors.text }]}>
-                Email
-              </Text>
-              <Text
-                style={[styles.menuHint, { color: colors.textTertiary }]}
-                numberOfLines={1}
-              >
+              <Text style={[styles.menuLabel, { color: colors.text }]}>Email</Text>
+              <Text style={[styles.menuHint, { color: colors.textTertiary }]} numberOfLines={1}>
                 {user?.email ?? "—"}
               </Text>
             </View>
           </View>
-          <View
-            style={[styles.separator, { backgroundColor: colors.border }]}
-          />
-          <Pressable
-            style={styles.menuRow}
-            onPress={() => setPwModalOpen(true)}
-          >
-            <View
-              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
-            >
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <Pressable style={styles.menuRow} onPress={() => setPwModalOpen(true)}>
+            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
               <Ionicons name="key-outline" size={22} color={colors.accent} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
-              Змінити пароль
+              {t("settings.changePassword")}
             </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
-          <View
-            style={[styles.separator, { backgroundColor: colors.border }]}
-          />
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
           <Pressable style={styles.menuRow} onPress={handleSignOut}>
-            <View
-              style={[
-                styles.menuIcon,
-                { backgroundColor: "rgba(192,96,96,0.12)" },
-              ]}
-            >
-              <Ionicons
-                name="log-out-outline"
-                size={22}
-                color={colors.destructive}
-              />
+            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
+              <Ionicons name="log-out-outline" size={22} color={colors.destructive} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.destructive }]}>
-              Вийти з акаунту
+              {t("settings.signOut")}
             </Text>
           </Pressable>
-          <View
-            style={[styles.separator, { backgroundColor: colors.border }]}
-          />
-          <Pressable
-            style={styles.menuRow}
-            onPress={() => setDeleteModalOpen(true)}
-          >
-            <View
-              style={[
-                styles.menuIcon,
-                { backgroundColor: "rgba(192,96,96,0.12)" },
-              ]}
-            >
-              <Ionicons
-                name="trash-outline"
-                size={22}
-                color={colors.destructive}
-              />
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <Pressable style={styles.menuRow} onPress={() => setDeleteModalOpen(true)}>
+            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
+              <Ionicons name="trash-outline" size={22} color={colors.destructive} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.destructive }]}>
-              Видалити акаунт
+              {t("settings.deleteAccount")}
             </Text>
           </Pressable>
         </View>
       </View>
 
-      <GlassModal
-        visible={themeModalOpen}
-        onClose={() => setThemeModalOpen(false)}
-      >
+      {/* Theme modal */}
+      <GlassModal visible={themeModalOpen} onClose={() => setThemeModalOpen(false)}>
         <View style={styles.modalHeader}>
-          <Text style={[styles.modalTitle, { color: colors.text }]}>Тема</Text>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>{t("settings.theme")}</Text>
           <Pressable onPress={() => setThemeModalOpen(false)} hitSlop={12}>
-            <Text style={[styles.modalDone, { color: colors.accent }]}>
-              Готово
-            </Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.done")}</Text>
           </Pressable>
         </View>
         <View style={styles.themeList}>
@@ -320,36 +282,17 @@ export default function SettingsScreen() {
                     isSelected && { fontWeight: "600", color: colors.text },
                   ]}
                 >
-                  {THEME_LABELS[value]}
+                  {t(`themes.${value}`, { defaultValue: value })}
                 </Text>
                 {preview && (
                   <View style={styles.themePreview}>
-                    <View
-                      style={[
-                        styles.previewDot,
-                        { backgroundColor: preview.bg },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.previewDot,
-                        { backgroundColor: preview.accent },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.previewDot,
-                        { backgroundColor: preview.card },
-                      ]}
-                    />
+                    <View style={[styles.previewDot, { backgroundColor: preview.bg }]} />
+                    <View style={[styles.previewDot, { backgroundColor: preview.accent }]} />
+                    <View style={[styles.previewDot, { backgroundColor: preview.card }]} />
                   </View>
                 )}
                 {isSelected && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={22}
-                    color={colors.accent}
-                  />
+                  <Ionicons name="checkmark-circle" size={22} color={colors.accent} />
                 )}
               </Pressable>
             );
@@ -357,44 +300,72 @@ export default function SettingsScreen() {
         </View>
       </GlassModal>
 
+      {/* Language modal */}
+      <GlassModal visible={langModalOpen} onClose={() => setLangModalOpen(false)}>
+        <View style={styles.modalHeader}>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>{t("settings.language")}</Text>
+          <Pressable onPress={() => setLangModalOpen(false)} hitSlop={12}>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.done")}</Text>
+          </Pressable>
+        </View>
+        <View style={styles.themeList}>
+          {LANGUAGES.map((lang) => {
+            const isSelected = i18n.language === lang.code;
+            return (
+              <Pressable
+                key={lang.code}
+                style={({ pressed }) => [
+                  styles.themeOption,
+                  isSelected && { backgroundColor: colors.badgeBg },
+                  pressed && { backgroundColor: colors.statusOptionBg },
+                ]}
+                onPress={async () => {
+                  await changeLanguage(lang.code);
+                  setLangModalOpen(false);
+                }}
+              >
+                <Text style={styles.langFlag}>{lang.flag}</Text>
+                <Text
+                  style={[
+                    styles.themeOptionText,
+                    { color: colors.textSecondary },
+                    isSelected && { fontWeight: "600", color: colors.text },
+                  ]}
+                >
+                  {lang.label}
+                </Text>
+                {isSelected && (
+                  <Ionicons name="checkmark-circle" size={22} color={colors.accent} />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </GlassModal>
+
+      {/* Delete account modal */}
       <GlassModal
         visible={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setDeletePassword("");
-        }}
+        onClose={() => { setDeleteModalOpen(false); setDeletePassword(""); }}
       >
         <View style={styles.modalHeader}>
           <Text style={[styles.modalTitle, { color: colors.destructive }]}>
-            Видалити акаунт
+            {t("settings.deleteAccount")}
           </Text>
           <Pressable
-            onPress={() => {
-              setDeleteModalOpen(false);
-              setDeletePassword("");
-            }}
+            onPress={() => { setDeleteModalOpen(false); setDeletePassword(""); }}
             hitSlop={12}
           >
-            <Text style={[styles.modalDone, { color: colors.accent }]}>
-              Скасувати
-            </Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.cancel")}</Text>
           </Pressable>
         </View>
         <View style={styles.deleteModalContent}>
           <Text style={[styles.deleteWarning, { color: colors.textSecondary }]}>
-            Це видалить ваш акаунт та всі дані безповоротно. Введіть пароль для
-            підтвердження.
+            {t("settings.deleteWarning")}
           </Text>
           <TextInput
-            style={[
-              styles.deleteInput,
-              {
-                backgroundColor: colors.inputBg,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder="Пароль"
+            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            placeholder={t("settings.passwordLabel")}
             placeholderTextColor={colors.textTertiary}
             value={deletePassword}
             onChangeText={setDeletePassword}
@@ -402,60 +373,37 @@ export default function SettingsScreen() {
             autoComplete="password"
           />
           <Pressable
-            style={[
-              styles.deleteBtn,
-              {
-                backgroundColor: colors.destructive,
-                opacity: deleteLoading ? 0.7 : 1,
-              },
-            ]}
+            style={[styles.deleteBtn, { backgroundColor: colors.destructive, opacity: deleteLoading ? 0.7 : 1 }]}
             onPress={handleDeleteAccount}
             disabled={deleteLoading}
           >
             <Text style={styles.deleteBtnText}>
-              {deleteLoading ? "Видалення..." : "Видалити назавжди"}
+              {deleteLoading ? t("settings.deleting") : t("settings.deleteForever")}
             </Text>
           </Pressable>
         </View>
       </GlassModal>
+
+      {/* Change password modal */}
       <GlassModal
         visible={pwModalOpen}
-        onClose={() => {
-          setPwModalOpen(false);
-          setCurrentPw("");
-          setNewPw("");
-          setConfirmPw("");
-        }}
+        onClose={() => { setPwModalOpen(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
       >
         <View style={styles.modalHeader}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
-            Змінити пароль
+            {t("settings.changePassword")}
           </Text>
           <Pressable
-            onPress={() => {
-              setPwModalOpen(false);
-              setCurrentPw("");
-              setNewPw("");
-              setConfirmPw("");
-            }}
+            onPress={() => { setPwModalOpen(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
             hitSlop={12}
           >
-            <Text style={[styles.modalDone, { color: colors.accent }]}>
-              Скасувати
-            </Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.cancel")}</Text>
           </Pressable>
         </View>
         <View style={styles.deleteModalContent}>
           <TextInput
-            style={[
-              styles.deleteInput,
-              {
-                backgroundColor: colors.inputBg,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder="Поточний пароль"
+            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            placeholder={t("settings.currentPassword")}
             placeholderTextColor={colors.textTertiary}
             value={currentPw}
             onChangeText={setCurrentPw}
@@ -463,15 +411,8 @@ export default function SettingsScreen() {
             autoComplete="password"
           />
           <TextInput
-            style={[
-              styles.deleteInput,
-              {
-                backgroundColor: colors.inputBg,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder="Новий пароль"
+            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            placeholder={t("settings.newPassword")}
             placeholderTextColor={colors.textTertiary}
             value={newPw}
             onChangeText={setNewPw}
@@ -479,15 +420,8 @@ export default function SettingsScreen() {
             autoComplete="new-password"
           />
           <TextInput
-            style={[
-              styles.deleteInput,
-              {
-                backgroundColor: colors.inputBg,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder="Підтвердити новий пароль"
+            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            placeholder={t("settings.confirmNewPassword")}
             placeholderTextColor={colors.textTertiary}
             value={confirmPw}
             onChangeText={setConfirmPw}
@@ -495,18 +429,12 @@ export default function SettingsScreen() {
             autoComplete="new-password"
           />
           <Pressable
-            style={[
-              styles.deleteBtn,
-              {
-                backgroundColor: colors.accent,
-                opacity: pwLoading ? 0.7 : 1,
-              },
-            ]}
+            style={[styles.deleteBtn, { backgroundColor: colors.accent, opacity: pwLoading ? 0.7 : 1 }]}
             onPress={handleChangePassword}
             disabled={pwLoading}
           >
             <Text style={styles.deleteBtnText}>
-              {pwLoading ? "Зміна..." : "Змінити пароль"}
+              {pwLoading ? t("settings.changing") : t("settings.changePassword")}
             </Text>
           </Pressable>
         </View>
@@ -518,11 +446,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { padding: 20 },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 20,
-  },
+  title: { fontSize: 28, fontWeight: "700", marginBottom: 20 },
   sectionLabel: {
     fontSize: 13,
     fontWeight: "700",
@@ -553,19 +477,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 14,
   },
-  menuLabel: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  menuHint: {
-    fontSize: 13,
-    marginTop: 1,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 70,
-  },
+  menuLabel: { flex: 1, fontSize: 17, fontWeight: "600" },
+  menuHint: { fontSize: 13, marginTop: 1 },
+  separator: { height: StyleSheet.hairlineWidth, marginLeft: 70 },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -575,17 +489,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#e8ece8",
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  modalDone: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  themeList: {
-    padding: 12,
-  },
+  modalTitle: { fontSize: 18, fontWeight: "700" },
+  modalDone: { fontSize: 16, fontWeight: "600" },
+  themeList: { padding: 12 },
   themeOption: {
     flexDirection: "row",
     alignItems: "center",
@@ -594,15 +500,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 12,
   },
-  themeOptionText: {
-    flex: 1,
-    fontSize: 16,
-  },
-  themePreview: {
-    flexDirection: "row",
-    gap: 4,
-    marginRight: 4,
-  },
+  themeOptionText: { flex: 1, fontSize: 16 },
+  themePreview: { flexDirection: "row", gap: 4, marginRight: 4 },
   previewDot: {
     width: 14,
     height: 14,
@@ -610,14 +509,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(128,128,128,0.3)",
   },
-  deleteModalContent: {
-    padding: 20,
-    gap: 14,
-  },
-  deleteWarning: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
+  langFlag: { fontSize: 22 },
+  deleteModalContent: { padding: 20, gap: 14 },
+  deleteWarning: { fontSize: 15, lineHeight: 21 },
   deleteInput: {
     height: 48,
     borderRadius: 12,
@@ -631,9 +525,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  deleteBtnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+  deleteBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

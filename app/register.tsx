@@ -15,8 +15,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../src/AuthProvider";
 import { useAppTheme } from "../src/theme";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { signUp } = useAuth();
   const router = useRouter();
@@ -31,23 +33,23 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     const trimmed = email.trim();
     if (!trimmed || !password) {
-      Alert.alert("Помилка", "Заповніть всі поля");
+      Alert.alert(t("common.error"), t("common.fillAllFields"));
       return;
     }
     if (password.length < 6) {
-      Alert.alert("Помилка", "Пароль має містити щонайменше 6 символів");
+      Alert.alert(t("common.error"), t("register.passwordMinLength"));
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("Помилка", "Паролі не збігаються");
+      Alert.alert(t("common.error"), t("register.passwordMismatch"));
       return;
     }
     setLoading(true);
     try {
       await signUp(trimmed, password);
     } catch (e: any) {
-      const msg = firebaseErrorMessage(e.code);
-      Alert.alert("Помилка реєстрації", msg);
+      const msg = firebaseErrorMessage(e.code, t);
+      Alert.alert(t("register.registrationError"), msg);
     } finally {
       setLoading(false);
     }
@@ -68,9 +70,9 @@ export default function RegisterScreen() {
           <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
             <Ionicons name="person-add" size={34} color={colors.accent} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Реєстрація</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t("register.title")}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Створіть новий акаунт
+            {t("register.subtitle")}
           </Text>
         </View>
 
@@ -79,7 +81,7 @@ export default function RegisterScreen() {
             <Ionicons name="mail-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Email"
+              placeholder={t("login.emailPlaceholder")}
               placeholderTextColor={colors.textTertiary}
               value={email}
               onChangeText={setEmail}
@@ -94,7 +96,7 @@ export default function RegisterScreen() {
             <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Пароль"
+              placeholder={t("login.passwordPlaceholder")}
               placeholderTextColor={colors.textTertiary}
               value={password}
               onChangeText={setPassword}
@@ -114,7 +116,7 @@ export default function RegisterScreen() {
             <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Підтвердження паролю"
+              placeholder={t("register.confirmPasswordPlaceholder")}
               placeholderTextColor={colors.textTertiary}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -132,7 +134,7 @@ export default function RegisterScreen() {
               <ActivityIndicator color={colors.white} />
             ) : (
               <Text style={[styles.primaryBtnText, { color: colors.white }]}>
-                Зареєструватися
+                {t("login.signUp")}
               </Text>
             )}
           </Pressable>
@@ -140,11 +142,11 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            Вже є акаунт?
+            {t("register.alreadyHaveAccount")}
           </Text>
           <Pressable onPress={() => router.back()} hitSlop={8}>
             <Text style={[styles.footerLink, { color: colors.accent }]}>
-              Увійти
+              {t("login.signIn")}
             </Text>
           </Pressable>
         </View>
@@ -153,30 +155,20 @@ export default function RegisterScreen() {
   );
 }
 
-function firebaseErrorMessage(code: string): string {
+function firebaseErrorMessage(code: string, t: (key: string) => string): string {
   switch (code) {
-    case "auth/invalid-email":
-      return "Невірний формат email";
-    case "auth/email-already-in-use":
-      return "Цей email вже зареєстрований";
-    case "auth/weak-password":
-      return "Пароль занадто слабкий";
-    case "auth/too-many-requests":
-      return "Забагато спроб. Спробуйте пізніше";
-    case "auth/network-request-failed":
-      return "Помилка мережі. Перевірте з'єднання";
-    default:
-      return "Щось пішло не так. Спробуйте ще раз";
+    case "auth/invalid-email": return t("errors.invalidEmail");
+    case "auth/email-already-in-use": return t("errors.emailAlreadyInUse");
+    case "auth/weak-password": return t("errors.weakPassword");
+    case "auth/too-many-requests": return t("errors.tooManyRequests");
+    case "auth/network-request-failed": return t("errors.networkError");
+    default: return t("errors.unknown");
   }
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: "center",
-  },
+  content: { flex: 1, paddingHorizontal: 24, justifyContent: "center" },
   header: { alignItems: "center", marginBottom: 40 },
   iconCircle: {
     width: 72,

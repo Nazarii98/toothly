@@ -15,8 +15,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../src/AuthProvider";
 import { useAppTheme } from "../src/theme";
+import { useTranslation } from "react-i18next";
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { signIn, resetPassword } = useAuth();
   const router = useRouter();
@@ -30,15 +32,15 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     const trimmed = email.trim();
     if (!trimmed || !password) {
-      Alert.alert("Помилка", "Введіть email та пароль");
+      Alert.alert(t("common.error"), t("login.fillEmailPassword"));
       return;
     }
     setLoading(true);
     try {
       await signIn(trimmed, password);
     } catch (e: any) {
-      const msg = firebaseErrorMessage(e.code);
-      Alert.alert("Помилка входу", msg);
+      const msg = firebaseErrorMessage(e.code, t);
+      Alert.alert(t("login.loginError"), msg);
     } finally {
       setLoading(false);
     }
@@ -47,15 +49,15 @@ export default function LoginScreen() {
   const handleForgotPassword = async () => {
     const trimmed = email.trim();
     if (!trimmed) {
-      Alert.alert("Відновлення паролю", "Введіть email у поле вище");
+      Alert.alert(t("login.passwordRecovery"), t("login.enterEmailAbove"));
       return;
     }
     try {
       await resetPassword(trimmed);
-      Alert.alert("Готово", "Лист для відновлення паролю надіслано на " + trimmed);
+      Alert.alert(t("common.done"), t("login.recoveryEmailSent", { email: trimmed }));
     } catch (e: any) {
-      const msg = firebaseErrorMessage(e.code);
-      Alert.alert("Помилка", msg);
+      const msg = firebaseErrorMessage(e.code, t);
+      Alert.alert(t("common.error"), msg);
     }
   };
 
@@ -74,9 +76,9 @@ export default function LoginScreen() {
           <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
             <Ionicons name="medical" size={36} color={colors.accent} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Toothly</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t("login.title")}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Увійдіть до свого акаунту
+            {t("login.loginSubtitle")}
           </Text>
         </View>
 
@@ -85,7 +87,7 @@ export default function LoginScreen() {
             <Ionicons name="mail-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Email"
+              placeholder={t("login.emailPlaceholder")}
               placeholderTextColor={colors.textTertiary}
               value={email}
               onChangeText={setEmail}
@@ -100,7 +102,7 @@ export default function LoginScreen() {
             <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Пароль"
+              placeholder={t("login.passwordPlaceholder")}
               placeholderTextColor={colors.textTertiary}
               value={password}
               onChangeText={setPassword}
@@ -118,7 +120,7 @@ export default function LoginScreen() {
 
           <Pressable onPress={handleForgotPassword} hitSlop={8} style={styles.forgotBtn}>
             <Text style={[styles.forgotText, { color: colors.accent }]}>
-              Забули пароль?
+              {t("login.forgotPassword")}
             </Text>
           </Pressable>
 
@@ -130,18 +132,18 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={[styles.primaryBtnText, { color: colors.white }]}>Увійти</Text>
+              <Text style={[styles.primaryBtnText, { color: colors.white }]}>{t("login.signIn")}</Text>
             )}
           </Pressable>
         </View>
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            Немає акаунту?
+            {t("login.noAccount")}
           </Text>
           <Pressable onPress={() => router.push("/register")} hitSlop={8}>
             <Text style={[styles.footerLink, { color: colors.accent }]}>
-              Зареєструватися
+              {t("login.register")}
             </Text>
           </Pressable>
         </View>
@@ -150,32 +152,21 @@ export default function LoginScreen() {
   );
 }
 
-function firebaseErrorMessage(code: string): string {
+function firebaseErrorMessage(code: string, t: (key: string) => string): string {
   switch (code) {
-    case "auth/invalid-email":
-      return "Невірний формат email";
-    case "auth/user-not-found":
-      return "Користувача з таким email не знайдено";
-    case "auth/wrong-password":
-      return "Невірний пароль";
-    case "auth/invalid-credential":
-      return "Невірний email або пароль";
-    case "auth/too-many-requests":
-      return "Забагато спроб. Спробуйте пізніше";
-    case "auth/network-request-failed":
-      return "Помилка мережі. Перевірте з'єднання";
-    default:
-      return "Щось пішло не так. Спробуйте ще раз";
+    case "auth/invalid-email": return t("errors.invalidEmail");
+    case "auth/user-not-found": return t("errors.userNotFound");
+    case "auth/wrong-password": return t("errors.wrongPassword");
+    case "auth/invalid-credential": return t("errors.invalidCredential");
+    case "auth/too-many-requests": return t("errors.tooManyRequests");
+    case "auth/network-request-failed": return t("errors.networkError");
+    default: return t("errors.unknown");
   }
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: "center",
-  },
+  content: { flex: 1, paddingHorizontal: 24, justifyContent: "center" },
   header: { alignItems: "center", marginBottom: 40 },
   iconCircle: {
     width: 72,

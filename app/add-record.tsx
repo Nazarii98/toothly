@@ -15,6 +15,7 @@ import { GlassModal } from "../src/components/GlassModal";
 import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
   type DateTimePickerEvent,
@@ -45,6 +46,7 @@ function toothFull(id: ToothId): string {
 const QUADRANTS = ["1", "2", "3", "4"] as const;
 
 export default function AddRecordModal() {
+  const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -101,24 +103,24 @@ export default function AddRecordModal() {
   const save = () => {
     const dateISO = date.toISOString();
     if (isGeneral) {
-      const t =
+      const titleStr =
         title.trim() ||
         (globalCategoryMaps.labels[procedureType] ?? procedureType);
       addGlobalProcedure({
         date: dateISO,
-        title: t,
+        title: titleStr,
         notes: notes.trim() || undefined,
         type: procedureType,
       }).catch(() => {});
     } else {
-      const t = title.trim();
-      if (!t) {
-        Alert.alert("Помилка", "Введіть назву запису");
+      const titleStr = title.trim();
+      if (!titleStr) {
+        Alert.alert(t("common.error"), t("common.enterTitle"));
         return;
       }
       addToothChange(target as ToothId, {
         date: dateISO,
-        title: t,
+        title: titleStr,
         notes: notes.trim() || undefined,
         status: category as ToothChange["status"],
       }).catch(() => {});
@@ -127,12 +129,12 @@ export default function AddRecordModal() {
   };
 
   const displayTarget = isGeneral
-    ? "Ротова порожнина"
+    ? t("record.oralCavity")
     : toothFull(target as ToothId);
 
   return (
     <>
-      <Stack.Screen options={{ title: "Новий запис" }} />
+      <Stack.Screen options={{ title: t("record.addTitle") }} />
       <View style={[styles.root, { backgroundColor: colors.bg }]}>
         <KeyboardAwareScrollView
           style={styles.scroll}
@@ -165,14 +167,14 @@ export default function AddRecordModal() {
               <Text
                 style={[styles.cardRowLabel, { color: colors.textTertiary }]}
               >
-                Прив'язка
+                {t("record.binding")}
               </Text>
               <Text
                 style={[styles.cardRowValue, { color: colors.text }]}
                 numberOfLines={1}
               >
                 {locked
-                  ? `Зуб ${toothShort(target as ToothId)}`
+                  ? t("record.toothLabel", { label: toothShort(target as ToothId) })
                   : displayTarget}
               </Text>
             </View>
@@ -193,7 +195,7 @@ export default function AddRecordModal() {
             ]}
           >
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              {isGeneral ? "Тип процедури" : "Категорія"}
+              {isGeneral ? t("global.typeLabel") : t("record.categoryLabel")}
             </Text>
             <Pressable
               style={[
@@ -233,7 +235,7 @@ export default function AddRecordModal() {
             ]}
           >
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
-              Деталі
+              {t("common.details")}
             </Text>
             <TextInput
               style={[
@@ -242,8 +244,8 @@ export default function AddRecordModal() {
               ]}
               placeholder={
                 isGeneral
-                  ? "Назва (наприклад: профілактичний огляд)"
-                  : "Назва (наприклад: пломба, огляд)"
+                  ? t("record.titlePlaceholderGlobal")
+                  : t("record.titlePlaceholder")
               }
               value={title}
               onChangeText={setTitle}
@@ -255,7 +257,7 @@ export default function AddRecordModal() {
                 styles.textArea,
                 { backgroundColor: colors.inputBg, color: colors.text },
               ]}
-              placeholder="Нотатки..."
+              placeholder={t("record.notesPlaceholder")}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -287,7 +289,7 @@ export default function AddRecordModal() {
                 <Text
                   style={[styles.cardRowLabel, { color: colors.textTertiary }]}
                 >
-                  Дата (необов'язково)
+                  {t("record.dateOptional")}
                 </Text>
               </View>
               {Platform.OS === "ios" ? (
@@ -342,7 +344,7 @@ export default function AddRecordModal() {
             onPress={save}
           >
             <Text style={[styles.saveBtnText, { color: colors.white }]}>
-              Зберегти
+              {t("common.save")}
             </Text>
           </Pressable>
         </View>
@@ -351,7 +353,7 @@ export default function AddRecordModal() {
       <StatusPickerModal
         visible={categoryPickerVisible}
         onClose={() => setCategoryPickerVisible(false)}
-        title="Категорія"
+        title={t("record.categoryLabel")}
         selected={category}
         maps={toothCategoryMaps}
         onSelect={(v) => {
@@ -362,13 +364,13 @@ export default function AddRecordModal() {
           router.push("/statuses");
           setCategoryPickerVisible(false);
         }}
-        manageLabel="Керувати категоріями"
+        manageLabel={t("common.manageCategories")}
         showEmpty={false}
       />
       <StatusPickerModal
         visible={globalPickerVisible}
         onClose={() => setGlobalPickerVisible(false)}
-        title="Тип процедури"
+        title={t("global.typeLabel")}
         selected={procedureType}
         maps={globalCategoryMaps}
         onSelect={(v) => {
@@ -379,7 +381,7 @@ export default function AddRecordModal() {
           router.push("/statuses");
           setGlobalPickerVisible(false);
         }}
-        manageLabel="Керувати категоріями"
+        manageLabel={t("common.manageCategories")}
         showEmpty={false}
       />
 
@@ -388,11 +390,11 @@ export default function AddRecordModal() {
           style={[styles.pickerHeader, { borderBottomColor: colors.border }]}
         >
           <Text style={[styles.pickerTitle, { color: colors.text }]}>
-            Прив'язка
+            {t("record.binding")}
           </Text>
           <Pressable onPress={() => setPickerOpen(false)} hitSlop={12}>
             <Text style={[styles.pickerDone, { color: colors.accent }]}>
-              Готово
+              {t("common.done")}
             </Text>
           </Pressable>
         </View>
@@ -422,7 +424,7 @@ export default function AddRecordModal() {
                 target === GENERAL_KEY && { fontWeight: "600" },
               ]}
             >
-              Ротова порожнина (загальне)
+              {t("record.oralCavityGeneral")}
             </Text>
             {target === GENERAL_KEY && (
               <Ionicons

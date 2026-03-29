@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { View, Text, StyleSheet, PanResponder } from "react-native";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
@@ -15,8 +21,14 @@ import {
   getCurrentProfileRole,
 } from "../../src/store/profileStore";
 import { buildStatusMaps, TOOTH_NAMES } from "../../src/types";
-import type { ToothId, ToothStatus, StatusMaps, ToothRecord } from "../../src/types";
+import type {
+  ToothId,
+  ToothStatus,
+  StatusMaps,
+  ToothRecord,
+} from "../../src/types";
 import { Host, Button, HStack, Spacer } from "@expo/ui/swift-ui";
+import { useTranslation } from "react-i18next";
 
 const THUMB_SIZE = 22;
 
@@ -53,7 +65,7 @@ function HistorySlider({
         const newV = Math.max(0, Math.min(1, startVal.current + dx / usable));
         onChange(newV);
       },
-    })
+    }),
   ).current;
 
   const thumbLeft = value * Math.max(0, trackW - THUMB_SIZE);
@@ -88,7 +100,11 @@ function HistorySlider({
         <View
           style={[
             sliderStyles.thumb,
-            { left: thumbLeft, backgroundColor: colors.white, borderColor: colors.accent },
+            {
+              left: thumbLeft,
+              backgroundColor: colors.white,
+              borderColor: colors.accent,
+            },
           ]}
         />
       </View>
@@ -97,6 +113,7 @@ function HistorySlider({
 }
 
 export default function ChartScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -141,7 +158,14 @@ export default function ChartScreen() {
         if (t < earliest) earliest = t;
       });
     });
-    setMinDateMs(earliest === Infinity ? null : earliest);
+    if (earliest !== Infinity) {
+      const now = Date.now();
+      const range = now - earliest;
+      const padding = range > 0 ? range * 0.1 : 24 * 60 * 60 * 1000;
+      setMinDateMs(earliest - padding);
+    } else {
+      setMinDateMs(null);
+    }
   }, []);
 
   useFocusEffect(
@@ -166,7 +190,12 @@ export default function ChartScreen() {
   const handleStatusSelect = async (status: ToothStatus) => {
     if (!popupTooth) return;
     setPopupTooth(null);
-    await setToothStatus(popupTooth, status, user?.uid ?? "", user?.email ?? "");
+    await setToothStatus(
+      popupTooth,
+      status,
+      user?.uid ?? "",
+      user?.email ?? "",
+    );
     refresh();
   };
 
@@ -191,7 +220,9 @@ export default function ChartScreen() {
     return minDateMs! + sliderValue * (maxDateMs - minDateMs!);
   }, [sliderValue, minDateMs, maxDateMs, hasHistory]);
 
-  const displayStatuses = useMemo<Record<ToothId, ToothStatus | undefined>>(() => {
+  const displayStatuses = useMemo<
+    Record<ToothId, ToothStatus | undefined>
+  >(() => {
     if (selectedDateMs === null) return teethStatuses;
     const result: Record<ToothId, ToothStatus | undefined> = {};
     Object.entries(teethData).forEach(([id, record]) => {
@@ -204,7 +235,7 @@ export default function ChartScreen() {
   }, [selectedDateMs, teethData, teethStatuses]);
 
   const sliderLabel = useMemo(() => {
-    if (!hasHistory || sliderValue >= 1) return "Зараз";
+    if (!hasHistory || sliderValue >= 1) return t("common.now");
     const d = new Date(selectedDateMs!);
     return d.toLocaleDateString("uk-UA", {
       day: "2-digit",

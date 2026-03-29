@@ -24,8 +24,10 @@ import {
 } from "../src/store/teethStore";
 import { buildGlobalCategoryMaps } from "../src/types";
 import type { StatusMaps } from "../src/types";
+import { useTranslation } from "react-i18next";
 
 export default function EditGlobalScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -61,13 +63,13 @@ export default function EditGlobalScreen() {
   };
 
   const save = () => {
-    const t = title.trim();
-    if (!t) {
-      Alert.alert("Помилка", "Введіть назву");
+    const titleStr = title.trim();
+    if (!titleStr) {
+      Alert.alert(t("common.error"), t("common.enterTitle"));
       return;
     }
     updateGlobalProcedure(procedureId, {
-      title: t,
+      title: titleStr,
       notes: notes.trim() || undefined,
       type,
       date: date.toISOString(),
@@ -76,10 +78,10 @@ export default function EditGlobalScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert("Видалити процедуру?", title, [
-      { text: "Скасувати", style: "cancel" },
+    Alert.alert(t("global.deleteTitle"), title, [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Видалити",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           deleteGlobalProcedure(procedureId).catch(() => {});
@@ -93,7 +95,7 @@ export default function EditGlobalScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Редагувати процедуру" }} />
+      <Stack.Screen options={{ title: t("global.editTitle") }} />
       <View style={[styles.root, { backgroundColor: colors.bg }]}>
         <KeyboardAwareScrollView
           style={styles.scroll}
@@ -106,7 +108,7 @@ export default function EditGlobalScreen() {
         >
           {/* Type */}
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Тип процедури</Text>
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>{t("global.typeLabel")}</Text>
             <Pressable
               style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
               onPress={() => setTypePickerVisible(true)}
@@ -126,17 +128,17 @@ export default function EditGlobalScreen() {
 
           {/* Details */}
           <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Деталі</Text>
+            <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>{t("common.details")}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text }]}
-              placeholder="Назва (наприклад: чистка, огляд)"
+              placeholder={t("global.titlePlaceholder")}
               value={title}
               onChangeText={setTitle}
               placeholderTextColor={colors.textTertiary}
             />
             <TextInput
               style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, color: colors.text }]}
-              placeholder="Нотатки..."
+              placeholder={t("global.notesPlaceholder")}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -151,7 +153,7 @@ export default function EditGlobalScreen() {
                 <Ionicons name="calendar-outline" size={18} color={colors.accent} />
               </View>
               <View style={styles.cardRowBody}>
-                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>Дата</Text>
+                <Text style={[styles.cardRowLabel, { color: colors.textTertiary }]}>{t("global.dateLabel")}</Text>
               </View>
               {Platform.OS === "ios" ? (
                 <DateTimePicker
@@ -196,15 +198,12 @@ export default function EditGlobalScreen() {
 
           {/* Delete */}
           <Pressable
-            style={({ pressed }) => [
-              styles.deleteBtn,
-              pressed && { opacity: 0.7 },
-            ]}
+            style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.7 }]}
             onPress={handleDelete}
           >
             <Ionicons name="trash-outline" size={18} color={colors.destructive} />
             <Text style={[styles.deleteBtnText, { color: colors.destructive }]}>
-              Видалити процедуру
+              {t("global.deleteTitle").replace("?", "")}
             </Text>
           </Pressable>
         </KeyboardAwareScrollView>
@@ -217,19 +216,19 @@ export default function EditGlobalScreen() {
             ]}
             onPress={save}
           >
-            <Text style={[styles.saveBtnText, { color: colors.white }]}>Зберегти</Text>
+            <Text style={[styles.saveBtnText, { color: colors.white }]}>{t("common.save")}</Text>
           </Pressable>
         </View>
       </View>
       <StatusPickerModal
         visible={typePickerVisible}
         onClose={() => setTypePickerVisible(false)}
-        title="Тип процедури"
+        title={t("global.typeLabel")}
         selected={type}
         maps={categoryMaps}
         onSelect={(v) => { setType(v); setTypePickerVisible(false); }}
         onManage={() => { router.push("/statuses"); setTypePickerVisible(false); }}
-        manageLabel="Керувати категоріями"
+        manageLabel={t("common.manageCategories")}
         showEmpty={false}
       />
     </>
@@ -240,13 +239,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 24 },
-
   bottomBar: {
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-
   card: {
     borderRadius: 20,
     padding: 16,
@@ -263,10 +260,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     marginBottom: 12,
   },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  cardRow: { flexDirection: "row", alignItems: "center" },
   cardRowIcon: {
     width: 36,
     height: 36,
@@ -283,11 +277,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: 3,
   },
-  cardRowValue: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
+  cardRowValue: { fontSize: 15, fontWeight: "600" },
   categoryTrigger: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,17 +286,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 12,
   },
-  categoryDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  categoryTriggerText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
+  categoryDot: { width: 12, height: 12, borderRadius: 6 },
+  categoryTriggerText: { flex: 1, fontSize: 15, fontWeight: "600" },
   input: {
     borderRadius: 16,
     paddingVertical: 14,
@@ -315,7 +296,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
-
   saveBtn: {
     paddingVertical: 16,
     borderRadius: 18,
@@ -326,12 +306,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveBtnPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-  saveBtnText: {
-    fontSize: 17,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-
+  saveBtnText: { fontSize: 17, fontWeight: "700", letterSpacing: 0.3 },
   deleteBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -340,8 +315,5 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingVertical: 12,
   },
-  deleteBtnText: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
+  deleteBtnText: { fontSize: 15, fontWeight: "600" },
 });

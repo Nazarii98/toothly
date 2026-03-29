@@ -10,42 +10,13 @@ import { useDataSync } from "../../src/DataSyncProvider";
 import { loadData } from "../../src/store/teethStore";
 import { buildStatusMaps } from "../../src/types";
 import type { ToothChange, GlobalProcedure, StatusMaps } from "../../src/types";
+import { useTranslation } from "react-i18next";
 
 type HistoryItem =
   | { type: "tooth"; data: ToothChange }
   | { type: "global"; data: GlobalProcedure };
 
 type ViewMode = "month" | "year";
-
-const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
-const MONTH_NAMES = [
-  "Січень",
-  "Лютий",
-  "Березень",
-  "Квітень",
-  "Травень",
-  "Червень",
-  "Липень",
-  "Серпень",
-  "Вересень",
-  "Жовтень",
-  "Листопад",
-  "Грудень",
-];
-const MONTH_SHORT = [
-  "Січ",
-  "Лют",
-  "Бер",
-  "Кві",
-  "Тра",
-  "Чер",
-  "Лип",
-  "Сер",
-  "Вер",
-  "Жов",
-  "Лис",
-  "Гру",
-];
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -87,6 +58,10 @@ function getMiniMonthDays(year: number, month: number) {
 }
 
 export default function HistoryScreen() {
+  const { t } = useTranslation();
+  const WEEKDAYS = t("history.weekdays", { returnObjects: true }) as string[];
+  const MONTH_NAMES = t("history.months", { returnObjects: true }) as string[];
+  const MONTH_SHORT = t("history.monthsShort", { returnObjects: true }) as string[];
   const { colors } = useAppTheme();
   const router = useRouter();
   const { dataRevision } = useDataSync();
@@ -179,8 +154,8 @@ export default function HistoryScreen() {
 
   const periodLabel =
     viewMode === "month"
-      ? `за ${MONTH_NAMES[month].toLowerCase()} ${year}`
-      : `за ${year} рік`;
+      ? `${MONTH_NAMES[month]} ${year}`
+      : t("history.yearLabel", { year });
 
   const countForMonth = useCallback(
     (m: number) => {
@@ -202,7 +177,7 @@ export default function HistoryScreen() {
       {/* View mode toggle */}
       <View style={styles.toggleRow}>
         <SegmentedControl
-          values={["Місяць", "Рік"]}
+          values={[t("history.month"), t("history.year")]}
           selectedIndex={viewMode === "month" ? 0 : 1}
           onChange={(e) => {
             setViewMode(
@@ -442,19 +417,19 @@ export default function HistoryScreen() {
               style={[styles.recentTitle, { color: colors.text }]}
               numberOfLines={1}
             >
-              Останні записи {periodLabel}
+              {periodLabel}
             </Text>
             <Pressable onPress={() => router.push("/history-list")} hitSlop={8}>
               <Text style={[styles.showAll, { color: colors.accent }]}>
                 {periodItems.length > 3
-                  ? `Усі ${periodItems.length}`
-                  : "Показати все"}
+                  ? `${t("history.all")} ${periodItems.length}`
+                  : t("history.all")}
               </Text>
             </Pressable>
           </View>
           {recentItems.length === 0 && (
             <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>
-              Записів поки немає
+              {t("history.empty")}
             </Text>
           )}
           {recentItems.map((item) => {

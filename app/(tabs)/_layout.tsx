@@ -6,9 +6,11 @@ import {
 } from "expo-router/unstable-native-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAppTheme } from "../../src/theme";
+import { useTranslation } from "react-i18next";
 
 export default function TabLayout() {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   return (
     <NativeTabs
       tintColor={colors.accent}
@@ -22,7 +24,7 @@ export default function TabLayout() {
           }}
           androidSrc={<VectorIcon family={Ionicons} name="grid" />}
         />
-        <Label>Схема зубів</Label>
+        <Label>{t("tabs.chart")}</Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="history">
@@ -30,7 +32,7 @@ export default function TabLayout() {
           sf={{ default: "calendar", selected: "calendar" }}
           androidSrc={<VectorIcon family={Ionicons} name="calendar" />}
         />
-        <Label>Історія</Label>
+        <Label>{t("tabs.history")}</Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="settings">
@@ -38,7 +40,7 @@ export default function TabLayout() {
           sf={{ default: "gearshape", selected: "gearshape.fill" }}
           androidSrc={<VectorIcon family={Ionicons} name="settings" />}
         />
-        <Label>Налаштування</Label>
+        <Label>{t("tabs.settings")}</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
