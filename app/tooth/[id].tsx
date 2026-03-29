@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStableHeaderHeight } from "../../src/hooks/useStableHeaderHeight";
@@ -21,7 +20,7 @@ import {
   setToothStatus,
 } from "../../src/store/teethStore";
 import { getCurrentProfileRole } from "../../src/store/profileStore";
-import { buildStatusMaps } from "../../src/types";
+import { buildStatusMaps, buildToothCategoryMaps } from "../../src/types";
 import type {
   ToothId,
   ToothChange,
@@ -40,6 +39,7 @@ export default function ToothDetailScreen() {
 
   const [record, setRecord] = useState<ToothRecord | null>(null);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
+  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
   const [pickerVisible, setPickerVisible] = useState(false);
   const [role, setRole] = useState<string>("owner");
   const { dataRevision } = useDataSync();
@@ -50,6 +50,7 @@ export default function ToothDetailScreen() {
     const [data, r] = await Promise.all([loadData(), getCurrentProfileRole()]);
     setRecord(getToothRecord(data, toothId));
     setStatusMaps(buildStatusMaps(data.customStatuses));
+    setCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
     setRole(r);
   }, [toothId]);
 
@@ -251,7 +252,7 @@ export default function ToothDetailScreen() {
                               styles.recordStatusBadge,
                               {
                                 backgroundColor:
-                                  (statusMaps.borderColors[c.status] ??
+                                  (categoryMaps.borderColors[c.status] ??
                                     "#999") + "18",
                               },
                             ]}
@@ -261,7 +262,7 @@ export default function ToothDetailScreen() {
                                 styles.recordStatusDot,
                                 {
                                   backgroundColor:
-                                    statusMaps.borderColors[c.status] ?? "#999",
+                                    categoryMaps.borderColors[c.status] ?? "#999",
                                 },
                               ]}
                             />
@@ -270,12 +271,12 @@ export default function ToothDetailScreen() {
                                 styles.recordStatusText,
                                 {
                                   color:
-                                    statusMaps.borderColors[c.status] ??
+                                    categoryMaps.borderColors[c.status] ??
                                     colors.textSecondary,
                                 },
                               ]}
                             >
-                              {statusMaps.labels[c.status] ?? c.status}
+                              {categoryMaps.labels[c.status] ?? c.status}
                             </Text>
                           </View>
                         )}
@@ -300,15 +301,6 @@ export default function ToothDetailScreen() {
                         {c.notes}
                       </Text>
                     ) : null}
-                    {c.imageUri && (
-                      <Image
-                        source={{ uri: c.imageUri }}
-                        style={[
-                          styles.recordImage,
-                          { backgroundColor: colors.border },
-                        ]}
-                      />
-                    )}
                   </Pressable>
                 ))}
               </View>
@@ -467,12 +459,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     lineHeight: 20,
-  },
-  recordImage: {
-    width: "100%",
-    height: 180,
-    borderRadius: 12,
-    marginTop: 12,
   },
   recordActions: {
     flexDirection: "row",
