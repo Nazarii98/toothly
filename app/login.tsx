@@ -74,7 +74,7 @@ export default function LoginScreen() {
           <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
             <Ionicons name="medical" size={36} color={colors.accent} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Teeth Manager</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Toothly</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Увійдіть до свого акаунту
           </Text>

@@ -14,7 +14,7 @@ export interface Profile {
   role?: string;
 }
 
-const CURRENT_PROFILE_KEY = "@teeth_manager_current_profile";
+const CURRENT_PROFILE_KEY = "@toothly_current_profile";
 
 let cachedProfiles: Profile[] | null = null;
 let cachedCurrentId: string | null = null;

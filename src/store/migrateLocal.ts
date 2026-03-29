@@ -35,6 +35,8 @@ function normalizeAppData(raw: any): AppData {
     teeth,
     globalProcedures: raw?.globalProcedures ?? [],
     customStatuses: raw?.customStatuses ?? [],
+    customToothCategories: raw?.customToothCategories ?? [],
+    customGlobalCategories: raw?.customGlobalCategories ?? [],
   };
 }
 

@@ -16,7 +16,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tooth-manager.app",
+      "bundleIdentifier": "com.toothly.app",
       "infoPlist": {
         "CFBundleDisplayName": "Toothly",
         "UISupportedInterfaceOrientations~ipad": [
@@ -35,7 +35,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.tooth-manager.app"
+      "package": "com.toothly.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
