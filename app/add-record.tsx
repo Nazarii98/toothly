@@ -15,6 +15,7 @@ import { GlassModal } from "../src/components/GlassModal";
 import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { usePreventRemove } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
@@ -27,31 +28,30 @@ import {
 } from "../src/store/teethStore";
 import {
   ALL_TOOTH_IDS,
-  QUADRANT_LABELS,
-  TOOTH_NAMES,
+  TOOTH_CATEGORY_LABELS,
+  GLOBAL_PROCEDURE_TYPES,
   buildToothCategoryMaps,
   buildGlobalCategoryMaps,
 } from "../src/types";
 import type { ToothChange, ToothId, StatusMaps } from "../src/types";
 const GENERAL_KEY = "__general__";
 
-function toothShort(id: ToothId): string {
-  return `${id} · ${TOOTH_NAMES[id[1]] ?? ""}`;
-}
-
-function toothFull(id: ToothId): string {
-  return `${id} — ${TOOTH_NAMES[id[1]] ?? ""} (${QUADRANT_LABELS[id[0]] ?? ""})`;
-}
-
 const QUADRANTS = ["1", "2", "3", "4"] as const;
 
 export default function AddRecordModal() {
   const { t, i18n } = useTranslation();
+
+  const toothShort = (id: ToothId): string =>
+    `${id} · ${t(`toothNames.${id[1]}`, { defaultValue: id[1] })}`;
+
+  const toothFull = (id: ToothId): string =>
+    `${id} — ${t(`toothNames.${id[1]}`, { defaultValue: id[1] })} (${t(`quadrantLabels.${id[0]}`, { defaultValue: id[0] })})`;
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ toothId?: string }>();
   const locked = !!params.toothId;
+  const [saved, setSaved] = useState(false);
 
   const [target, setTarget] = useState<string>(params.toothId ?? GENERAL_KEY);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -85,22 +85,44 @@ export default function AddRecordModal() {
   };
 
   const formatDisplayDate = (d: Date) =>
-    d.toLocaleDateString("uk-UA", {
+    d.toLocaleDateString(i18n.language, {
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
 
   useEffect(() => {
+    const localizedToothCategories = Object.fromEntries(
+      Object.keys(TOOTH_CATEGORY_LABELS).map((k) => [
+        k,
+        t(`categoryLabels.${k}`, { defaultValue: TOOTH_CATEGORY_LABELS[k] }),
+      ]),
+    );
+    const localizedGlobalTypes = Object.fromEntries(
+      Object.keys(GLOBAL_PROCEDURE_TYPES).map((k) => [
+        k,
+        t(`globalProcedureTypes.${k}`, {
+          defaultValue: GLOBAL_PROCEDURE_TYPES[k],
+        }),
+      ]),
+    );
     loadData().then((data) => {
-      setToothCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
+      setToothCategoryMaps(
+        buildToothCategoryMaps(
+          data.customToothCategories,
+          localizedToothCategories,
+        ),
+      );
       setGlobalCategoryMaps(
-        buildGlobalCategoryMaps(data.customGlobalCategories),
+        buildGlobalCategoryMaps(
+          data.customGlobalCategories,
+          localizedGlobalTypes,
+        ),
       );
     });
-  }, []);
+  }, [i18n.language]);
 
-  const save = () => {
+  const save = (): boolean => {
     const dateISO = date.toISOString();
     if (isGeneral) {
       const titleStr =
@@ -116,7 +138,7 @@ export default function AddRecordModal() {
       const titleStr = title.trim();
       if (!titleStr) {
         Alert.alert(t("common.error"), t("common.enterTitle"));
-        return;
+        return false;
       }
       addToothChange(target as ToothId, {
         date: dateISO,
@@ -125,8 +147,33 @@ export default function AddRecordModal() {
         status: category as ToothChange["status"],
       }).catch(() => {});
     }
-    router.back();
+    setSaved(true);
+    setTimeout(() => router.back(), 0);
+    return true;
   };
+
+  const isDirty =
+    !saved &&
+    (isGeneral
+      ? title.trim().length > 0 || notes.trim().length > 0
+      : title.trim().length > 0);
+
+  usePreventRemove(isDirty, () => {
+    Alert.alert(t("record.unsavedTitle"), t("record.unsavedMessage"), [
+      {
+        text: t("record.discardChanges"),
+        style: "destructive",
+        onPress: () => {
+          setSaved(true);
+          setTimeout(() => router.back(), 0);
+        },
+      },
+      {
+        text: t("common.save"),
+        onPress: () => save(),
+      },
+    ]);
+  });
 
   const displayTarget = isGeneral
     ? t("record.oralCavity")
@@ -174,7 +221,9 @@ export default function AddRecordModal() {
                 numberOfLines={1}
               >
                 {locked
-                  ? t("record.toothLabel", { label: toothShort(target as ToothId) })
+                  ? t("record.toothLabel", {
+                      label: toothShort(target as ToothId),
+                    })
                   : displayTarget}
               </Text>
             </View>
@@ -299,7 +348,7 @@ export default function AddRecordModal() {
                   display="compact"
                   maximumDate={new Date()}
                   onChange={onDateChange}
-                  locale="uk"
+                  locale={i18n.language}
                   accentColor={colors.accent}
                   textColor={colors.text}
                   themeVariant={colors.isDark ? "dark" : "light"}
@@ -441,7 +490,7 @@ export default function AddRecordModal() {
               <Text
                 style={[styles.pickerGroup, { color: colors.textTertiary }]}
               >
-                {QUADRANT_LABELS[q]}
+                {t(`quadrantLabels.${q}`, { defaultValue: q })}
               </Text>
               {ALL_TOOTH_IDS.filter((id) => id[0] === q).map((id) => (
                 <Pressable
@@ -470,7 +519,7 @@ export default function AddRecordModal() {
                       target === id && { fontWeight: "600" },
                     ]}
                   >
-                    {TOOTH_NAMES[id[1]] ?? ""}
+                    {t(`toothNames.${id[1]}`, { defaultValue: "" })}
                   </Text>
                   {target === id && (
                     <Ionicons

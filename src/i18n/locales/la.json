@@ -26,7 +26,9 @@
   "chart": {
     "profileButton": "Persona",
     "showStatuses": "Ostende status",
-    "hideStatuses": "Absconde status"
+    "hideStatuses": "Absconde status",
+    "sideLeft": "Sinistra",
+    "sideRight": "Dextra"
   },
   "tooth": {
     "title": "Dens {{id}}",
@@ -61,7 +63,10 @@
     "dateOptional": "Dies (optionale)",
     "titlePlaceholderGlobal": "Titulus (e.g. inspectio generalis)",
     "deleteRecord": "Delere actum",
-    "toothLabel": "Dens {{label}}"
+    "toothLabel": "Dens {{label}}",
+    "unsavedTitle": "Acta non servata",
+    "unsavedMessage": "Acta non servata habes. Servare ante exitum?",
+    "discardChanges": "Mittere"
   },
   "global": {
     "addTitle": "Procedura nova",
@@ -91,13 +96,48 @@
     "title": "Personae",
     "addProfile": "Addere personam",
     "namePlaceholder": "Nomen personae",
+    "newProfilePlaceholder": "Nomen novae personae",
     "deleteTitle": "Delere personam?",
     "deleteMessage": "Omnia acta personae deletentur.",
+    "deleteConfirmMessage": "\"{{name}}\" et omnia eius acta deletentur. Haec actio revocari non potest.",
     "owner": "Dominus",
     "editor": "Editor",
+    "editorBadge": "Editor",
     "viewer": "Spectator",
+    "viewerBadge": "Spectator",
     "shareAccess": "Communicare accessum",
-    "current": "Activum"
+    "current": "Activum",
+    "hint": "Personam ad videndum elige. Accessum, exportum et emendationem cuiusque personae administra.",
+    "myProfiles": "Personae meae",
+    "sharedProfiles": "Personae communicatae",
+    "noPermissionDelete": "Personam alienam delere non potes.",
+    "lastProfileError": "Saltem una persona manere debet.",
+    "leaveTitle": "Personam relinquere",
+    "leaveMessage": "Accessum ad personam «{{name}}» non habebis. Pergere?",
+    "leaveButton": "Relinquere",
+    "leaveError": "Personam relinquere non potuit",
+    "exportTitle": "Personam exportare",
+    "exportHint": "Tesseram ad data encrypta introire. Vel vacuum relinque ad exportandum sine encryptione.",
+    "exportPasswordPlaceholder": "Tessera (optionale)",
+    "exportButton": "Exportare",
+    "exportedTitle": "Persona: {{name}}",
+    "exportedTitleEncrypted": "Persona: {{name}} (encrypta)",
+    "exportError": "Personam exportare non potuit.",
+    "importTitle": "Personam importare",
+    "importHint": "JSON ex exportu insere vel fasciculum elige",
+    "importPickFile": "Fasciculum JSON eligere",
+    "importButton": "Importare",
+    "importDecryptPasswordPlaceholder": "Tessera decryptionis",
+    "importPasswordRequired": "Tesseram ad decryptionem introire.",
+    "wrongPasswordOrCorrupted": "Tessera falsa vel data corrupta.",
+    "invalidEncryptedFormat": "Forma fasciculi encrypti falsa.",
+    "invalidDataFormat": "Forma datorum falsa. JSON personae exportatae insere.",
+    "defaultImportedName": "Persona importata",
+    "importSuccess": "Persona \"{{name}}\" importata.",
+    "importError": "Personam importare non potuit.",
+    "openFileError": "Fasciculum aperire non potuit.",
+    "addProfileButton": "Addere personam",
+    "importButtonLabel": "Importare"
   },
   "statuses": {
     "title": "Status",
@@ -232,5 +272,42 @@
     "fluoride": "Fluorisatio",
     "checkup": "Inspectio generalis",
     "other": "Aliud"
+  },
+  "profileAccess": {
+    "membersSection": "Membra",
+    "addMember": "Membrum addere",
+    "emailPlaceholder": "Inscriptio electronica usoris",
+    "roleLabel": "Munus:",
+    "addButton": "Addere",
+    "noMembers": "Nulla membra",
+    "defaultTitle": "Accessus",
+    "loadError": "Membra onerare non potuit",
+    "enterEmail": "Inscriptionem introire",
+    "cannotAddSelf": "Te ipsum addere non potes",
+    "alreadyHasAccess": "Hic usor iam accessum habet",
+    "userNotFoundTitle": "Non inventus",
+    "userNotFound": "Nemo tali inscriptione in systemate inventus",
+    "addError": "Usorem addere non potuit",
+    "changeRoleTitle": "Munus mutare",
+    "changeRoleMessage": "Munus ad \"{{role}}\" mutare?",
+    "changeButton": "Mutare",
+    "removeAccessTitle": "Accessum delere",
+    "removeAccessMessage": "Accessum pro {{email}} auferre?"
+  },
+  "quadrantLabels": {
+    "1": "Maxilla, dextra",
+    "2": "Maxilla, sinistra",
+    "3": "Mandibula, sinistra",
+    "4": "Mandibula, dextra"
+  },
+  "toothNames": {
+    "1": "Incisor centralis",
+    "2": "Incisor lateralis",
+    "3": "Caninus",
+    "4": "Premolaris primus",
+    "5": "Premolaris secundus",
+    "6": "Molaris primus",
+    "7": "Molaris secundus",
+    "8": "Molaris tertius (dens sapientiae)"
   }
 }

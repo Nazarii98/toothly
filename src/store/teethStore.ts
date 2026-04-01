@@ -193,7 +193,9 @@ export async function deleteStatusHistoryEntry(
 ): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
-  record.statusHistory = (record.statusHistory ?? []).filter((e) => e.id !== entryId);
+  const remaining = (record.statusHistory ?? []).filter((e) => e.id !== entryId);
+  record.statusHistory = remaining;
+  record.currentStatus = remaining[0]?.status;
   data.teeth[toothId] = record;
   await saveData(data);
 }

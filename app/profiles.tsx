@@ -47,6 +47,7 @@ import { useAppTheme } from "../src/theme";
 import { useAuth } from "../src/AuthProvider";
 import { revokeAccess } from "../src/store/firestoreService";
 import { useDataSync } from "../src/DataSyncProvider";
+import { useTranslation } from "react-i18next";
 
 const EXPORT_VERSION = 1;
 
@@ -89,6 +90,7 @@ function parseExportedProfile(json: string): ExportedProfile | null {
 }
 
 export default function ProfilesScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -201,20 +203,20 @@ export default function ProfilesScreen() {
 
   const handleDeleteProfile = (profile: Profile) => {
     if (profile.role && profile.role !== "owner") {
-      Alert.alert("Помилка", "Ви не можете видалити чужий профіль.");
+      Alert.alert(t("common.error"), t("profiles.noPermissionDelete"));
       return;
     }
     if (profiles.filter((p) => p.role === "owner" || !p.role).length <= 1) {
-      Alert.alert("Помилка", "Повинен залишитися хоча б один профіль.");
+      Alert.alert(t("common.error"), t("profiles.lastProfileError"));
       return;
     }
     Alert.alert(
-      "Видалити профіль?",
-      `"${profile.name}" та всі його дані будуть видалені. Цю дію не можна скасувати.`,
+      t("profiles.deleteTitle"),
+      t("profiles.deleteConfirmMessage", { name: profile.name }),
       [
-        { text: "Скасувати", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Видалити",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             await deleteProfile(profile.id);
@@ -228,12 +230,12 @@ export default function ProfilesScreen() {
 
   const handleLeaveProfile = (profileId: string, profileName: string) => {
     Alert.alert(
-      "Від'єднатися",
-      `Ви більше не матимете доступу до профілю «${profileName}». Продовжити?`,
+      t("profiles.leaveTitle"),
+      t("profiles.leaveMessage", { name: profileName }),
       [
-        { text: "Скасувати", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Від'єднатися",
+          text: t("profiles.leaveButton"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -250,7 +252,7 @@ export default function ProfilesScreen() {
               invalidateProfileCache();
               await refresh();
             } catch {
-              Alert.alert("Помилка", "Не вдалося від'єднатися від профілю");
+              Alert.alert(t("common.error"), t("profiles.leaveError"));
             }
           },
         },
@@ -284,17 +286,17 @@ export default function ProfilesScreen() {
       if (password) {
         const cipher = encryptProfileJson(json, password);
         message = JSON.stringify({ version: 1, encrypted: true, cipher });
-        title = `Профіль: ${profile.name} (зашифровано)`;
+        title = t("profiles.exportedTitleEncrypted", { name: profile.name });
       } else {
         message = json;
-        title = `Профіль: ${profile.name}`;
+        title = t("profiles.exportedTitle", { name: profile.name });
       }
       await Share.share({ message, title });
       setExportModalVisible(false);
       setExportProfileId(null);
       setExportPassword("");
     } catch {
-      Alert.alert("Помилка", "Не вдалося експортувати профіль.");
+      Alert.alert(t("common.error"), t("profiles.exportError"));
     } finally {
       setExporting(false);
     }
@@ -306,19 +308,22 @@ export default function ProfilesScreen() {
     if (isEncryptedPayload(raw)) {
       const password = importPassword.trim();
       if (!password) {
-        Alert.alert("Помилка", "Введіть пароль для розшифровки.");
+        Alert.alert(t("common.error"), t("profiles.importPasswordRequired"));
         return;
       }
       try {
         const parsed = JSON.parse(raw) as { cipher: string };
         const decrypted = decryptProfileJson(parsed.cipher, password);
         if (!decrypted) {
-          Alert.alert("Помилка", "Невірний пароль або пошкоджені дані.");
+          Alert.alert(
+            t("common.error"),
+            t("profiles.wrongPasswordOrCorrupted"),
+          );
           return;
         }
         json = decrypted;
       } catch {
-        Alert.alert("Помилка", "Невірний формат зашифрованого файлу.");
+        Alert.alert(t("common.error"), t("profiles.invalidEncryptedFormat"));
         return;
       }
     } else {
@@ -326,25 +331,25 @@ export default function ProfilesScreen() {
     }
     const payload = parseExportedProfile(json);
     if (!payload) {
-      Alert.alert(
-        "Помилка",
-        "Невірний формат даних. Вставте JSON експортованого профілю.",
-      );
+      Alert.alert(t("common.error"), t("profiles.invalidDataFormat"));
       return;
     }
     setImporting(true);
     try {
       const profile = await addProfile(
-        payload.profileName || "Імпортований профіль",
+        payload.profileName || t("profiles.defaultImportedName"),
       );
       await saveDataForProfile(profile.id, payload.data);
       setImportVisible(false);
       setImportJson("");
       setImportPassword("");
       refresh();
-      Alert.alert("Готово", `Профіль "${profile.name}" імпортовано.`);
+      Alert.alert(
+        t("common.done"),
+        t("profiles.importSuccess", { name: profile.name }),
+      );
     } catch {
-      Alert.alert("Помилка", "Не вдалося імпортувати профіль.");
+      Alert.alert(t("common.error"), t("profiles.importError"));
     } finally {
       setImporting(false);
     }
@@ -361,7 +366,7 @@ export default function ProfilesScreen() {
       const json = await FileSystem.readAsStringAsync(uri);
       setImportJson(json);
     } catch {
-      Alert.alert("Помилка", "Не вдалося відкрити файл.");
+      Alert.alert(t("common.error"), t("profiles.openFileError"));
     }
   };
 
@@ -369,7 +374,7 @@ export default function ProfilesScreen() {
     <View style={[styles.screenRoot, { backgroundColor: colors.bg }]}>
       <Stack.Screen
         options={{
-          title: "Профіль",
+          title: t("nav.profiles"),
         }}
       />
       <Animated.View
@@ -398,11 +403,10 @@ export default function ProfilesScreen() {
           }
         >
           <Text style={[styles.hint, { color: colors.textTertiary }]}>
-            Оберіть профіль для перегляду. Керуйте доступом, експортом та
-            редагуванням кожного профілю окремо.
+            {t("profiles.hint")}
           </Text>
           <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-            Мої профілі
+            {t("profiles.myProfiles")}
           </Text>
           <View style={styles.profileList}>
             {profiles
@@ -436,7 +440,7 @@ export default function ProfilesScreen() {
                           ]}
                           value={editName}
                           onChangeText={setEditName}
-                          placeholder="Ім'я профілю"
+                          placeholder={t("profiles.namePlaceholder")}
                           placeholderTextColor={colors.textTertiary}
                           autoFocus
                         />
@@ -549,7 +553,9 @@ export default function ProfilesScreen() {
                                 },
                               ]}
                             >
-                              {p.role === "editor" ? "Редактор" : "Переглядач"}
+                              {p.role === "editor"
+                                ? t("profiles.editorBadge")
+                                : t("profiles.viewerBadge")}
                             </Text>
                           </View>
                         )}
@@ -639,7 +645,7 @@ export default function ProfilesScreen() {
                   { color: colors.textTertiary, marginTop: 24 },
                 ]}
               >
-                Спільні профілі
+                {t("profiles.sharedProfiles")}
               </Text>
               <View style={styles.profileList}>
                 {profiles
@@ -724,8 +730,8 @@ export default function ProfilesScreen() {
                                 ]}
                               >
                                 {p.role === "editor"
-                                  ? "Редактор"
-                                  : "Переглядач"}
+                                  ? t("profiles.editorBadge")
+                                  : t("profiles.viewerBadge")}
                               </Text>
                             </View>
                           </View>
@@ -790,7 +796,7 @@ export default function ProfilesScreen() {
                 ]}
                 value={newName}
                 onChangeText={setNewName}
-                placeholder="Ім'я нового профілю"
+                placeholder={t("profiles.newProfilePlaceholder")}
                 placeholderTextColor={colors.textTertiary}
                 autoFocus
               />
@@ -802,7 +808,7 @@ export default function ProfilesScreen() {
                 ]}
               >
                 <Text style={[styles.addConfirmText, { color: colors.white }]}>
-                  Додати
+                  {t("common.add")}
                 </Text>
               </Pressable>
               <Pressable
@@ -828,7 +834,7 @@ export default function ProfilesScreen() {
                 <Text
                   style={[styles.addProfileBtnText, { color: colors.white }]}
                 >
-                  Додати профіль
+                  {t("profiles.addProfileButton")}
                 </Text>
               </Pressable>
               <Pressable
@@ -847,7 +853,7 @@ export default function ProfilesScreen() {
                   color={colors.accent}
                 />
                 <Text style={[styles.importBtnText, { color: colors.accent }]}>
-                  Імпорт
+                  {t("profiles.importButtonLabel")}
                 </Text>
               </Pressable>
             </View>
@@ -864,11 +870,10 @@ export default function ProfilesScreen() {
         cardStyle={styles.modalCardPadded}
       >
         <Text style={[styles.modalTitle, { color: colors.text }]}>
-          Експорт профілю
+          {t("profiles.exportTitle")}
         </Text>
         <Text style={[styles.modalHint, { color: colors.textTertiary }]}>
-          Введіть пароль, щоб зашифрувати дані. Або залиште порожнім для
-          експорту без шифрування.
+          {t("profiles.exportHint")}
         </Text>
         <TextInput
           style={[
@@ -877,7 +882,7 @@ export default function ProfilesScreen() {
           ]}
           value={exportPassword}
           onChangeText={setExportPassword}
-          placeholder="Пароль (необов'язково)"
+          placeholder={t("profiles.exportPasswordPlaceholder")}
           placeholderTextColor={colors.textTertiary}
           secureTextEntry
           autoCapitalize="none"
@@ -897,7 +902,7 @@ export default function ProfilesScreen() {
                 { color: colors.textTertiary },
               ]}
             >
-              Скасувати
+              {t("common.cancel")}
             </Text>
           </Pressable>
           <Pressable
@@ -911,7 +916,7 @@ export default function ProfilesScreen() {
               <Text
                 style={[styles.modalBtnPrimaryText, { color: colors.white }]}
               >
-                Експортувати
+                {t("profiles.exportButton")}
               </Text>
             )}
           </Pressable>
@@ -924,10 +929,10 @@ export default function ProfilesScreen() {
         cardStyle={styles.modalCardPadded}
       >
         <Text style={[styles.modalTitle, { color: colors.text }]}>
-          Імпорт профілю
+          {t("profiles.importTitle")}
         </Text>
         <Text style={[styles.modalHint, { color: colors.textTertiary }]}>
-          Вставте JSON з експорту або оберіть файл
+          {t("profiles.importHint")}
         </Text>
         <Pressable
           style={[styles.importFileBtn, { backgroundColor: colors.accentBg }]}
@@ -935,7 +940,7 @@ export default function ProfilesScreen() {
         >
           <Ionicons name="document-outline" size={20} color={colors.accent} />
           <Text style={[styles.importFileBtnText, { color: colors.accent }]}>
-            Обрати JSON-файл
+            {t("profiles.importPickFile")}
           </Text>
         </Pressable>
         <TextInput
@@ -962,7 +967,7 @@ export default function ProfilesScreen() {
               ]}
               value={importPassword}
               onChangeText={setImportPassword}
-              placeholder="Пароль для розшифровки"
+              placeholder={t("profiles.importDecryptPasswordPlaceholder")}
               placeholderTextColor={colors.textTertiary}
               secureTextEntry
               autoCapitalize="none"
@@ -983,7 +988,7 @@ export default function ProfilesScreen() {
                 { color: colors.textTertiary },
               ]}
             >
-              Скасувати
+              {t("common.cancel")}
             </Text>
           </Pressable>
           <Pressable
@@ -997,7 +1002,7 @@ export default function ProfilesScreen() {
               <Text
                 style={[styles.modalBtnPrimaryText, { color: colors.white }]}
               >
-                Імпортувати
+                {t("profiles.importButton")}
               </Text>
             )}
           </Pressable>

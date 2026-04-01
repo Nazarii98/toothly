@@ -10,6 +10,7 @@ import {
 import type { ToothId, ToothStatus } from "../types";
 import { TOOTH_POSITIONS } from "../toothPositions";
 import { useAppTheme } from "../theme";
+import { useTranslation } from "react-i18next";
 
 const IMAGE_ASPECT = 399 / 600;
 const TOUCH_SIZE_PCT = 8;
@@ -30,6 +31,7 @@ export function DentalChart({
   statusBorderColors,
 }: Props) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const imgWidth = Math.min(width, 500);
   const imgHeight = imgWidth / IMAGE_ASPECT;
@@ -51,7 +53,7 @@ export function DentalChart({
           { top: imgHeight * 0.48, right: 10, color: colors.text },
         ]}
       >
-        Ліва
+        {t("chart.sideLeft")}
       </Text>
       <Text
         style={[
@@ -59,7 +61,7 @@ export function DentalChart({
           { top: imgHeight * 0.48, left: 10, color: colors.text },
         ]}
       >
-        Права
+        {t("chart.sideRight")}
       </Text>
 
       {TOOTH_POSITIONS.map(

@@ -26,7 +26,9 @@
   "chart": {
     "profileButton": "Profile",
     "showStatuses": "Show statuses",
-    "hideStatuses": "Hide statuses"
+    "hideStatuses": "Hide statuses",
+    "sideLeft": "Left",
+    "sideRight": "Right"
   },
   "tooth": {
     "title": "Tooth {{id}}",
@@ -61,7 +63,10 @@
     "dateOptional": "Date (optional)",
     "titlePlaceholderGlobal": "Title (e.g. preventive check-up)",
     "deleteRecord": "Delete record",
-    "toothLabel": "Tooth {{label}}"
+    "toothLabel": "Tooth {{label}}",
+    "unsavedTitle": "Unsaved changes",
+    "unsavedMessage": "You have unsaved changes. Save before leaving?",
+    "discardChanges": "Discard"
   },
   "global": {
     "addTitle": "New procedure",
@@ -91,13 +96,48 @@
     "title": "Profiles",
     "addProfile": "Add profile",
     "namePlaceholder": "Profile name",
+    "newProfilePlaceholder": "New profile name",
     "deleteTitle": "Delete profile?",
     "deleteMessage": "All profile data will be deleted.",
+    "deleteConfirmMessage": "\"{{name}}\" and all its data will be deleted. This action cannot be undone.",
     "owner": "Owner",
     "editor": "Editor",
+    "editorBadge": "Editor",
     "viewer": "Viewer",
+    "viewerBadge": "Viewer",
     "shareAccess": "Share access",
-    "current": "Active"
+    "current": "Active",
+    "hint": "Select a profile to view. Manage access, export, and editing for each profile separately.",
+    "myProfiles": "My profiles",
+    "sharedProfiles": "Shared profiles",
+    "noPermissionDelete": "You cannot delete someone else's profile.",
+    "lastProfileError": "At least one profile must remain.",
+    "leaveTitle": "Leave profile",
+    "leaveMessage": "You will no longer have access to the profile «{{name}}». Continue?",
+    "leaveButton": "Leave",
+    "leaveError": "Failed to leave the profile",
+    "exportTitle": "Export profile",
+    "exportHint": "Enter a password to encrypt the data. Or leave empty to export without encryption.",
+    "exportPasswordPlaceholder": "Password (optional)",
+    "exportButton": "Export",
+    "exportedTitle": "Profile: {{name}}",
+    "exportedTitleEncrypted": "Profile: {{name}} (encrypted)",
+    "exportError": "Failed to export profile.",
+    "importTitle": "Import profile",
+    "importHint": "Paste JSON from export or choose a file",
+    "importPickFile": "Choose JSON file",
+    "importButton": "Import",
+    "importDecryptPasswordPlaceholder": "Decryption password",
+    "importPasswordRequired": "Enter a password to decrypt.",
+    "wrongPasswordOrCorrupted": "Incorrect password or corrupted data.",
+    "invalidEncryptedFormat": "Invalid encrypted file format.",
+    "invalidDataFormat": "Invalid data format. Paste the JSON of an exported profile.",
+    "defaultImportedName": "Imported profile",
+    "importSuccess": "Profile \"{{name}}\" imported.",
+    "importError": "Failed to import profile.",
+    "openFileError": "Failed to open file.",
+    "addProfileButton": "Add profile",
+    "importButtonLabel": "Import"
   },
   "statuses": {
     "title": "Statuses",
@@ -232,5 +272,42 @@
     "fluoride": "Fluoride treatment",
     "checkup": "Check-up",
     "other": "Other"
+  },
+  "profileAccess": {
+    "membersSection": "Members",
+    "addMember": "Add member",
+    "emailPlaceholder": "User email",
+    "roleLabel": "Role:",
+    "addButton": "Add",
+    "noMembers": "No members",
+    "defaultTitle": "Access",
+    "loadError": "Failed to load members",
+    "enterEmail": "Enter email",
+    "cannotAddSelf": "You cannot add yourself",
+    "alreadyHasAccess": "This user already has access",
+    "userNotFoundTitle": "Not found",
+    "userNotFound": "No user with this email found in the system",
+    "addError": "Failed to add user",
+    "changeRoleTitle": "Change role",
+    "changeRoleMessage": "Change role to \"{{role}}\"?",
+    "changeButton": "Change",
+    "removeAccessTitle": "Remove access",
+    "removeAccessMessage": "Remove access for {{email}}?"
+  },
+  "quadrantLabels": {
+    "1": "Upper jaw, right",
+    "2": "Upper jaw, left",
+    "3": "Lower jaw, left",
+    "4": "Lower jaw, right"
+  },
+  "toothNames": {
+    "1": "Central incisor",
+    "2": "Lateral incisor",
+    "3": "Canine",
+    "4": "First premolar",
+    "5": "Second premolar",
+    "6": "First molar",
+    "7": "Second molar",
+    "8": "Third molar (wisdom tooth)"
   }
 }

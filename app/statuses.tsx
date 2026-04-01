@@ -245,13 +245,13 @@ export default function ManageStatusesScreen() {
 
   return (
     <KeyboardAwareScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.bg }]}
       contentContainerStyle={[styles.safe]}
       keyboardShouldPersistTaps="handled"
       enableOnAndroid
     >
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.bg }]}
         contentContainerStyle={[
           styles.content,
           {
@@ -286,7 +286,7 @@ export default function ManageStatusesScreen() {
             )}
           </View>
           {Object.entries(STATUS_LABELS).map(([id, label]) =>
-            renderBuiltinItem(id, label, STATUS_BORDER_COLORS[id] ?? "#9E9E9E"),
+            renderBuiltinItem(id, t(`statusLabels.${id}`, { defaultValue: label }), STATUS_BORDER_COLORS[id] ?? "#9E9E9E"),
           )}
           {customStatuses.map((s) =>
             renderCustomItem(s.id, s.label, s.color, () =>
@@ -328,7 +328,7 @@ export default function ManageStatusesScreen() {
           {Object.entries(TOOTH_CATEGORY_LABELS).map(([id, label]) =>
             renderBuiltinItem(
               id,
-              label,
+              t(`categoryLabels.${id}`, { defaultValue: label }),
               TOOTH_CATEGORY_BORDER_COLORS[id] ?? "#9E9E9E",
             ),
           )}
@@ -376,7 +376,7 @@ export default function ManageStatusesScreen() {
           {Object.entries(GLOBAL_PROCEDURE_TYPES).map(([id, label]) =>
             renderBuiltinItem(
               id,
-              label,
+              t(`globalProcedureTypes.${id}`, { defaultValue: label }),
               GLOBAL_CATEGORY_BORDER_COLORS[id] ?? "#9E9E9E",
             ),
           )}

@@ -22,12 +22,12 @@ import {
   updateGlobalProcedure,
   deleteGlobalProcedure,
 } from "../src/store/teethStore";
-import { buildGlobalCategoryMaps } from "../src/types";
+import { buildGlobalCategoryMaps, GLOBAL_PROCEDURE_TYPES } from "../src/types";
 import type { StatusMaps } from "../src/types";
 import { useTranslation } from "react-i18next";
 
 export default function EditGlobalScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -44,8 +44,14 @@ export default function EditGlobalScreen() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    const localizedGlobalTypes = Object.fromEntries(
+      Object.keys(GLOBAL_PROCEDURE_TYPES).map((k) => [
+        k,
+        t(`globalProcedureTypes.${k}`, { defaultValue: GLOBAL_PROCEDURE_TYPES[k] }),
+      ]),
+    );
     loadData().then((data) => {
-      setCategoryMaps(buildGlobalCategoryMaps(data.customGlobalCategories));
+      setCategoryMaps(buildGlobalCategoryMaps(data.customGlobalCategories, localizedGlobalTypes));
       const proc = data.globalProcedures.find((p) => p.id === procedureId);
       if (proc) {
         setTitle(proc.title);
@@ -55,7 +61,7 @@ export default function EditGlobalScreen() {
         setLoaded(true);
       }
     });
-  }, [procedureId]);
+  }, [procedureId, i18n.language]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === "android") setShowDatePicker(false);
@@ -162,7 +168,7 @@ export default function EditGlobalScreen() {
                   display="compact"
                   maximumDate={new Date()}
                   onChange={onDateChange}
-                  locale="uk"
+                  locale={i18n.language}
                   accentColor={colors.accent}
                   textColor={colors.text}
                   themeVariant={colors.isDark ? "dark" : "light"}

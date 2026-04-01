@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "../src/theme";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { usePreventRemove } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
   type DateTimePickerEvent,
@@ -23,12 +24,12 @@ import {
   updateToothChange,
   deleteToothChange,
 } from "../src/store/teethStore";
-import { TOOTH_NAMES, buildToothCategoryMaps } from "../src/types";
+import { TOOTH_CATEGORY_LABELS, buildToothCategoryMaps } from "../src/types";
 import type { ToothId, StatusMaps } from "../src/types";
 import { useTranslation } from "react-i18next";
 
 export default function EditRecordScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -41,13 +42,34 @@ export default function EditRecordScreen() {
   const [status, setStatus] = useState<string>("checkup");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
+  const [categoryMaps, setCategoryMaps] = useState<StatusMaps>(
+    buildToothCategoryMaps(),
+  );
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
+  const [initialVals, setInitialVals] = useState({
+    title: "",
+    notes: "",
+    status: "checkup",
+    dateDay: "",
+  });
+  const [saved, setSaved] = useState(false);
+
   useEffect(() => {
+    const localizedToothCategories = Object.fromEntries(
+      Object.keys(TOOTH_CATEGORY_LABELS).map((k) => [
+        k,
+        t(`categoryLabels.${k}`, { defaultValue: TOOTH_CATEGORY_LABELS[k] }),
+      ]),
+    );
     loadData().then((data) => {
-      setCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
+      setCategoryMaps(
+        buildToothCategoryMaps(
+          data.customToothCategories,
+          localizedToothCategories,
+        ),
+      );
       const record = getToothRecord(data, toothId);
       const change = record.changes.find((c) => c.id === changeId);
       if (change) {
@@ -55,21 +77,27 @@ export default function EditRecordScreen() {
         setNotes(change.notes ?? "");
         setStatus(change.status ?? "checkup");
         setDate(new Date(change.date));
+        setInitialVals({
+          title: change.title,
+          notes: change.notes ?? "",
+          status: change.status ?? "checkup",
+          dateDay: change.date.slice(0, 10),
+        });
         setLoaded(true);
       }
     });
-  }, [toothId, changeId]);
+  }, [toothId, changeId, i18n.language]);
 
   const onDateChange = (_e: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === "android") setShowDatePicker(false);
     if (selected) setDate(selected);
   };
 
-  const save = () => {
+  const save = (): boolean => {
     const titleStr = title.trim();
     if (!titleStr) {
       Alert.alert(t("common.error"), t("common.enterTitle"));
-      return;
+      return false;
     }
     updateToothChange(toothId, changeId, {
       title: titleStr,
@@ -77,8 +105,36 @@ export default function EditRecordScreen() {
       status,
       date: date.toISOString(),
     }).catch(() => {});
-    router.back();
+    setSaved(true);
+    setTimeout(() => router.back(), 0);
+    return true;
   };
+
+  const isDirty =
+    !saved &&
+    loaded &&
+    title.trim().length > 0 &&
+    (title !== initialVals.title ||
+      notes !== initialVals.notes ||
+      status !== initialVals.status ||
+      date.toISOString().slice(0, 10) !== initialVals.dateDay);
+
+  usePreventRemove(isDirty, () => {
+    Alert.alert(t("record.unsavedTitle"), t("record.unsavedMessage"), [
+      {
+        text: t("record.discardChanges"),
+        style: "destructive",
+        onPress: () => {
+          setSaved(true);
+          setTimeout(() => router.back(), 0);
+        },
+      },
+      {
+        text: t("common.save"),
+        onPress: () => save(),
+      },
+    ]);
+  });
 
   const handleDelete = () => {
     Alert.alert(t("record.deleteTitle"), title, [
@@ -94,7 +150,7 @@ export default function EditRecordScreen() {
     ]);
   };
 
-  const toothLabel = `${toothId} · ${TOOTH_NAMES[toothId[1]] ?? ""}`;
+  const toothLabel = `${toothId} · ${t(`toothNames.${toothId[1]}`, { defaultValue: "" })}`;
 
   if (!loaded) return null;
 
@@ -155,19 +211,31 @@ export default function EditRecordScreen() {
               {t("record.categoryLabel")}
             </Text>
             <Pressable
-              style={[styles.categoryTrigger, { backgroundColor: colors.inputBg }]}
+              style={[
+                styles.categoryTrigger,
+                { backgroundColor: colors.inputBg },
+              ]}
               onPress={() => setCategoryPickerVisible(true)}
             >
               <View
                 style={[
                   styles.categoryDot,
-                  { backgroundColor: categoryMaps.borderColors[status] ?? "#9E9E9E" },
+                  {
+                    backgroundColor:
+                      categoryMaps.borderColors[status] ?? "#9E9E9E",
+                  },
                 ]}
               />
-              <Text style={[styles.categoryTriggerText, { color: colors.text }]}>
+              <Text
+                style={[styles.categoryTriggerText, { color: colors.text }]}
+              >
                 {categoryMaps.labels[status] ?? status}
               </Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={colors.chevron}
+              />
             </Pressable>
           </View>
 
@@ -239,7 +307,7 @@ export default function EditRecordScreen() {
                   display="compact"
                   maximumDate={new Date()}
                   onChange={onDateChange}
-                  locale="uk"
+                  locale={i18n.language}
                   accentColor={colors.accent}
                   textColor={colors.text}
                   themeVariant={colors.isDark ? "dark" : "light"}
@@ -291,7 +359,12 @@ export default function EditRecordScreen() {
             </Text>
           </Pressable>
         </KeyboardAwareScrollView>
-        <View style={[styles.bottomBar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
+        <View
+          style={[
+            styles.bottomBar,
+            { borderTopColor: colors.border, paddingBottom: insets.bottom + 8 },
+          ]}
+        >
           <Pressable
             style={({ pressed }) => [
               styles.saveBtn,
@@ -312,8 +385,14 @@ export default function EditRecordScreen() {
         title={t("record.categoryLabel")}
         selected={status}
         maps={categoryMaps}
-        onSelect={(v) => { setStatus(v); setCategoryPickerVisible(false); }}
-        onManage={() => { router.push("/statuses"); setCategoryPickerVisible(false); }}
+        onSelect={(v) => {
+          setStatus(v);
+          setCategoryPickerVisible(false);
+        }}
+        onManage={() => {
+          router.push("/statuses");
+          setCategoryPickerVisible(false);
+        }}
         manageLabel={t("common.manageCategories")}
         showEmpty={false}
       />

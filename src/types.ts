@@ -84,8 +84,9 @@ export interface StatusMaps {
 /** Tooth status maps (for ToothRecord.currentStatus) */
 export function buildStatusMaps(
   customStatuses: CustomStatus[] = [],
+  localizedLabels?: Record<string, string>,
 ): StatusMaps {
-  const labels = { ...STATUS_LABELS };
+  const labels = { ...STATUS_LABELS, ...localizedLabels };
   const colors = { ...STATUS_COLORS };
   const borderColors = { ...STATUS_BORDER_COLORS };
   for (const cs of customStatuses) {
@@ -104,8 +105,9 @@ export function buildStatusMaps(
 /** Tooth record category maps (for ToothChange.status) */
 export function buildToothCategoryMaps(
   custom: CustomCategory[] = [],
+  localizedLabels?: Record<string, string>,
 ): StatusMaps {
-  const labels = { ...TOOTH_CATEGORY_LABELS };
+  const labels = { ...TOOTH_CATEGORY_LABELS, ...localizedLabels };
   const colors = { ...TOOTH_CATEGORY_COLORS };
   const borderColors = { ...TOOTH_CATEGORY_BORDER_COLORS };
   for (const c of custom) {
@@ -124,8 +126,9 @@ export function buildToothCategoryMaps(
 /** Global procedure category maps (for GlobalProcedure.type) */
 export function buildGlobalCategoryMaps(
   custom: CustomCategory[] = [],
+  localizedLabels?: Record<string, string>,
 ): StatusMaps {
-  const labels = { ...GLOBAL_PROCEDURE_TYPES };
+  const labels = { ...GLOBAL_PROCEDURE_TYPES, ...localizedLabels };
   const colors = { ...GLOBAL_CATEGORY_COLORS };
   const borderColors = { ...GLOBAL_CATEGORY_BORDER_COLORS };
   for (const c of custom) {

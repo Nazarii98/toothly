@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassModal } from "./GlassModal";
 import { useAppTheme } from "../theme";
 import type { StatusMaps } from "../types";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   visible: boolean;
@@ -25,12 +26,13 @@ export function StatusPickerModal({
   maps,
   onSelect,
   onManage,
-  manageLabel = "Керувати",
+  manageLabel,
   showEmpty = true,
 }: Props) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   const options: [string, string][] = showEmpty
-    ? [["", "Не встановлено"], ...maps.options]
+    ? [["", t("tooth.noStatus")], ...maps.options]
     : maps.options;
 
   return (
@@ -40,7 +42,7 @@ export function StatusPickerModal({
           {title}
         </Text>
         <Pressable onPress={onClose} hitSlop={12}>
-          <Text style={[styles.done, { color: colors.accent }]}>Готово</Text>
+          <Text style={[styles.done, { color: colors.accent }]}>{t("common.done")}</Text>
         </Pressable>
       </View>
       <View style={styles.list}>
@@ -90,7 +92,7 @@ export function StatusPickerModal({
               color={colors.textSecondary}
             />
             <Text style={[styles.manageBtnText, { color: colors.textSecondary }]}>
-              {manageLabel}
+              {manageLabel ?? t("tooth.manageStatuses")}
             </Text>
           </Pressable>
         </View>

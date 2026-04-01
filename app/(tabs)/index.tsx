@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, Text, StyleSheet, PanResponder } from "react-native";
+import { View, Text, StyleSheet, PanResponder, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
 import { useRouter } from "expo-router";
@@ -20,7 +21,7 @@ import {
   getCurrentProfileId,
   getCurrentProfileRole,
 } from "../../src/store/profileStore";
-import { buildStatusMaps, TOOTH_NAMES } from "../../src/types";
+import { buildStatusMaps, STATUS_LABELS } from "../../src/types";
 import type {
   ToothId,
   ToothStatus,
@@ -33,87 +34,126 @@ import { useTranslation } from "react-i18next";
 const THUMB_SIZE = 22;
 
 function HistorySlider({
-  value,
+  index,
+  total,
   onChange,
   label,
   colors,
-  tickPositions,
 }: {
-  value: number;
-  onChange: (v: number) => void;
+  index: number;
+  total: number;
+  onChange: (i: number) => void;
   label: string;
   colors: any;
-  tickPositions: number[];
 }) {
   const trackWidth = useRef(0);
   const [trackW, setTrackW] = useState(0);
-  const valueRef = useRef(value);
-  const startVal = useRef(value);
+  const indexRef = useRef(index);
+  const startIndex = useRef(index);
 
-  valueRef.current = value;
+  indexRef.current = index;
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        startVal.current = valueRef.current;
+        startIndex.current = indexRef.current;
       },
       onPanResponderMove: (_, { dx }) => {
         const usable = trackWidth.current - THUMB_SIZE;
-        if (usable <= 0) return;
-        const newV = Math.max(0, Math.min(1, startVal.current + dx / usable));
-        onChange(newV);
+        if (usable <= 0 || total <= 1) return;
+        const newI = Math.max(
+          0,
+          Math.min(
+            total - 1,
+            Math.round(startIndex.current + (dx / usable) * (total - 1)),
+          ),
+        );
+        onChange(newI);
       },
     }),
   ).current;
 
-  const thumbLeft = value * Math.max(0, trackW - THUMB_SIZE);
+  const position = total > 1 ? index / (total - 1) : 1;
+  const thumbLeft = position * Math.max(0, trackW - THUMB_SIZE);
+
+  const canPrev = index > 0;
+  const canNext = index < total - 1;
 
   return (
     <View style={sliderStyles.container}>
       <Text style={[sliderStyles.label, { color: colors.text }]}>{label}</Text>
-      <View
-        style={[sliderStyles.track, { backgroundColor: colors.border }]}
-        onLayout={(e) => {
-          trackWidth.current = e.nativeEvent.layout.width;
-          setTrackW(e.nativeEvent.layout.width);
-        }}
-        {...panResponder.panHandlers}
-      >
+      <View style={sliderStyles.row}>
+        <Pressable
+          onPress={() => canPrev && onChange(index - 1)}
+          hitSlop={10}
+          style={sliderStyles.navBtn}
+        >
+          <Ionicons
+            name="chevron-back"
+            size={20}
+            color={canPrev ? colors.accent : colors.border}
+          />
+        </Pressable>
+
         <View
-          style={[
-            sliderStyles.fill,
-            { width: `${value * 100}%`, backgroundColor: colors.accent },
-          ]}
-        />
-        {trackW > 0 &&
-          tickPositions.map((pos, i) => (
-            <View
-              key={i}
-              style={[
-                sliderStyles.tick,
-                { left: pos * trackW - 1, backgroundColor: colors.bg },
-              ]}
-            />
-          ))}
-        <View
-          style={[
-            sliderStyles.thumb,
-            {
-              left: thumbLeft,
-              backgroundColor: colors.white,
-              borderColor: colors.accent,
-            },
-          ]}
-        />
+          style={[sliderStyles.track, { backgroundColor: colors.border }]}
+          onLayout={(e) => {
+            trackWidth.current = e.nativeEvent.layout.width;
+            setTrackW(e.nativeEvent.layout.width);
+          }}
+          {...panResponder.panHandlers}
+        >
+          <View
+            style={[
+              sliderStyles.fill,
+              { width: `${position * 100}%`, backgroundColor: colors.accent },
+            ]}
+          />
+          {trackW > 0 &&
+            Array.from({ length: total - 1 }, (_, i) => {
+              const tickPos = total > 1 ? i / (total - 1) : 0;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    sliderStyles.tick,
+                    { left: tickPos * trackW - 1, backgroundColor: colors.bg },
+                  ]}
+                />
+              );
+            })}
+          <View
+            style={[
+              sliderStyles.thumb,
+              {
+                left: thumbLeft,
+                backgroundColor: colors.white,
+                borderColor: colors.accent,
+              },
+            ]}
+          />
+        </View>
+
+        <Pressable
+          onPress={() => canNext && onChange(index + 1)}
+          hitSlop={10}
+          style={sliderStyles.navBtn}
+        >
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={canNext ? colors.accent : colors.border}
+          />
+        </Pressable>
       </View>
     </View>
   );
 }
 
 export default function ChartScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -121,13 +161,13 @@ export default function ChartScreen() {
     Record<ToothId, ToothStatus | undefined>
   >({});
   const [teethData, setTeethData] = useState<Record<ToothId, ToothRecord>>({});
-  const [minDateMs, setMinDateMs] = useState<number | null>(null);
+  const [snapshotDates, setSnapshotDates] = useState<number[]>([]);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
   const [showStatuses, setShowStatuses] = useState(true);
   const [popupTooth, setPopupTooth] = useState<ToothId | null>(null);
   const [profileName, setProfileName] = useState("");
   const [role, setRole] = useState<string>("owner");
-  const [sliderValue, setSliderValue] = useState(1);
+  const [sliderIndex, setSliderIndex] = useState(-1);
 
   const { dataRevision } = useDataSync();
   const { user } = useAuth();
@@ -142,31 +182,38 @@ export default function ChartScreen() {
     ]);
     const map: Record<ToothId, ToothStatus | undefined> = {};
     Object.values(data.teeth).forEach((rec) => {
-      if (rec.currentStatus) map[rec.toothId] = rec.currentStatus;
+      const status = (rec.statusHistory ?? []).sort((a, b) =>
+        b.date.localeCompare(a.date),
+      )[0]?.status;
+      if (status) map[rec.toothId] = status;
     });
     setTeethStatuses(map);
     setTeethData(data.teeth as Record<ToothId, ToothRecord>);
-    setStatusMaps(buildStatusMaps(data.customStatuses));
+    const localizedStatusLabels = Object.fromEntries(
+      Object.keys(STATUS_LABELS).map((k) => [
+        k,
+        t(`statusLabels.${k}`, { defaultValue: STATUS_LABELS[k] }),
+      ]),
+    );
+    setStatusMaps(buildStatusMaps(data.customStatuses, localizedStatusLabels));
     const current = profiles.find((p) => p.id === currentId);
     setProfileName(current?.name ?? "");
     setRole(r);
-    setSliderValue(1);
-    let earliest = Infinity;
+    const dates: number[] = [];
     Object.values(data.teeth).forEach((rec) => {
       (rec.statusHistory ?? []).forEach((e) => {
-        const t = new Date(e.date).getTime();
-        if (t < earliest) earliest = t;
+        const ms = new Date(e.date).getTime();
+        dates.push(ms);
       });
     });
-    if (earliest !== Infinity) {
-      const now = Date.now();
-      const range = now - earliest;
-      const padding = range > 0 ? range * 0.1 : 24 * 60 * 60 * 1000;
-      setMinDateMs(earliest - padding);
-    } else {
-      setMinDateMs(null);
-    }
-  }, []);
+    dates.sort((a, b) => a - b);
+    const unique = [...new Set(dates)];
+    setSnapshotDates(unique);
+    setSliderIndex((prev) => {
+      if (prev === -1) return unique.length; // перший раз → "зараз"
+      return Math.min(prev, unique.length); // зберігаємо позицію, clamp якщо вийшли за межі
+    });
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -177,6 +224,10 @@ export default function ChartScreen() {
   useEffect(() => {
     if (dataRevision > 0) refresh();
   }, [dataRevision]);
+
+  useEffect(() => {
+    refresh();
+  }, [i18n.language]);
 
   const handleToothPress = (toothId: ToothId) => {
     router.push(`/tooth/${toothId}`);
@@ -199,26 +250,13 @@ export default function ChartScreen() {
     refresh();
   };
 
-  const hasHistory = minDateMs !== null;
-  const maxDateMs = useRef(Date.now()).current;
+  const hasHistory = snapshotDates.length > 0;
+  const total = snapshotDates.length + 1; // N записів + "зараз"
 
-  const tickPositions = useMemo(() => {
-    if (!hasHistory) return [];
-    const range = maxDateMs - minDateMs!;
-    if (range <= 0) return [];
-    const dates: number[] = [];
-    Object.values(teethData).forEach((rec) => {
-      (rec.statusHistory ?? []).forEach((e) => {
-        dates.push(new Date(e.date).getTime());
-      });
-    });
-    return dates.map((d) => (d - minDateMs!) / range);
-  }, [teethData, minDateMs, maxDateMs, hasHistory]);
-
-  const selectedDateMs = useMemo(() => {
-    if (!hasHistory || sliderValue >= 1) return null;
-    return minDateMs! + sliderValue * (maxDateMs - minDateMs!);
-  }, [sliderValue, minDateMs, maxDateMs, hasHistory]);
+  const selectedDateMs =
+    sliderIndex >= 0 && sliderIndex < snapshotDates.length
+      ? snapshotDates[sliderIndex]
+      : null;
 
   const displayStatuses = useMemo<
     Record<ToothId, ToothStatus | undefined>
@@ -235,14 +273,15 @@ export default function ChartScreen() {
   }, [selectedDateMs, teethData, teethStatuses]);
 
   const sliderLabel = useMemo(() => {
-    if (!hasHistory || sliderValue >= 1) return t("common.now");
-    const d = new Date(selectedDateMs!);
-    return d.toLocaleDateString("uk-UA", {
+    if (!hasHistory || sliderIndex >= snapshotDates.length)
+      return t("common.now");
+    const d = new Date(snapshotDates[sliderIndex]);
+    return d.toLocaleDateString(i18n.language, {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
-  }, [sliderValue, selectedDateMs, hasHistory]);
+  }, [sliderIndex, snapshotDates, hasHistory, i18n.language]);
 
   const usedStatuses = [
     ...new Set(Object.values(displayStatuses).filter(Boolean)),
@@ -288,14 +327,16 @@ export default function ChartScreen() {
         />
       </View>
 
-      {hasHistory && showStatuses && (
-        <HistorySlider
-          value={sliderValue}
-          onChange={setSliderValue}
-          label={sliderLabel}
-          colors={colors}
-          tickPositions={tickPositions}
-        />
+      {hasHistory && (
+        <View style={{ opacity: showStatuses ? 1 : 0 }}>
+          <HistorySlider
+            index={sliderIndex}
+            total={total}
+            onChange={setSliderIndex}
+            label={sliderLabel}
+            colors={colors}
+          />
+        </View>
       )}
 
       <View
@@ -323,7 +364,11 @@ export default function ChartScreen() {
       <StatusPickerModal
         visible={popupTooth !== null}
         onClose={() => setPopupTooth(null)}
-        title={`Зуб ${popupTooth} — ${popupTooth ? (TOOTH_NAMES[popupTooth[1]] ?? "") : ""}`}
+        title={
+          popupTooth
+            ? `${t("tooth.title", { id: popupTooth })} — ${t(`toothNames.${popupTooth[1]}`, { defaultValue: "" })}`
+            : ""
+        }
         selected={popupTooth ? teethStatuses[popupTooth] : undefined}
         maps={statusMaps}
         onSelect={handleStatusSelect}
@@ -331,7 +376,8 @@ export default function ChartScreen() {
           router.push("/statuses");
           setPopupTooth(null);
         }}
-        manageLabel="Керувати статусами"
+        manageLabel={t("tooth.manageStatuses")}
+        showEmpty={false}
       />
     </View>
   );
@@ -343,6 +389,17 @@ const sliderStyles = StyleSheet.create({
     paddingTop: 8,
     gap: 8,
   },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  navBtn: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   label: {
     fontSize: 12,
     fontWeight: "600",
@@ -350,6 +407,7 @@ const sliderStyles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   track: {
+    flex: 1,
     height: 4,
     borderRadius: 2,
     overflow: "visible",
@@ -383,7 +441,7 @@ const sliderStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center" },
+  container: { flex: 1, justifyContent: "center", paddingTop: 40 },
   chartArea: { alignItems: "center" },
   topBar: {
     position: "absolute",

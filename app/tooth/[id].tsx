@@ -27,7 +27,12 @@ import {
   updateStatusHistoryEntry,
 } from "../../src/store/teethStore";
 import { getCurrentProfileRole } from "../../src/store/profileStore";
-import { buildStatusMaps, buildToothCategoryMaps } from "../../src/types";
+import {
+  buildStatusMaps,
+  buildToothCategoryMaps,
+  STATUS_LABELS,
+  TOOTH_CATEGORY_LABELS,
+} from "../../src/types";
 import type {
   ToothId,
   ToothChange,
@@ -40,7 +45,7 @@ import { useAuth } from "../../src/AuthProvider";
 import { useTranslation } from "react-i18next";
 
 export default function ToothDetailScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const toothId = id as ToothId;
   const router = useRouter();
@@ -67,10 +72,27 @@ export default function ToothDetailScreen() {
   const refresh = useCallback(async () => {
     const [data, r] = await Promise.all([loadData(), getCurrentProfileRole()]);
     setRecord(getToothRecord(data, toothId));
-    setStatusMaps(buildStatusMaps(data.customStatuses));
-    setCategoryMaps(buildToothCategoryMaps(data.customToothCategories));
+    const localizedStatusLabels = Object.fromEntries(
+      Object.keys(STATUS_LABELS).map((k) => [
+        k,
+        t(`statusLabels.${k}`, { defaultValue: STATUS_LABELS[k] }),
+      ]),
+    );
+    const localizedCategoryLabels = Object.fromEntries(
+      Object.keys(TOOTH_CATEGORY_LABELS).map((k) => [
+        k,
+        t(`categoryLabels.${k}`, { defaultValue: TOOTH_CATEGORY_LABELS[k] }),
+      ]),
+    );
+    setStatusMaps(buildStatusMaps(data.customStatuses, localizedStatusLabels));
+    setCategoryMaps(
+      buildToothCategoryMaps(
+        data.customToothCategories,
+        localizedCategoryLabels,
+      ),
+    );
     setRole(r);
-  }, [toothId]);
+  }, [toothId, t]);
 
   useEffect(() => {
     refresh();
@@ -85,6 +107,10 @@ export default function ToothDetailScreen() {
   useEffect(() => {
     if (dataRevision > 0) refresh();
   }, [dataRevision]);
+
+  useEffect(() => {
+    refresh();
+  }, [i18n.language]);
 
   const handleStatusChange = async (status: ToothStatus) => {
     setPickerVisible(false);
@@ -112,7 +138,9 @@ export default function ToothDetailScreen() {
   const handleDeleteHistoryEntry = (entry: StatusHistoryEntry) => {
     Alert.alert(
       t("tooth.deleteStatus"),
-      t("tooth.deleteStatusMessage", { label: statusMaps.labels[entry.status] ?? entry.status }),
+      t("tooth.deleteStatusMessage", {
+        label: statusMaps.labels[entry.status] ?? entry.status,
+      }),
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -145,7 +173,9 @@ export default function ToothDetailScreen() {
     });
   };
 
-  const currentStatus = record?.currentStatus;
+  const currentStatus = (record?.statusHistory ?? []).sort((a, b) =>
+    b.date.localeCompare(a.date),
+  )[0]?.status;
   const currentStatusLabel = currentStatus
     ? (statusMaps.labels[currentStatus] ?? currentStatus)
     : t("tooth.noStatus");
@@ -229,6 +259,7 @@ export default function ToothDetailScreen() {
                 setPickerVisible(false);
               }}
               manageLabel={t("tooth.manageStatuses")}
+              showEmpty={false}
             />
           </View>
 
@@ -297,7 +328,7 @@ export default function ToothDetailScreen() {
                             onChange={(_: DateTimePickerEvent, d?: Date) => {
                               if (d) handleUpdateEntryDate(entry, d);
                             }}
-                            locale="uk"
+                            locale={i18n.language}
                             accentColor={colors.accent}
                             textColor={colors.text}
                             themeVariant={colors.isDark ? "dark" : "light"}
@@ -520,7 +551,7 @@ export default function ToothDetailScreen() {
       <StatusPickerModal
         visible={statusEditEntry !== null}
         onClose={() => setStatusEditEntry(null)}
-        title="Оберіть статус"
+        title={t("tooth.pickStatus")}
         selected={statusEditEntry?.status}
         maps={statusMaps}
         onSelect={handleUpdateEntryStatus}
@@ -528,7 +559,8 @@ export default function ToothDetailScreen() {
           router.push("/statuses");
           setStatusEditEntry(null);
         }}
-        manageLabel="Керувати статусами"
+        manageLabel={t("tooth.manageStatuses")}
+        showEmpty={false}
       />
 
       {androidDateEntry !== null && (

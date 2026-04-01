@@ -25,18 +25,20 @@ import {
   type AccessRole,
   type ProfileAccessEntry,
 } from "../src/store/firestoreService";
-
-const ROLE_LABELS: Record<AccessRole, string> = {
-  owner: "Власник",
-  editor: "Редактор",
-  viewer: "Переглядач",
-};
+import { useTranslation } from "react-i18next";
 
 const ASSIGNABLE_ROLES: AccessRole[] = ["editor", "viewer"];
 
 export default function ProfileAccessScreen() {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { user } = useAuth();
+
+  const ROLE_LABELS: Record<AccessRole, string> = {
+    owner: t("profiles.owner"),
+    editor: t("profiles.editorBadge"),
+    viewer: t("profiles.viewerBadge"),
+  };
   const insets = useSafeAreaInsets();
   const headerHeight = useStableHeaderHeight();
   const { profileId, profileName } = useLocalSearchParams<{
@@ -77,7 +79,7 @@ export default function ProfileAccessScreen() {
       });
       setMembers(enriched);
     } catch {
-      Alert.alert("Помилка", "Не вдалося завантажити учасників");
+      Alert.alert(t("common.error"), t("profileAccess.loadError"));
     } finally {
       setLoading(false);
     }
@@ -92,15 +94,15 @@ export default function ProfileAccessScreen() {
   const handleAdd = async () => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) {
-      Alert.alert("Помилка", "Введіть email");
+      Alert.alert(t("common.error"), t("profileAccess.enterEmail"));
       return;
     }
     if (trimmed === user?.email?.toLowerCase()) {
-      Alert.alert("Помилка", "Не можна додати себе");
+      Alert.alert(t("common.error"), t("profileAccess.cannotAddSelf"));
       return;
     }
     if (members.some((m) => m.email?.toLowerCase() === trimmed)) {
-      Alert.alert("Помилка", "Цей користувач вже має доступ");
+      Alert.alert(t("common.error"), t("profileAccess.alreadyHasAccess"));
       return;
     }
     setAdding(true);
@@ -108,8 +110,8 @@ export default function ProfileAccessScreen() {
       const found = await findUserByEmail(trimmed);
       if (!found) {
         Alert.alert(
-          "Не знайдено",
-          "Користувача з таким email не знайдено в системі",
+          t("profileAccess.userNotFoundTitle"),
+          t("profileAccess.userNotFound"),
         );
         return;
       }
@@ -117,44 +119,54 @@ export default function ProfileAccessScreen() {
       setEmail("");
       await refresh();
     } catch {
-      Alert.alert("Помилка", "Не вдалося додати користувача");
+      Alert.alert(t("common.error"), t("profileAccess.addError"));
     } finally {
       setAdding(false);
     }
   };
 
   const handleChangeRole = (entry: ProfileAccessEntry, newRole: AccessRole) => {
-    Alert.alert("Змінити роль", `Змінити роль на "${ROLE_LABELS[newRole]}"?`, [
-      { text: "Скасувати", style: "cancel" },
-      {
-        text: "Змінити",
-        onPress: async () => {
-          await grantAccess(profileId!, entry.uid, newRole, user!.uid);
-          refresh();
+    Alert.alert(
+      t("profileAccess.changeRoleTitle"),
+      t("profileAccess.changeRoleMessage", { role: ROLE_LABELS[newRole] }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("profileAccess.changeButton"),
+          onPress: async () => {
+            await grantAccess(profileId!, entry.uid, newRole, user!.uid);
+            refresh();
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleRemove = (entry: ProfileAccessEntry & { email?: string }) => {
-    Alert.alert("Видалити доступ", `Прибрати доступ для ${entry.email}?`, [
-      { text: "Скасувати", style: "cancel" },
-      {
-        text: "Видалити",
-        style: "destructive",
-        onPress: async () => {
-          await revokeAccess(profileId!, entry.uid);
-          refresh();
+    Alert.alert(
+      t("profileAccess.removeAccessTitle"),
+      t("profileAccess.removeAccessMessage", { email: entry.email }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            await revokeAccess(profileId!, entry.uid);
+            refresh();
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: profileName ? decodeURIComponent(profileName) : "Доступ",
+          title: profileName
+            ? decodeURIComponent(profileName)
+            : t("profileAccess.defaultTitle"),
         }}
       />
       <ScrollView
@@ -165,7 +177,7 @@ export default function ProfileAccessScreen() {
         ]}
       >
         <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-          Учасники
+          {t("profileAccess.membersSection")}
         </Text>
 
         {loading ? (
@@ -275,7 +287,7 @@ export default function ProfileAccessScreen() {
             })}
             {members.length === 0 && !loading && (
               <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
-                Немає учасників
+                {t("profileAccess.noMembers")}
               </Text>
             )}
           </View>
@@ -287,7 +299,7 @@ export default function ProfileAccessScreen() {
             { color: colors.textTertiary, marginTop: 28 },
           ]}
         >
-          Додати учасника
+          {t("profileAccess.addMember")}
         </Text>
         <View
           style={[
@@ -310,7 +322,7 @@ export default function ProfileAccessScreen() {
               />
               <TextInput
                 style={[styles.input, { color: colors.text }]}
-                placeholder="Email користувача"
+                placeholder={t("profileAccess.emailPlaceholder")}
                 placeholderTextColor={colors.textTertiary}
                 value={email}
                 onChangeText={setEmail}
@@ -327,7 +339,7 @@ export default function ProfileAccessScreen() {
                   { color: colors.textSecondary },
                 ]}
               >
-                Роль:
+                {t("profileAccess.roleLabel")}
               </Text>
               {ASSIGNABLE_ROLES.map((r) => {
                 const active = selectedRole === r;
@@ -371,7 +383,9 @@ export default function ProfileAccessScreen() {
               ) : (
                 <>
                   <Ionicons name="person-add" size={18} color={colors.white} />
-                  <Text style={styles.addBtnText}>Додати</Text>
+                  <Text style={styles.addBtnText}>
+                    {t("profileAccess.addButton")}
+                  </Text>
                 </>
               )}
             </Pressable>

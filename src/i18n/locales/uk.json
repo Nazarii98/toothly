@@ -26,7 +26,9 @@
   "chart": {
     "profileButton": "Профіль",
     "showStatuses": "Показати статуси",
-    "hideStatuses": "Сховати статуси"
+    "hideStatuses": "Сховати статуси",
+    "sideLeft": "Ліва",
+    "sideRight": "Права"
   },
   "tooth": {
     "title": "Зуб {{id}}",
@@ -61,7 +63,10 @@
     "dateOptional": "Дата (необов'язково)",
     "titlePlaceholderGlobal": "Назва (наприклад: профілактичний огляд)",
     "deleteRecord": "Видалити запис",
-    "toothLabel": "Зуб {{label}}"
+    "toothLabel": "Зуб {{label}}",
+    "unsavedTitle": "Незбережені зміни",
+    "unsavedMessage": "Є незбережені зміни. Зберегти перед виходом?",
+    "discardChanges": "Не зберігати"
   },
   "global": {
     "addTitle": "Нова процедура",
@@ -91,13 +96,48 @@
     "title": "Профілі",
     "addProfile": "Додати профіль",
     "namePlaceholder": "Ім'я профілю",
+    "newProfilePlaceholder": "Ім'я нового профілю",
     "deleteTitle": "Видалити профіль?",
     "deleteMessage": "Всі дані профілю буде видалено.",
+    "deleteConfirmMessage": "\"{{name}}\" та всі його дані будуть видалені. Цю дію не можна скасувати.",
     "owner": "Власник",
     "editor": "Редактор",
+    "editorBadge": "Редактор",
     "viewer": "Перегляд",
+    "viewerBadge": "Переглядач",
     "shareAccess": "Поділитись доступом",
-    "current": "Активний"
+    "current": "Активний",
+    "hint": "Оберіть профіль для перегляду. Керуйте доступом, експортом та редагуванням кожного профілю окремо.",
+    "myProfiles": "Мої профілі",
+    "sharedProfiles": "Спільні профілі",
+    "noPermissionDelete": "Ви не можете видалити чужий профіль.",
+    "lastProfileError": "Повинен залишитися хоча б один профіль.",
+    "leaveTitle": "Від'єднатися",
+    "leaveMessage": "Ви більше не матимете доступу до профілю «{{name}}». Продовжити?",
+    "leaveButton": "Від'єднатися",
+    "leaveError": "Не вдалося від'єднатися від профілю",
+    "exportTitle": "Експорт профілю",
+    "exportHint": "Введіть пароль, щоб зашифрувати дані. Або залиште порожнім для експорту без шифрування.",
+    "exportPasswordPlaceholder": "Пароль (необов'язково)",
+    "exportButton": "Експортувати",
+    "exportedTitle": "Профіль: {{name}}",
+    "exportedTitleEncrypted": "Профіль: {{name}} (зашифровано)",
+    "exportError": "Не вдалося експортувати профіль.",
+    "importTitle": "Імпорт профілю",
+    "importHint": "Вставте JSON з експорту або оберіть файл",
+    "importPickFile": "Обрати JSON-файл",
+    "importButton": "Імпортувати",
+    "importDecryptPasswordPlaceholder": "Пароль для розшифровки",
+    "importPasswordRequired": "Введіть пароль для розшифровки.",
+    "wrongPasswordOrCorrupted": "Невірний пароль або пошкоджені дані.",
+    "invalidEncryptedFormat": "Невірний формат зашифрованого файлу.",
+    "invalidDataFormat": "Невірний формат даних. Вставте JSON експортованого профілю.",
+    "defaultImportedName": "Імпортований профіль",
+    "importSuccess": "Профіль \"{{name}}\" імпортовано.",
+    "importError": "Не вдалося імпортувати профіль.",
+    "openFileError": "Не вдалося відкрити файл.",
+    "addProfileButton": "Додати профіль",
+    "importButtonLabel": "Імпорт"
   },
   "statuses": {
     "title": "Статуси",
@@ -232,5 +272,42 @@
     "fluoride": "Фторування",
     "checkup": "Огляд",
     "other": "Інше"
+  },
+  "profileAccess": {
+    "membersSection": "Учасники",
+    "addMember": "Додати учасника",
+    "emailPlaceholder": "Email користувача",
+    "roleLabel": "Роль:",
+    "addButton": "Додати",
+    "noMembers": "Немає учасників",
+    "defaultTitle": "Доступ",
+    "loadError": "Не вдалося завантажити учасників",
+    "enterEmail": "Введіть email",
+    "cannotAddSelf": "Не можна додати себе",
+    "alreadyHasAccess": "Цей користувач вже має доступ",
+    "userNotFoundTitle": "Не знайдено",
+    "userNotFound": "Користувача з таким email не знайдено в системі",
+    "addError": "Не вдалося додати користувача",
+    "changeRoleTitle": "Змінити роль",
+    "changeRoleMessage": "Змінити роль на \"{{role}}\"?",
+    "changeButton": "Змінити",
+    "removeAccessTitle": "Видалити доступ",
+    "removeAccessMessage": "Прибрати доступ для {{email}}?"
+  },
+  "quadrantLabels": {
+    "1": "Верхня щелепа, права",
+    "2": "Верхня щелепа, ліва",
+    "3": "Нижня щелепа, ліва",
+    "4": "Нижня щелепа, права"
+  },
+  "toothNames": {
+    "1": "Центральний різець",
+    "2": "Бічний різець",
+    "3": "Ікло",
+    "4": "Перший премоляр",
+    "5": "Другий премоляр",
+    "6": "Перший моляр",
+    "7": "Другий моляр",
+    "8": "Третій моляр (зуб мудрості)"
   }
 }
