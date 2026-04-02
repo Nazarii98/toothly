@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -150,6 +151,16 @@ export default function RegisterScreen() {
             </Text>
           </Pressable>
         </View>
+
+        <View style={styles.legalRow}>
+          <Pressable onPress={() => Linking.openURL("https://toothly.arche.technology/privacy")} hitSlop={8}>
+            <Text style={[styles.legalLink, { color: colors.textTertiary }]}>{t("legal.privacyPolicy")}</Text>
+          </Pressable>
+          <Text style={[styles.legalDot, { color: colors.textTertiary }]}>·</Text>
+          <Pressable onPress={() => Linking.openURL("https://toothly.arche.technology/terms")} hitSlop={8}>
+            <Text style={[styles.legalLink, { color: colors.textTertiary }]}>{t("legal.termsOfService")}</Text>
+          </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -208,4 +219,13 @@ const styles = StyleSheet.create({
   },
   footerText: { fontSize: 15 },
   footerLink: { fontSize: 15, fontWeight: "600" },
+  legalRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 16,
+  },
+  legalLink: { fontSize: 13 },
+  legalDot: { fontSize: 13 },
 });

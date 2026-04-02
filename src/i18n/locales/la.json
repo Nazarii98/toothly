@@ -189,7 +189,9 @@
     "passwordMinLength": "Tessera saltem VI litteras continere debet",
     "passwordMismatch": "Tesserae non concordant",
     "wrongCurrentPassword": "Tessera praesens falsa",
-    "changePasswordError": "Error mutandae tesserae. Iterum tenta"
+    "changePasswordError": "Error mutandae tesserae. Iterum tenta",
+    "general": "Generalia",
+    "aboutToothly": "De Toothly"
   },
   "login": {
     "title": "Toothly",
@@ -218,6 +220,10 @@
     "registrationError": "Error inscriptionis",
     "passwordMinLength": "Tessera saltem VI litteras continere debet",
     "passwordMismatch": "Tesserae non concordant"
+  },
+  "legal": {
+    "privacyPolicy": "Consilium Privatim",
+    "termsOfService": "Condiciones Usus"
   },
   "errors": {
     "invalidEmail": "Forma inscriptionis falsa",

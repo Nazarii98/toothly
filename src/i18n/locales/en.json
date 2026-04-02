@@ -189,7 +189,9 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "passwordMismatch": "Passwords do not match",
     "wrongCurrentPassword": "Incorrect current password",
-    "changePasswordError": "Failed to change password. Please try again"
+    "changePasswordError": "Failed to change password. Please try again",
+    "general": "General",
+    "aboutToothly": "About Toothly"
   },
   "login": {
     "title": "Toothly",
@@ -218,6 +220,10 @@
     "registrationError": "Registration error",
     "passwordMinLength": "Password must be at least 6 characters",
     "passwordMismatch": "Passwords do not match"
+  },
+  "legal": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   },
   "errors": {
     "invalidEmail": "Invalid email format",

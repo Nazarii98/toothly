@@ -189,7 +189,9 @@
     "passwordMinLength": "Пароль має містити щонайменше 6 символів",
     "passwordMismatch": "Паролі не збігаються",
     "wrongCurrentPassword": "Невірний поточний пароль",
-    "changePasswordError": "Помилка зміни паролю. Спробуйте ще раз"
+    "changePasswordError": "Помилка зміни паролю. Спробуйте ще раз",
+    "general": "Загальне",
+    "aboutToothly": "Про Toothly"
   },
   "login": {
     "title": "Toothly",
@@ -218,6 +220,10 @@
     "registrationError": "Помилка реєстрації",
     "passwordMinLength": "Пароль має містити щонайменше 6 символів",
     "passwordMismatch": "Паролі не збігаються"
+  },
+  "legal": {
+    "privacyPolicy": "Політика конфіденційності",
+    "termsOfService": "Умови використання"
   },
   "errors": {
     "invalidEmail": "Невірний формат email",

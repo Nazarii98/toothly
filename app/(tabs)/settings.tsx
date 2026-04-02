@@ -6,8 +6,13 @@ import {
   Pressable,
   Alert,
   TextInput,
+  Linking,
+  ScrollView,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAppTheme, THEME_COLORS } from "../../src/theme";
@@ -16,6 +21,12 @@ import { GlassModal } from "../../src/components/GlassModal";
 import { useAuth } from "../../src/AuthProvider";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES, changeLanguage } from "../../src/i18n";
+
+function hexToRgb(hex: string): string {
+  const h = hex.replace("#", "");
+  const n = parseInt(h, 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
 
 const THEME_OPTIONS: { value: ThemePreference; icon: string }[] = [
   { value: "system", icon: "phone-portrait-outline" },
@@ -33,6 +44,9 @@ export default function SettingsScreen() {
   const { colors, preference, setPreference } = useAppTheme();
   const { user, signOut, changePassword, deleteAccount } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const HEADER_HEIGHT = insets.top + (Platform.OS === "ios" ? 44 : 56);
+  const bgRgb = hexToRgb(colors.bg);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const [langModalOpen, setLangModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -44,12 +58,17 @@ export default function SettingsScreen() {
   const [confirmPw, setConfirmPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
 
-  const currentLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
+  const currentLang =
+    LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
 
   const handleSignOut = () => {
     Alert.alert(t("settings.signOutTitle"), t("settings.signOutMessage"), [
       { text: t("common.cancel"), style: "cancel" },
-      { text: t("settings.signOut"), style: "destructive", onPress: () => signOut() },
+      {
+        text: t("settings.signOut"),
+        style: "destructive",
+        onPress: () => signOut(),
+      },
     ]);
   };
 
@@ -105,12 +124,16 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.bg }]}
-      edges={["top"]}
-    >
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]}>{t("settings.title")}</Text>
+    <View style={[styles.safe, { backgroundColor: colors.bg }]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: HEADER_HEIGHT + 12 },
+        ]}
+        scrollIndicatorInsets={{ top: HEADER_HEIGHT }}
+        showsVerticalScrollIndicator={false}
+      >
         <View
           style={[
             styles.card,
@@ -121,7 +144,9 @@ export default function SettingsScreen() {
             style={styles.menuRow}
             onPress={() => router.push("/profiles")}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons name="person" size={22} color={colors.accent} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
@@ -129,13 +154,21 @@ export default function SettingsScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
           <Pressable
             style={styles.menuRow}
             onPress={() => router.push("/statuses")}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
-              <Ionicons name="color-palette-outline" size={22} color={colors.accent} />
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons
+                name="color-palette-outline"
+                size={22}
+                color={colors.accent}
+              />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
               {t("settings.statusesMenu")}
@@ -157,9 +190,14 @@ export default function SettingsScreen() {
             style={styles.menuRow}
             onPress={() => setThemeModalOpen(true)}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons
-                name={(THEME_OPTIONS.find((o) => o.value === preference)?.icon ?? "phone-portrait-outline") as any}
+                name={
+                  (THEME_OPTIONS.find((o) => o.value === preference)?.icon ??
+                    "phone-portrait-outline") as any
+                }
                 size={22}
                 color={colors.accent}
               />
@@ -174,13 +212,21 @@ export default function SettingsScreen() {
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
           <Pressable
             style={styles.menuRow}
             onPress={() => setLangModalOpen(true)}
           >
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
-              <Ionicons name="language-outline" size={22} color={colors.accent} />
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons
+                name="language-outline"
+                size={22}
+                color={colors.accent}
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.menuLabel, { color: colors.text }]}>
@@ -195,6 +241,81 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+          {t("settings.general")}
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => Linking.openURL("https://toothly.arche.technology/")}
+          >
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={22}
+                color={colors.accent}
+              />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.text }]}>
+              {t("settings.aboutToothly")}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
+          </Pressable>
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() =>
+              Linking.openURL("https://toothly.arche.technology/privacy")
+            }
+          >
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={22}
+                color={colors.accent}
+              />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.text }]}>
+              {t("legal.privacyPolicy")}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
+          </Pressable>
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() =>
+              Linking.openURL("https://toothly.arche.technology/terms")
+            }
+          >
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
+              <Ionicons
+                name="document-text-outline"
+                size={22}
+                color={colors.accent}
+              />
+            </View>
+            <Text style={[styles.menuLabel, { color: colors.text }]}>
+              {t("legal.termsOfService")}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
+          </Pressable>
+        </View>
+
+        <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
           {t("settings.account")}
         </Text>
         <View
@@ -204,19 +325,33 @@ export default function SettingsScreen() {
           ]}
         >
           <View style={styles.menuRow}>
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons name="mail" size={22} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.menuLabel, { color: colors.text }]}>Email</Text>
-              <Text style={[styles.menuHint, { color: colors.textTertiary }]} numberOfLines={1}>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>
+                Email
+              </Text>
+              <Text
+                style={[styles.menuHint, { color: colors.textTertiary }]}
+                numberOfLines={1}
+              >
                 {user?.email ?? "—"}
               </Text>
             </View>
           </View>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
-          <Pressable style={styles.menuRow} onPress={() => setPwModalOpen(true)}>
-            <View style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}>
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => setPwModalOpen(true)}
+          >
+            <View
+              style={[styles.menuIcon, { backgroundColor: colors.accentBg }]}
+            >
               <Ionicons name="key-outline" size={22} color={colors.accent} />
             </View>
             <Text style={[styles.menuLabel, { color: colors.text }]}>
@@ -224,33 +359,99 @@ export default function SettingsScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={20} color={colors.chevron} />
           </Pressable>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
           <Pressable style={styles.menuRow} onPress={handleSignOut}>
-            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
-              <Ionicons name="log-out-outline" size={22} color={colors.destructive} />
+            <View
+              style={[
+                styles.menuIcon,
+                { backgroundColor: "rgba(192,96,96,0.12)" },
+              ]}
+            >
+              <Ionicons
+                name="log-out-outline"
+                size={22}
+                color={colors.destructive}
+              />
             </View>
             <Text style={[styles.menuLabel, { color: colors.destructive }]}>
               {t("settings.signOut")}
             </Text>
           </Pressable>
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
-          <Pressable style={styles.menuRow} onPress={() => setDeleteModalOpen(true)}>
-            <View style={[styles.menuIcon, { backgroundColor: "rgba(192,96,96,0.12)" }]}>
-              <Ionicons name="trash-outline" size={22} color={colors.destructive} />
+          <View
+            style={[styles.separator, { backgroundColor: colors.border }]}
+          />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => setDeleteModalOpen(true)}
+          >
+            <View
+              style={[
+                styles.menuIcon,
+                { backgroundColor: "rgba(192,96,96,0.12)" },
+              ]}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={colors.destructive}
+              />
             </View>
             <Text style={[styles.menuLabel, { color: colors.destructive }]}>
               {t("settings.deleteAccount")}
             </Text>
           </Pressable>
         </View>
+      </ScrollView>
+
+      <View
+        style={[styles.header, { height: HEADER_HEIGHT }]}
+        pointerEvents="none"
+      >
+        <BlurView
+          intensity={60}
+          tint={colors.isDark ? "systemMaterialDark" : "systemMaterial"}
+          style={StyleSheet.absoluteFill}
+        />
+        <LinearGradient
+          colors={[
+            `rgba(${bgRgb}, 0.85)`,
+            `rgba(${bgRgb}, 0.75)`,
+            `rgba(${bgRgb}, 0.6)`,
+            `rgba(${bgRgb}, 0.35)`,
+            `rgba(${bgRgb}, 0.1)`,
+            `rgba(${bgRgb}, 0)`,
+          ]}
+          locations={[0, 0.2, 0.4, 0.6, 0.8, 1]}
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        />
+        <View style={[styles.headerInner, { paddingTop: insets.top }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {t("settings.title")}
+          </Text>
+        </View>
       </View>
 
       {/* Theme modal */}
-      <GlassModal visible={themeModalOpen} onClose={() => setThemeModalOpen(false)}>
+      <GlassModal
+        visible={themeModalOpen}
+        onClose={() => setThemeModalOpen(false)}
+      >
         <View style={styles.modalHeader}>
-          <Text style={[styles.modalTitle, { color: colors.text }]}>{t("settings.theme")}</Text>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>
+            {t("settings.theme")}
+          </Text>
           <Pressable onPress={() => setThemeModalOpen(false)} hitSlop={12}>
-            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.done")}</Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>
+              {t("common.done")}
+            </Text>
           </Pressable>
         </View>
         <View style={styles.themeList}>
@@ -286,13 +487,32 @@ export default function SettingsScreen() {
                 </Text>
                 {preview && (
                   <View style={styles.themePreview}>
-                    <View style={[styles.previewDot, { backgroundColor: preview.bg }]} />
-                    <View style={[styles.previewDot, { backgroundColor: preview.accent }]} />
-                    <View style={[styles.previewDot, { backgroundColor: preview.card }]} />
+                    <View
+                      style={[
+                        styles.previewDot,
+                        { backgroundColor: preview.bg },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.previewDot,
+                        { backgroundColor: preview.accent },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.previewDot,
+                        { backgroundColor: preview.card },
+                      ]}
+                    />
                   </View>
                 )}
                 {isSelected && (
-                  <Ionicons name="checkmark-circle" size={22} color={colors.accent} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={22}
+                    color={colors.accent}
+                  />
                 )}
               </Pressable>
             );
@@ -301,11 +521,18 @@ export default function SettingsScreen() {
       </GlassModal>
 
       {/* Language modal */}
-      <GlassModal visible={langModalOpen} onClose={() => setLangModalOpen(false)}>
+      <GlassModal
+        visible={langModalOpen}
+        onClose={() => setLangModalOpen(false)}
+      >
         <View style={styles.modalHeader}>
-          <Text style={[styles.modalTitle, { color: colors.text }]}>{t("settings.language")}</Text>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>
+            {t("settings.language")}
+          </Text>
           <Pressable onPress={() => setLangModalOpen(false)} hitSlop={12}>
-            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.done")}</Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>
+              {t("common.done")}
+            </Text>
           </Pressable>
         </View>
         <View style={styles.themeList}>
@@ -335,7 +562,11 @@ export default function SettingsScreen() {
                   {lang.label}
                 </Text>
                 {isSelected && (
-                  <Ionicons name="checkmark-circle" size={22} color={colors.accent} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={22}
+                    color={colors.accent}
+                  />
                 )}
               </Pressable>
             );
@@ -346,17 +577,25 @@ export default function SettingsScreen() {
       {/* Delete account modal */}
       <GlassModal
         visible={deleteModalOpen}
-        onClose={() => { setDeleteModalOpen(false); setDeletePassword(""); }}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeletePassword("");
+        }}
       >
         <View style={styles.modalHeader}>
           <Text style={[styles.modalTitle, { color: colors.destructive }]}>
             {t("settings.deleteAccount")}
           </Text>
           <Pressable
-            onPress={() => { setDeleteModalOpen(false); setDeletePassword(""); }}
+            onPress={() => {
+              setDeleteModalOpen(false);
+              setDeletePassword("");
+            }}
             hitSlop={12}
           >
-            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.cancel")}</Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>
+              {t("common.cancel")}
+            </Text>
           </Pressable>
         </View>
         <View style={styles.deleteModalContent}>
@@ -364,7 +603,14 @@ export default function SettingsScreen() {
             {t("settings.deleteWarning")}
           </Text>
           <TextInput
-            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             placeholder={t("settings.passwordLabel")}
             placeholderTextColor={colors.textTertiary}
             value={deletePassword}
@@ -373,12 +619,20 @@ export default function SettingsScreen() {
             autoComplete="password"
           />
           <Pressable
-            style={[styles.deleteBtn, { backgroundColor: colors.destructive, opacity: deleteLoading ? 0.7 : 1 }]}
+            style={[
+              styles.deleteBtn,
+              {
+                backgroundColor: colors.destructive,
+                opacity: deleteLoading ? 0.7 : 1,
+              },
+            ]}
             onPress={handleDeleteAccount}
             disabled={deleteLoading}
           >
             <Text style={styles.deleteBtnText}>
-              {deleteLoading ? t("settings.deleting") : t("settings.deleteForever")}
+              {deleteLoading
+                ? t("settings.deleting")
+                : t("settings.deleteForever")}
             </Text>
           </Pressable>
         </View>
@@ -387,22 +641,41 @@ export default function SettingsScreen() {
       {/* Change password modal */}
       <GlassModal
         visible={pwModalOpen}
-        onClose={() => { setPwModalOpen(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
+        onClose={() => {
+          setPwModalOpen(false);
+          setCurrentPw("");
+          setNewPw("");
+          setConfirmPw("");
+        }}
       >
         <View style={styles.modalHeader}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
             {t("settings.changePassword")}
           </Text>
           <Pressable
-            onPress={() => { setPwModalOpen(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
+            onPress={() => {
+              setPwModalOpen(false);
+              setCurrentPw("");
+              setNewPw("");
+              setConfirmPw("");
+            }}
             hitSlop={12}
           >
-            <Text style={[styles.modalDone, { color: colors.accent }]}>{t("common.cancel")}</Text>
+            <Text style={[styles.modalDone, { color: colors.accent }]}>
+              {t("common.cancel")}
+            </Text>
           </Pressable>
         </View>
         <View style={styles.deleteModalContent}>
           <TextInput
-            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             placeholder={t("settings.currentPassword")}
             placeholderTextColor={colors.textTertiary}
             value={currentPw}
@@ -411,7 +684,14 @@ export default function SettingsScreen() {
             autoComplete="password"
           />
           <TextInput
-            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             placeholder={t("settings.newPassword")}
             placeholderTextColor={colors.textTertiary}
             value={newPw}
@@ -420,7 +700,14 @@ export default function SettingsScreen() {
             autoComplete="new-password"
           />
           <TextInput
-            style={[styles.deleteInput, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
+            style={[
+              styles.deleteInput,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.border,
+              },
+            ]}
             placeholder={t("settings.confirmNewPassword")}
             placeholderTextColor={colors.textTertiary}
             value={confirmPw}
@@ -429,24 +716,43 @@ export default function SettingsScreen() {
             autoComplete="new-password"
           />
           <Pressable
-            style={[styles.deleteBtn, { backgroundColor: colors.accent, opacity: pwLoading ? 0.7 : 1 }]}
+            style={[
+              styles.deleteBtn,
+              { backgroundColor: colors.accent, opacity: pwLoading ? 0.7 : 1 },
+            ]}
             onPress={handleChangePassword}
             disabled={pwLoading}
           >
             <Text style={styles.deleteBtnText}>
-              {pwLoading ? t("settings.changing") : t("settings.changePassword")}
+              {pwLoading
+                ? t("settings.changing")
+                : t("settings.changePassword")}
             </Text>
           </Pressable>
         </View>
       </GlassModal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: "700", marginBottom: 20 },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 20, paddingBottom: 120 },
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  headerInner: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 11,
+    paddingHorizontal: 16,
+  },
+  headerTitle: { fontSize: 24, fontWeight: "700" },
   sectionLabel: {
     fontSize: 13,
     fontWeight: "700",
