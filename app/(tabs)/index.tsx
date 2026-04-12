@@ -287,9 +287,9 @@ export default function ChartScreen() {
   }, [selectedDateMs, teethData, teethStatuses]);
 
   const sliderLabel = useMemo(() => {
-    if (!hasHistory || sliderIndex >= snapshotDates.length)
-      return t("common.now");
-    const d = new Date(snapshotDates[sliderIndex]);
+    const d = (!hasHistory || sliderIndex >= snapshotDates.length)
+      ? new Date()
+      : new Date(snapshotDates[sliderIndex]);
     return d.toLocaleDateString(i18n.language, {
       day: "2-digit",
       month: "short",

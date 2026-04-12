@@ -8,7 +8,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useAppTheme } from "../../src/theme";
 import { useDataSync } from "../../src/DataSyncProvider";
 import { loadData } from "../../src/store/teethStore";
-import { buildStatusMaps } from "../../src/types";
+import { buildStatusMaps, buildToothCategoryMaps, TOOTH_CATEGORY_LABELS } from "../../src/types";
 import type { ToothEvent, GlobalProcedure, StatusMaps } from "../../src/types";
 import { useTranslation } from "react-i18next";
 
@@ -72,14 +72,21 @@ export default function HistoryScreen() {
   const [month, setMonth] = useState(today.getMonth());
   const [allItems, setAllItems] = useState<HistoryItem[]>([]);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
+  const [toothCategoryMaps, setToothCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
 
   const refresh = useCallback(async () => {
     const appData = await loadData();
     setStatusMaps(buildStatusMaps(appData.customStatuses));
+    const localizedCategoryLabels = Object.fromEntries(
+      Object.keys(TOOTH_CATEGORY_LABELS).map((k) => [k, TOOTH_CATEGORY_LABELS[k]]),
+    );
+    setToothCategoryMaps(
+      buildToothCategoryMaps(appData.customToothCategories, localizedCategoryLabels),
+    );
     const items: HistoryItem[] = [];
     Object.values(appData.teeth).forEach((r) => {
       r.events
-        .filter((e) => !!e.title)
+        .filter((e) => !!e.category)
         .forEach((e) => items.push({ type: "tooth", data: e, toothId: r.toothId }));
     });
     appData.globalProcedures.forEach((p) =>
@@ -437,7 +444,9 @@ export default function HistoryScreen() {
           {recentItems.map((item) => {
             const isGlobal = item.type === "global";
             const data = item.data;
-            const title = data.title;
+            const title = isGlobal
+              ? (data as GlobalProcedure).title
+              : (toothCategoryMaps.labels[(data as ToothEvent).category!] ?? (data as ToothEvent).category ?? "");
             const time = new Date(data.date).toLocaleDateString("uk-UA", {
               day: "numeric",
               month: "short",

@@ -18,7 +18,9 @@ import {
   QUADRANT_LABELS,
   TOOTH_NAMES,
   GLOBAL_PROCEDURE_TYPES,
+  TOOTH_CATEGORY_LABELS,
   buildStatusMaps,
+  buildToothCategoryMaps,
 } from "../src/types";
 import type { ToothEvent, GlobalProcedure, StatusMaps } from "../src/types";
 
@@ -101,16 +103,23 @@ export default function HistoryListScreen() {
 
   const [allItems, setAllItems] = useState<HistoryItem[]>([]);
   const [statusMaps, setStatusMaps] = useState<StatusMaps>(buildStatusMaps());
+  const [toothCategoryMaps, setToothCategoryMaps] = useState<StatusMaps>(buildToothCategoryMaps());
   const [filterPreset, setFilterPreset] = useState<FilterPreset>(initialPreset);
   const [refDate, setRefDate] = useState(initialRef);
 
   const refresh = useCallback(async () => {
     const appData = await loadData();
     setStatusMaps(buildStatusMaps(appData.customStatuses));
+    const localizedCategoryLabels = Object.fromEntries(
+      Object.keys(TOOTH_CATEGORY_LABELS).map((k) => [k, TOOTH_CATEGORY_LABELS[k]]),
+    );
+    setToothCategoryMaps(
+      buildToothCategoryMaps(appData.customToothCategories, localizedCategoryLabels),
+    );
     const items: HistoryItem[] = [];
     Object.values(appData.teeth).forEach((r) => {
       r.events
-        .filter((e) => !!e.title)
+        .filter((e) => !!e.category)
         .forEach((e) => items.push({ type: "tooth", data: e, toothId: r.toothId }));
     });
     appData.globalProcedures.forEach((p) =>
@@ -191,16 +200,11 @@ export default function HistoryListScreen() {
             </View>
             <View style={styles.cardContent}>
               <Text style={[styles.cardTitle, { color: colors.text }]}>
-                {c.title}
+                {toothCategoryMaps.labels[c.category!] ?? c.category ?? ""}
               </Text>
               <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
                 {TOOTH_NAMES[n] ?? ""} · {QUADRANT_LABELS[q] ?? ""}
               </Text>
-              {c.category && (
-                <Text style={[styles.cardStatus, { color: colors.accent }]}>
-                  {statusMaps.labels[c.category] ?? c.category}
-                </Text>
-              )}
               {c.notes ? (
                 <Text
                   style={[styles.cardNotes, { color: colors.textSecondary }]}

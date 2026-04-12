@@ -37,7 +37,6 @@ export default function EditRecordScreen() {
   const toothId = params.toothId as ToothId;
   const changeId = params.changeId!;
 
-  const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<string>("checkup");
   const [date, setDate] = useState(new Date());
@@ -49,7 +48,6 @@ export default function EditRecordScreen() {
   const [loaded, setLoaded] = useState(false);
 
   const [initialVals, setInitialVals] = useState({
-    title: "",
     notes: "",
     status: "checkup",
     dateDay: "",
@@ -73,12 +71,10 @@ export default function EditRecordScreen() {
       const record = getToothRecord(data, toothId);
       const event = record.events.find((e) => e.id === changeId);
       if (event) {
-        setTitle(event.title ?? "");
         setNotes(event.notes ?? "");
         setStatus(event.category ?? "checkup");
         setDate(new Date(event.date));
         setInitialVals({
-          title: event.title ?? "",
           notes: event.notes ?? "",
           status: event.category ?? "checkup",
           dateDay: event.date.slice(0, 10),
@@ -94,13 +90,7 @@ export default function EditRecordScreen() {
   };
 
   const save = (): boolean => {
-    const titleStr = title.trim();
-    if (!titleStr) {
-      Alert.alert(t("common.error"), t("common.enterTitle"));
-      return false;
-    }
     updateToothEvent(toothId, changeId, {
-      title: titleStr,
       notes: notes.trim() || undefined,
       category: status,
       date: date.toISOString(),
@@ -113,9 +103,7 @@ export default function EditRecordScreen() {
   const isDirty =
     !saved &&
     loaded &&
-    title.trim().length > 0 &&
-    (title !== initialVals.title ||
-      notes !== initialVals.notes ||
+    (notes !== initialVals.notes ||
       status !== initialVals.status ||
       date.toISOString().slice(0, 10) !== initialVals.dateDay);
 
@@ -137,7 +125,8 @@ export default function EditRecordScreen() {
   });
 
   const handleDelete = () => {
-    Alert.alert(t("record.deleteTitle"), title, [
+    const label = categoryMaps.labels[status] ?? status;
+    Alert.alert(t("record.deleteTitle"), label, [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("common.delete"),
@@ -249,16 +238,6 @@ export default function EditRecordScreen() {
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
               {t("common.details")}
             </Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.inputBg, color: colors.text },
-              ]}
-              placeholder={t("record.titlePlaceholder")}
-              value={title}
-              onChangeText={setTitle}
-              placeholderTextColor={colors.textTertiary}
-            />
             <TextInput
               style={[
                 styles.input,

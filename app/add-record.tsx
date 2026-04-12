@@ -57,7 +57,7 @@ export default function AddRecordModal() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(""); // тільки для global
   const [notes, setNotes] = useState("");
   const [category, setCategory] = useState<string>("checkup");
   const [procedureType, setProcedureType] = useState<string>("checkup");
@@ -135,14 +135,8 @@ export default function AddRecordModal() {
         type: procedureType,
       }).catch(() => {});
     } else {
-      const titleStr = title.trim();
-      if (!titleStr) {
-        Alert.alert(t("common.error"), t("common.enterTitle"));
-        return false;
-      }
       addToothEvent(target as ToothId, {
         date: dateISO,
-        title: titleStr,
         notes: notes.trim() || undefined,
         category,
       }).catch(() => {});
@@ -156,7 +150,7 @@ export default function AddRecordModal() {
     !saved &&
     (isGeneral
       ? title.trim().length > 0 || notes.trim().length > 0
-      : title.trim().length > 0);
+      : notes.trim().length > 0);
 
   usePreventRemove(isDirty, () => {
     Alert.alert(t("record.unsavedTitle"), t("record.unsavedMessage"), [
@@ -286,20 +280,18 @@ export default function AddRecordModal() {
             <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
               {t("common.details")}
             </Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.inputBg, color: colors.text },
-              ]}
-              placeholder={
-                isGeneral
-                  ? t("record.titlePlaceholderGlobal")
-                  : t("record.titlePlaceholder")
-              }
-              value={title}
-              onChangeText={setTitle}
-              placeholderTextColor={colors.textTertiary}
-            />
+            {isGeneral && (
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.inputBg, color: colors.text },
+                ]}
+                placeholder={t("record.titlePlaceholderGlobal")}
+                value={title}
+                onChangeText={setTitle}
+                placeholderTextColor={colors.textTertiary}
+              />
+            )}
             <TextInput
               style={[
                 styles.input,
