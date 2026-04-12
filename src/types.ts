@@ -180,22 +180,22 @@ export const STATUS_LABELS: Record<string, string> = {
 
 export const STATUS_COLORS: Record<string, string> = {
   healthy: "rgba(76, 175, 80, 0.4)",
-  treatment: "rgba(255, 152, 0, 0.45)",
-  cavity: "rgba(244, 67, 54, 0.4)",
+  treatment: "rgba(229, 57, 53, 0.4)",
+  cavity: "rgba(93, 46, 12, 0.45)",
   filled: "rgba(33, 150, 243, 0.4)",
-  extracted: "rgba(28, 27, 27, 0.6)",
-  crown: "rgba(156, 39, 176, 0.4)",
-  other: "rgba(158, 158, 158, 0.3)",
+  extracted: "rgba(158, 158, 158, 0.35)",
+  crown: "rgba(200, 160, 0, 0.4)",
+  other: "rgba(96, 125, 139, 0.35)",
 };
 
 export const STATUS_BORDER_COLORS: Record<string, string> = {
   healthy: "#4CAF50",
-  treatment: "#FF9800",
-  cavity: "#F44336",
+  treatment: "#E53935",
+  cavity: "#5D2E0C",
   filled: "#2196F3",
-  extracted: "#000000",
-  crown: "#9C27B0",
-  other: "#9E9E9E",
+  extracted: "#9E9E9E",
+  crown: "#C8A000",
+  other: "#607D8B",
 };
 
 // ── Tooth record categories (ToothEvent.category) ────────────────────────────

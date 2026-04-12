@@ -51,9 +51,11 @@ function HistorySlider({
   const trackWidth = useRef(0);
   const [trackW, setTrackW] = useState(0);
   const indexRef = useRef(index);
+  const totalRef = useRef(total);
   const startIndex = useRef(index);
 
   indexRef.current = index;
+  totalRef.current = total;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -63,13 +65,14 @@ function HistorySlider({
         startIndex.current = indexRef.current;
       },
       onPanResponderMove: (_, { dx }) => {
+        const t = totalRef.current;
         const usable = trackWidth.current - THUMB_SIZE;
-        if (usable <= 0 || total <= 1) return;
+        if (usable <= 0 || t <= 1) return;
         const newI = Math.max(
           0,
           Math.min(
-            total - 1,
-            Math.round(startIndex.current + (dx / usable) * (total - 1)),
+            t - 1,
+            Math.round(startIndex.current + (dx / usable) * (t - 1)),
           ),
         );
         onChange(newI);
@@ -221,10 +224,14 @@ export default function ChartScreen() {
     });
     dates.sort((a, b) => a - b);
     const unique = [...new Set(dates)];
-    setSnapshotDates(unique);
-    setSliderIndex((prev) => {
-      if (prev === -1) return unique.length; // перший раз → "зараз"
-      return Math.min(prev, unique.length); // зберігаємо позицію, clamp якщо вийшли за межі
+    setSnapshotDates((prevDates) => {
+      setSliderIndex((prev) => {
+        const last = Math.max(0, unique.length - 1);
+        if (prev === -1) return last;
+        if (unique.length > prevDates.length) return last;
+        return Math.min(prev, last);
+      });
+      return unique;
     });
   }, [t]);
 
@@ -243,12 +250,12 @@ export default function ChartScreen() {
   }, [i18n.language]);
 
   const handleToothPress = (toothId: ToothId) => {
-    router.push(`/tooth/${toothId}`);
+    if (!canEdit) return;
+    setPopupTooth(toothId);
   };
 
   const handleToothLongPress = (toothId: ToothId) => {
-    if (!canEdit) return;
-    setPopupTooth(toothId);
+    router.push(`/tooth/${toothId}`);
   };
 
   const handleStatusSelect = async (status: ToothStatus) => {
@@ -264,10 +271,10 @@ export default function ChartScreen() {
   };
 
   const hasHistory = snapshotDates.length > 0;
-  const total = snapshotDates.length + 1; // N записів + "зараз"
+  const total = snapshotDates.length;
 
   const selectedDateMs =
-    sliderIndex >= 0 && sliderIndex < snapshotDates.length
+    hasHistory && sliderIndex >= 0 && sliderIndex < snapshotDates.length
       ? snapshotDates[sliderIndex]
       : null;
 
@@ -287,9 +294,9 @@ export default function ChartScreen() {
   }, [selectedDateMs, teethData, teethStatuses]);
 
   const sliderLabel = useMemo(() => {
-    const d = (!hasHistory || sliderIndex >= snapshotDates.length)
-      ? new Date()
-      : new Date(snapshotDates[sliderIndex]);
+    const d = (hasHistory && sliderIndex >= 0 && sliderIndex < snapshotDates.length)
+      ? new Date(snapshotDates[sliderIndex])
+      : new Date();
     return d.toLocaleDateString(i18n.language, {
       day: "2-digit",
       month: "short",

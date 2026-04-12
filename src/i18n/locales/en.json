@@ -29,8 +29,8 @@
     "hideStatuses": "Hide statuses",
     "sideLeft": "Left",
     "sideRight": "Right",
-    "hintTap": "Tap a tooth to open its details and records",
-    "hintLongPress": "Long press a tooth to quickly change its status"
+    "hintTap": "Tap a tooth to quickly change its status",
+    "hintLongPress": "Long press a tooth to open its details and records"
   },
   "tooth": {
     "title": "Tooth {{id}}",
