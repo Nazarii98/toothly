@@ -99,7 +99,6 @@ function toSnakeTooth(r: ToothRecord): Record<string, any> {
     tooth_id: r.toothId,
     changes: r.changes.map(toSnakeChange),
   };
-  if (r.currentStatus !== undefined) out.current_status = r.currentStatus;
   if (r.lastUpdated !== undefined) out.last_updated = r.lastUpdated;
   if (r.statusHistory?.length) out.status_history = r.statusHistory.map(toSnakeStatusHistory);
   return out;
@@ -108,7 +107,6 @@ function toSnakeTooth(r: ToothRecord): Record<string, any> {
 function fromSnakeTooth(raw: any): ToothRecord {
   return {
     toothId: raw.tooth_id ?? raw.toothId,
-    currentStatus: raw.current_status ?? raw.currentStatus,
     lastUpdated: raw.last_updated ?? raw.lastUpdated,
     changes: (raw.changes ?? []).map(fromSnakeChange),
     statusHistory: (raw.status_history ?? raw.statusHistory ?? []).map(fromSnakeStatusHistory),

@@ -23,7 +23,6 @@ export interface StatusHistoryEntry {
 
 export interface ToothRecord {
   toothId: ToothId;
-  currentStatus?: ToothStatus;
   statusHistory?: StatusHistoryEntry[];
   changes: ToothChange[];
   lastUpdated?: string;
@@ -81,7 +80,7 @@ export interface StatusMaps {
   options: [string, string][];
 }
 
-/** Tooth status maps (for ToothRecord.currentStatus) */
+/** Tooth status maps */
 export function buildStatusMaps(
   customStatuses: CustomStatus[] = [],
   localizedLabels?: Record<string, string>,
@@ -162,7 +161,7 @@ export const TOOTH_NAMES: Record<string, string> = {
   "8": "Третій моляр (зуб мудрості)",
 };
 
-// ── Tooth statuses (ToothRecord.currentStatus) ──────────────────────────────
+// ── Tooth statuses ──────────────────────────────────────────────────────────
 
 export const STATUS_LABELS: Record<string, string> = {
   healthy: "Здоровий",

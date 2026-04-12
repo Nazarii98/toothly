@@ -261,116 +261,120 @@ export default function ToothDetailScreen() {
               manageLabel={t("tooth.manageStatuses")}
               showEmpty={false}
             />
-          </View>
 
-          {(record?.statusHistory?.length ?? 0) > 0 && (
-            <View
-              style={[
-                styles.statusCard,
-                { backgroundColor: colors.card, shadowColor: colors.shadow },
-              ]}
-            >
-              <Text
-                style={[styles.sectionLabel, { color: colors.textTertiary }]}
-              >
-                {t("tooth.statusHistory")}
-              </Text>
-              {record!.statusHistory!.map((entry, index) => {
-                const canDelete =
-                  role === "owner" || entry.changedBy === user?.uid;
-                const isLast = index === record!.statusHistory!.length - 1;
-                return (
-                  <View key={entry.id}>
-                    <View style={styles.historyEntry}>
-                      {/* Left: dot + status + email */}
-                      <View style={styles.historyLeft}>
-                        <View style={styles.historyTopRow}>
-                          <View
-                            style={[
-                              styles.historyDot,
-                              {
-                                backgroundColor:
-                                  statusMaps.borderColors[entry.status] ??
-                                  "#999",
-                              },
-                            ]}
-                          />
-                          <Text
-                            style={[
-                              styles.historyStatus,
-                              { color: colors.text },
-                            ]}
-                          >
-                            {statusMaps.labels[entry.status] ?? entry.status}
-                          </Text>
-                        </View>
-                        {entry.changedByEmail &&
-                          entry.changedByEmail !== user?.email && (
-                            <Text
+            {(record?.statusHistory?.length ?? 0) > 0 && (
+              <>
+                <View
+                  style={[
+                    styles.statusSectionDivider,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.sectionLabel,
+                    { color: colors.textTertiary, marginBottom: 4 },
+                  ]}
+                >
+                  {t("tooth.statusHistory")}
+                </Text>
+                {record!.statusHistory!.map((entry, index) => {
+                  const canDelete =
+                    role === "owner" || entry.changedBy === user?.uid;
+                  const isLast = index === record!.statusHistory!.length - 1;
+                  return (
+                    <View key={entry.id}>
+                      <View style={styles.historyEntry}>
+                        {/* Left: dot + status + email */}
+                        <View style={styles.historyLeft}>
+                          <View style={styles.historyTopRow}>
+                            <View
                               style={[
-                                styles.historyMeta,
-                                { color: colors.textTertiary },
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {entry.changedByEmail}
-                            </Text>
-                          )}
-                      </View>
-                      {/* Right: date picker + edit + delete */}
-                      <View style={styles.historyRight}>
-                        {canDelete && Platform.OS === "ios" ? (
-                          <DateTimePicker
-                            value={new Date(entry.date)}
-                            mode="date"
-                            display="compact"
-                            maximumDate={new Date()}
-                            onChange={(_: DateTimePickerEvent, d?: Date) => {
-                              if (d) handleUpdateEntryDate(entry, d);
-                            }}
-                            locale={i18n.language}
-                            accentColor={colors.accent}
-                            textColor={colors.text}
-                            themeVariant={colors.isDark ? "dark" : "light"}
-                          />
-                        ) : (
-                          <Pressable
-                            onPress={
-                              canDelete
-                                ? () => setAndroidDateEntry(entry)
-                                : undefined
-                            }
-                            hitSlop={4}
-                          >
-                            <Text
-                              style={[
-                                styles.historyMeta,
-                                { color: colors.textTertiary },
-                              ]}
-                            >
-                              {new Date(entry.date).toLocaleDateString(
-                                "uk-UA",
+                                styles.historyDot,
                                 {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
+                                  backgroundColor:
+                                    statusMaps.borderColors[entry.status] ??
+                                    "#999",
                                 },
-                              )}
-                            </Text>
-                          </Pressable>
-                        )}
-                        {canDelete && (
-                          <>
-                            <Pressable
-                              onPress={() => setStatusEditEntry(entry)}
-                              hitSlop={8}
+                              ]}
+                            />
+                            <Text
+                              style={[
+                                styles.historyStatus,
+                                { color: colors.text },
+                              ]}
                             >
-                              <Ionicons
-                                name="pencil-outline"
-                                size={16}
-                                color={colors.accent}
-                              />
+                              {statusMaps.labels[entry.status] ?? entry.status}
+                            </Text>
+                            {canDelete && (
+                              <Pressable
+                                onPress={() => setStatusEditEntry(entry)}
+                                hitSlop={8}
+                              >
+                                <Ionicons
+                                  name="pencil-outline"
+                                  size={14}
+                                  color={colors.accent}
+                                />
+                              </Pressable>
+                            )}
+                          </View>
+                          {entry.changedByEmail &&
+                            entry.changedByEmail !== user?.email && (
+                              <Text
+                                style={[
+                                  styles.historyMeta,
+                                  { color: colors.textTertiary },
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {entry.changedByEmail}
+                              </Text>
+                            )}
+                        </View>
+                        {/* Right: date picker + edit + delete */}
+                        <View style={styles.historyRight}>
+                          {canDelete && Platform.OS === "ios" ? (
+                            <DateTimePicker
+                              value={new Date(entry.date)}
+                              mode="date"
+                              display="compact"
+                              maximumDate={new Date()}
+                              onChange={(_: DateTimePickerEvent, d?: Date) => {
+                                if (d) handleUpdateEntryDate(entry, d);
+                              }}
+                              locale={i18n.language}
+                              accentColor={colors.accent}
+                              textColor={colors.text}
+                              themeVariant={colors.isDark ? "dark" : "light"}
+                            />
+                          ) : (
+                            <Pressable
+                              onPress={
+                                canDelete
+                                  ? () => setAndroidDateEntry(entry)
+                                  : undefined
+                              }
+                              hitSlop={4}
+                            >
+                              <Text
+                                style={[
+                                  styles.historyMeta,
+                                  { color: colors.textTertiary },
+                                ]}
+                              >
+                                {new Date(entry.date).toLocaleDateString(
+                                  "uk-UA",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  },
+                                )}
+                              </Text>
                             </Pressable>
+                          )}
+                          {canDelete && (
                             <Pressable
                               onPress={() => handleDeleteHistoryEntry(entry)}
                               hitSlop={8}
@@ -381,36 +385,36 @@ export default function ToothDetailScreen() {
                                 color={colors.destructive}
                               />
                             </Pressable>
-                          </>
-                        )}
+                          )}
+                        </View>
                       </View>
+                      {!isLast && (
+                        <View style={styles.historyConnector}>
+                          <View
+                            style={[
+                              styles.historyLine,
+                              { backgroundColor: colors.border },
+                            ]}
+                          />
+                          <Ionicons
+                            name="chevron-up"
+                            size={14}
+                            color={colors.textTertiary}
+                          />
+                          <View
+                            style={[
+                              styles.historyLine,
+                              { backgroundColor: colors.border },
+                            ]}
+                          />
+                        </View>
+                      )}
                     </View>
-                    {!isLast && (
-                      <View style={styles.historyConnector}>
-                        <View
-                          style={[
-                            styles.historyLine,
-                            { backgroundColor: colors.border },
-                          ]}
-                        />
-                        <Ionicons
-                          name="chevron-up"
-                          size={14}
-                          color={colors.textTertiary}
-                        />
-                        <View
-                          style={[
-                            styles.historyLine,
-                            { backgroundColor: colors.border },
-                          ]}
-                        />
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          )}
+                  );
+                })}
+              </>
+            )}
+          </View>
 
           <View style={styles.historySection}>
             <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
@@ -642,6 +646,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 12,
+  },
+  statusSectionDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 16,
   },
   historySection: {},
   emptyState: {

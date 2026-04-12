@@ -55,7 +55,10 @@ export default function LoginScreen() {
     }
     try {
       await resetPassword(trimmed);
-      Alert.alert(t("common.done"), t("login.recoveryEmailSent", { email: trimmed }));
+      Alert.alert(
+        t("common.done"),
+        t("login.recoveryEmailSent", { email: trimmed }),
+      );
     } catch (e: any) {
       const msg = firebaseErrorMessage(e.code, t);
       Alert.alert(t("common.error"), msg);
@@ -74,18 +77,32 @@ export default function LoginScreen() {
         ]}
       >
         <View style={styles.header}>
-          <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
+          <View
+            style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}
+          >
             <Ionicons name="medical" size={36} color={colors.accent} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>{t("login.title")}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {t("login.title")}
+          </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {t("login.loginSubtitle")}
           </Text>
         </View>
 
         <View style={styles.form}>
-          <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Ionicons name="mail-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
+          <View
+            style={[
+              styles.inputWrap,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color={colors.textTertiary}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder={t("login.emailPlaceholder")}
@@ -99,8 +116,18 @@ export default function LoginScreen() {
             />
           </View>
 
-          <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
+          <View
+            style={[
+              styles.inputWrap,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color={colors.textTertiary}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder={t("login.passwordPlaceholder")}
@@ -119,21 +146,30 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
-          <Pressable onPress={handleForgotPassword} hitSlop={8} style={styles.forgotBtn}>
+          <Pressable
+            onPress={handleForgotPassword}
+            hitSlop={8}
+            style={styles.forgotBtn}
+          >
             <Text style={[styles.forgotText, { color: colors.accent }]}>
               {t("login.forgotPassword")}
             </Text>
           </Pressable>
 
           <Pressable
-            style={[styles.primaryBtn, { backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 }]}
+            style={[
+              styles.primaryBtn,
+              { backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 },
+            ]}
             onPress={handleLogin}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={[styles.primaryBtnText, { color: colors.white }]}>{t("login.signIn")}</Text>
+              <Text style={[styles.primaryBtnText, { color: colors.white }]}>
+                {t("login.signIn")}
+              </Text>
             )}
           </Pressable>
         </View>
@@ -150,12 +186,28 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.legalRow}>
-          <Pressable onPress={() => Linking.openURL("https://toothly.arche.technology/privacy")} hitSlop={8}>
-            <Text style={[styles.legalLink, { color: colors.textTertiary }]}>{t("legal.privacyPolicy")}</Text>
+          <Pressable
+            onPress={() =>
+              Linking.openURL("https://toothly.arche.technology/privacy")
+            }
+            hitSlop={8}
+          >
+            <Text style={[styles.legalLink, { color: colors.textTertiary }]}>
+              {t("legal.privacyPolicy")}
+            </Text>
           </Pressable>
-          <Text style={[styles.legalDot, { color: colors.textTertiary }]}>·</Text>
-          <Pressable onPress={() => Linking.openURL("https://toothly.arche.technology/terms")} hitSlop={8}>
-            <Text style={[styles.legalLink, { color: colors.textTertiary }]}>{t("legal.termsOfService")}</Text>
+          <Text style={[styles.legalDot, { color: colors.textTertiary }]}>
+            ·
+          </Text>
+          <Pressable
+            onPress={() =>
+              Linking.openURL("https://toothly.arche.technology/terms")
+            }
+            hitSlop={8}
+          >
+            <Text style={[styles.legalLink, { color: colors.textTertiary }]}>
+              {t("legal.termsOfService")}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -163,15 +215,25 @@ export default function LoginScreen() {
   );
 }
 
-function firebaseErrorMessage(code: string, t: (key: string) => string): string {
+function firebaseErrorMessage(
+  code: string,
+  t: (key: string) => string,
+): string {
   switch (code) {
-    case "auth/invalid-email": return t("errors.invalidEmail");
-    case "auth/user-not-found": return t("errors.userNotFound");
-    case "auth/wrong-password": return t("errors.wrongPassword");
-    case "auth/invalid-credential": return t("errors.invalidCredential");
-    case "auth/too-many-requests": return t("errors.tooManyRequests");
-    case "auth/network-request-failed": return t("errors.networkError");
-    default: return t("errors.unknown");
+    case "auth/invalid-email":
+      return t("errors.invalidEmail");
+    case "auth/user-not-found":
+      return t("errors.userNotFound");
+    case "auth/wrong-password":
+      return t("errors.wrongPassword");
+    case "auth/invalid-credential":
+      return t("errors.invalidCredential");
+    case "auth/too-many-requests":
+      return t("errors.tooManyRequests");
+    case "auth/network-request-failed":
+      return t("errors.networkError");
+    default:
+      return t("errors.unknown");
   }
 }
 

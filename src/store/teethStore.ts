@@ -160,7 +160,6 @@ export async function setToothStatus(
   };
   data.teeth[toothId] = {
     ...old,
-    currentStatus: status,
     statusHistory: [entry, ...(old.statusHistory ?? [])],
     lastUpdated: new Date().toISOString(),
   };
@@ -181,8 +180,6 @@ export async function updateStatusHistoryEntry(
   // re-sort by date descending
   history.sort((a, b) => b.date.localeCompare(a.date));
   record.statusHistory = history;
-  // update currentStatus to the most recent entry's status
-  if (history.length > 0) record.currentStatus = history[0].status;
   data.teeth[toothId] = record;
   await saveData(data);
 }
@@ -195,7 +192,6 @@ export async function deleteStatusHistoryEntry(
   const record = getToothRecord(data, toothId);
   const remaining = (record.statusHistory ?? []).filter((e) => e.id !== entryId);
   record.statusHistory = remaining;
-  record.currentStatus = remaining[0]?.status;
   data.teeth[toothId] = record;
   await saveData(data);
 }
