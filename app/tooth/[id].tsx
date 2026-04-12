@@ -297,35 +297,75 @@ export default function ToothDetailScreen() {
                           <View style={styles.eventTopRow}>
                             <View style={styles.eventTitleBlock}>
                               {isStatusOnly ? (
-                                <View style={styles.eventStatusRow}>
-                                  <Text
-                                    style={[
-                                      styles.eventStatusLabel,
-                                      { color: colors.text },
-                                    ]}
-                                  >
-                                    {statusMaps.labels[event.statusAfter!] ??
-                                      event.statusAfter}
-                                  </Text>
-                                  {canDelete && (
-                                    <Pressable
-                                      onPress={() => setStatusEditEvent(event)}
-                                      hitSlop={8}
+                                <Pressable
+                                  onPress={
+                                    canEdit
+                                      ? () => setStatusEditEvent(event)
+                                      : undefined
+                                  }
+                                  disabled={!canEdit}
+                                  style={({ pressed }) =>
+                                    pressed && { opacity: 0.6 }
+                                  }
+                                >
+                                  <View style={styles.eventStatusCol}>
+                                    <Text
+                                      style={[
+                                        styles.eventStatusMeta,
+                                        { color: colors.textTertiary },
+                                      ]}
                                     >
-                                      <Ionicons
-                                        name="pencil-outline"
-                                        size={13}
-                                        color={colors.accent}
+                                      {t("tooth.statusChanged")}
+                                    </Text>
+                                    <View
+                                      style={[
+                                        styles.eventStatusBadge,
+                                        {
+                                          backgroundColor:
+                                            (statusMaps.borderColors[
+                                              event.statusAfter!
+                                            ] ?? "#999") + "25",
+                                        },
+                                      ]}
+                                    >
+                                      <View
+                                        style={[
+                                          styles.eventStatusBadgeDot,
+                                          {
+                                            backgroundColor:
+                                              statusMaps.borderColors[
+                                                event.statusAfter!
+                                              ] ?? "#999",
+                                          },
+                                        ]}
                                       />
-                                    </Pressable>
-                                  )}
-                                </View>
+                                      <Text
+                                        style={[
+                                          styles.eventStatusBadgeText,
+                                          {
+                                            color:
+                                              statusMaps.borderColors[
+                                                event.statusAfter!
+                                              ] ?? "#999",
+                                          },
+                                        ]}
+                                      >
+                                        {statusMaps.labels[
+                                          event.statusAfter!
+                                        ] ?? event.statusAfter}
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </Pressable>
                               ) : (
                                 <Pressable
                                   onPress={
                                     canEdit ? () => openEdit(event) : undefined
                                   }
                                   disabled={!canEdit}
+                                  style={({ pressed }) =>
+                                    pressed && { opacity: 0.6 }
+                                  }
                                 >
                                   <View style={styles.eventTitleRow}>
                                     {/* Категорія запису */}
@@ -411,6 +451,18 @@ export default function ToothDetailScreen() {
                                       </View>
                                     )}
                                   </View>
+                                  {/* Нотатки всередині Pressable */}
+                                  {event.notes ? (
+                                    <Text
+                                      style={[
+                                        styles.eventNotes,
+                                        { color: colors.textSecondary },
+                                      ]}
+                                      numberOfLines={2}
+                                    >
+                                      {event.notes}
+                                    </Text>
+                                  ) : null}
                                 </Pressable>
                               )}
                             </View>
@@ -476,19 +528,6 @@ export default function ToothDetailScreen() {
                               )}
                             </View>
                           </View>
-
-                          {/* Нотатки */}
-                          {event.notes ? (
-                            <Text
-                              style={[
-                                styles.eventNotes,
-                                { color: colors.textSecondary },
-                              ]}
-                              numberOfLines={2}
-                            >
-                              {event.notes}
-                            </Text>
-                          ) : null}
 
                           {/* Email автора (для спільних профілів) */}
                           {event.changedByEmail &&
@@ -711,10 +750,14 @@ const styles = StyleSheet.create({
   eventTitleBlock: {
     flex: 1,
   },
-  eventStatusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  eventStatusCol: {
+    gap: 3,
+  },
+  eventStatusMeta: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
   eventStatusLabel: {
     fontSize: 14,
@@ -743,7 +786,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   eventStatusBadgeText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "600",
   },
   eventActions: {

@@ -38,6 +38,7 @@
     "noStatus": "Не встановлено",
     "statusHistory": "Історія статусів",
     "changesHistory": "Історія змін",
+    "statusChanged": "Зміна статусу",
     "noRecords": "Ще немає записів",
     "noRecordsHint": "Додайте перший запис про лікування або огляд",
     "addRecord": "Додати запис",

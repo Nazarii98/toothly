@@ -38,6 +38,7 @@
     "noStatus": "Not set",
     "statusHistory": "Status history",
     "changesHistory": "Changes history",
+    "statusChanged": "Status change",
     "noRecords": "No records yet",
     "noRecordsHint": "Add your first treatment or examination record",
     "addRecord": "Add record",

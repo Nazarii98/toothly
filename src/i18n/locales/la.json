@@ -38,6 +38,7 @@
     "noStatus": "Non definitum",
     "statusHistory": "Historia statusuum",
     "changesHistory": "Historia mutationum",
+    "statusChanged": "Mutatio status",
     "noRecords": "Acta nulla adhuc",
     "noRecordsHint": "Adde primum actum de curatione vel inspectione",
     "addRecord": "Addere actum",
