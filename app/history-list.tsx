@@ -20,10 +20,10 @@ import {
   GLOBAL_PROCEDURE_TYPES,
   buildStatusMaps,
 } from "../src/types";
-import type { ToothChange, GlobalProcedure, StatusMaps } from "../src/types";
+import type { ToothEvent, GlobalProcedure, StatusMaps } from "../src/types";
 
 type HistoryItem =
-  | { type: "tooth"; data: ToothChange }
+  | { type: "tooth"; data: ToothEvent; toothId: string }
   | { type: "global"; data: GlobalProcedure };
 
 type FilterPreset = "month" | "year" | "all";
@@ -109,7 +109,9 @@ export default function HistoryListScreen() {
     setStatusMaps(buildStatusMaps(appData.customStatuses));
     const items: HistoryItem[] = [];
     Object.values(appData.teeth).forEach((r) => {
-      r.changes.forEach((c) => items.push({ type: "tooth", data: c }));
+      r.events
+        .filter((e) => !!e.title)
+        .forEach((e) => items.push({ type: "tooth", data: e, toothId: r.toothId }));
     });
     appData.globalProcedures.forEach((p) =>
       items.push({ type: "global", data: p }),
@@ -170,20 +172,21 @@ export default function HistoryListScreen() {
   const renderItem = ({ item }: { item: HistoryItem }) => {
     if (item.type === "tooth") {
       const c = item.data;
-      const q = c.toothId[0];
-      const t = c.toothId[1];
+      const tid = item.toothId;
+      const q = tid[0];
+      const n = tid[1];
       return (
         <Pressable
           style={[
             styles.card,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
-          onPress={() => router.push(`/edit-record?toothId=${c.toothId}&changeId=${c.id}`)}
+          onPress={() => router.push(`/edit-record?toothId=${tid}&changeId=${c.id}`)}
         >
           <View style={styles.cardRow}>
             <View style={[styles.badge, { backgroundColor: colors.accent }]}>
               <Text style={[styles.badgeText, { color: colors.white }]}>
-                {c.toothId}
+                {tid}
               </Text>
             </View>
             <View style={styles.cardContent}>
@@ -191,11 +194,11 @@ export default function HistoryListScreen() {
                 {c.title}
               </Text>
               <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
-                {TOOTH_NAMES[t] ?? ""} · {QUADRANT_LABELS[q] ?? ""}
+                {TOOTH_NAMES[n] ?? ""} · {QUADRANT_LABELS[q] ?? ""}
               </Text>
-              {c.status && (
+              {c.category && (
                 <Text style={[styles.cardStatus, { color: colors.accent }]}>
-                  {statusMaps.labels[c.status] ?? c.status}
+                  {statusMaps.labels[c.category] ?? c.category}
                 </Text>
               )}
               {c.notes ? (

@@ -3,34 +3,18 @@ import { getProfileData, saveProfileData } from "./firestoreService";
 import type {
   AppData,
   ToothId,
-  ToothChange,
+  ToothEvent,
   ToothRecord,
   ToothStatus,
   GlobalProcedure,
   CustomStatus,
   CustomCategory,
-  StatusHistoryEntry,
 } from "../types";
-import { ALL_TOOTH_IDS } from "../types";
 
 const defaultToothRecord = (toothId: ToothId): ToothRecord => ({
   toothId,
-  changes: [],
+  events: [],
 });
-
-function getDefaultData(): AppData {
-  const teeth: Record<ToothId, ToothRecord> = {};
-  ALL_TOOTH_IDS.forEach((id) => {
-    teeth[id] = defaultToothRecord(id);
-  });
-  return {
-    teeth,
-    globalProcedures: [],
-    customStatuses: [],
-    customToothCategories: [],
-    customGlobalCategories: [],
-  };
-}
 
 let cached: { profileId: string; data: AppData } | null = null;
 
@@ -71,47 +55,70 @@ export function getToothRecord(data: AppData, toothId: ToothId): ToothRecord {
   return data.teeth[toothId] ?? defaultToothRecord(toothId);
 }
 
-export async function addToothChange(
+// ── Events ────────────────────────────────────────────────────────────────────
+
+export async function addToothEvent(
   toothId: ToothId,
-  change: Omit<ToothChange, "id" | "toothId">,
+  event: Omit<ToothEvent, "id">,
 ): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
-  const entry: ToothChange = {
-    ...change,
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    toothId,
+  const entry: ToothEvent = {
+    ...event,
+    id: `ev-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   };
-  record.changes = [entry, ...record.changes];
+  record.events = [entry, ...record.events].sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
   record.lastUpdated = new Date().toISOString();
   data.teeth[toothId] = record;
   await saveData(data);
 }
 
-export async function updateToothChange(
+export async function updateToothEvent(
   toothId: ToothId,
-  changeId: string,
-  updates: Partial<Omit<ToothChange, "id" | "toothId">>,
+  eventId: string,
+  updates: Partial<Omit<ToothEvent, "id">>,
 ): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
-  const idx = record.changes.findIndex((c) => c.id === changeId);
+  const idx = record.events.findIndex((e) => e.id === eventId);
   if (idx === -1) return;
-  record.changes[idx] = { ...record.changes[idx], ...updates };
+  record.events[idx] = { ...record.events[idx], ...updates };
+  record.events.sort((a, b) => b.date.localeCompare(a.date));
   record.lastUpdated = new Date().toISOString();
+  data.teeth[toothId] = record;
   await saveData(data);
 }
 
-export async function deleteToothChange(
+export async function deleteToothEvent(
   toothId: ToothId,
-  changeId: string,
+  eventId: string,
 ): Promise<void> {
   const data = await loadData();
   const record = getToothRecord(data, toothId);
-  record.changes = record.changes.filter((c) => c.id !== changeId);
-  record.lastUpdated = record.changes[0]?.date ?? undefined;
+  record.events = record.events.filter((e) => e.id !== eventId);
+  record.lastUpdated = new Date().toISOString();
+  data.teeth[toothId] = record;
   await saveData(data);
 }
+
+// Convenience: quick status change from home screen (no title/notes)
+export async function setToothStatus(
+  toothId: ToothId,
+  status: ToothStatus,
+  changedBy: string,
+  changedByEmail: string,
+): Promise<void> {
+  await addToothEvent(toothId, {
+    date: new Date().toISOString(),
+    statusAfter: status,
+    changedBy,
+    changedByEmail,
+  });
+}
+
+// ── Global procedures ─────────────────────────────────────────────────────────
 
 export async function addGlobalProcedure(
   procedure: Omit<GlobalProcedure, "id">,
@@ -143,63 +150,12 @@ export async function deleteGlobalProcedure(id: string): Promise<void> {
   await saveData(data);
 }
 
-export async function setToothStatus(
-  toothId: ToothId,
-  status: ToothStatus,
-  changedBy: string,
-  changedByEmail: string,
-): Promise<void> {
-  const data = await loadData();
-  const old = getToothRecord(data, toothId);
-  const entry: StatusHistoryEntry = {
-    id: `sh-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    status,
-    date: new Date().toISOString(),
-    changedBy,
-    changedByEmail,
-  };
-  data.teeth[toothId] = {
-    ...old,
-    statusHistory: [entry, ...(old.statusHistory ?? [])],
-    lastUpdated: new Date().toISOString(),
-  };
-  await saveData(data);
-}
-
-export async function updateStatusHistoryEntry(
-  toothId: ToothId,
-  entryId: string,
-  updates: { status?: string; date?: string },
-): Promise<void> {
-  const data = await loadData();
-  const record = getToothRecord(data, toothId);
-  const history = record.statusHistory ?? [];
-  const idx = history.findIndex((e) => e.id === entryId);
-  if (idx === -1) return;
-  history[idx] = { ...history[idx], ...updates };
-  // re-sort by date descending
-  history.sort((a, b) => b.date.localeCompare(a.date));
-  record.statusHistory = history;
-  data.teeth[toothId] = record;
-  await saveData(data);
-}
-
-export async function deleteStatusHistoryEntry(
-  toothId: ToothId,
-  entryId: string,
-): Promise<void> {
-  const data = await loadData();
-  const record = getToothRecord(data, toothId);
-  const remaining = (record.statusHistory ?? []).filter((e) => e.id !== entryId);
-  record.statusHistory = remaining;
-  data.teeth[toothId] = record;
-  await saveData(data);
-}
-
 export async function getCachedData(): Promise<AppData | null> {
   if (cached) return cached.data;
   return loadData();
 }
+
+// ── Custom statuses & categories ──────────────────────────────────────────────
 
 export async function addCustomStatus(
   status: Omit<CustomStatus, "id">,

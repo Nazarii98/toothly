@@ -28,7 +28,9 @@
     "showStatuses": "Ostende status",
     "hideStatuses": "Absconde status",
     "sideLeft": "Sinistra",
-    "sideRight": "Dextra"
+    "sideRight": "Dextra",
+    "hintTap": "Tange dentem ad detalia et acta aperienda",
+    "hintLongPress": "Tange diu dentem ad statum mutandum"
   },
   "tooth": {
     "title": "Dens {{id}}",

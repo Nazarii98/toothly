@@ -17,10 +17,9 @@ import { db } from "../firebase";
 import type {
   AppData,
   ToothRecord,
-  ToothChange,
+  ToothEvent,
   GlobalProcedure,
   CustomStatus,
-  StatusHistoryEntry,
 } from "../types";
 import { ALL_TOOTH_IDS } from "../types";
 import type { ToothId } from "../types";
@@ -49,67 +48,91 @@ export interface ProfileWithRole extends ProfileMeta {
 
 // --------------- Snake_case converters ---------------
 
-function toSnakeChange(c: ToothChange): Record<string, any> {
-  const out: Record<string, any> = {
-    id: c.id,
-    tooth_id: c.toothId,
-    date: c.date,
-    title: c.title,
-  };
-  if (c.notes !== undefined) out.notes = c.notes;
-  if (c.imageUri !== undefined) out.image_uri = c.imageUri;
-  if (c.status !== undefined) out.status = c.status;
+function toSnakeEvent(e: ToothEvent): Record<string, any> {
+  const out: Record<string, any> = { id: e.id, date: e.date };
+  if (e.statusAfter !== undefined) out.status_after = e.statusAfter;
+  if (e.changedBy !== undefined) out.changed_by = e.changedBy;
+  if (e.changedByEmail !== undefined) out.changed_by_email = e.changedByEmail;
+  if (e.title !== undefined) out.title = e.title;
+  if (e.notes !== undefined) out.notes = e.notes;
+  if (e.imageUri !== undefined) out.image_uri = e.imageUri;
+  if (e.category !== undefined) out.category = e.category;
   return out;
 }
 
-function fromSnakeChange(raw: any): ToothChange {
-  return {
-    id: raw.id,
-    toothId: raw.tooth_id ?? raw.toothId,
-    date: raw.date,
-    title: raw.title,
-    notes: raw.notes,
-    imageUri: raw.image_uri ?? raw.imageUri,
-    status: raw.status,
-  };
-}
-
-function toSnakeStatusHistory(e: StatusHistoryEntry): Record<string, any> {
-  return {
-    id: e.id,
-    status: e.status,
-    date: e.date,
-    changed_by: e.changedBy,
-    changed_by_email: e.changedByEmail,
-  };
-}
-
-function fromSnakeStatusHistory(raw: any): StatusHistoryEntry {
-  return {
-    id: raw.id,
-    status: raw.status,
-    date: raw.date,
-    changedBy: raw.changed_by ?? raw.changedBy,
-    changedByEmail: raw.changed_by_email ?? raw.changedByEmail ?? "",
-  };
+function fromSnakeEvent(raw: any): ToothEvent {
+  const e: ToothEvent = { id: raw.id, date: raw.date };
+  if (raw.status_after ?? raw.statusAfter)
+    e.statusAfter = raw.status_after ?? raw.statusAfter;
+  if (raw.changed_by ?? raw.changedBy)
+    e.changedBy = raw.changed_by ?? raw.changedBy;
+  if (raw.changed_by_email ?? raw.changedByEmail)
+    e.changedByEmail = raw.changed_by_email ?? raw.changedByEmail;
+  if (raw.title) e.title = raw.title;
+  if (raw.notes) e.notes = raw.notes;
+  if (raw.image_uri ?? raw.imageUri) e.imageUri = raw.image_uri ?? raw.imageUri;
+  if (raw.category) e.category = raw.category;
+  return e;
 }
 
 function toSnakeTooth(r: ToothRecord): Record<string, any> {
   const out: Record<string, any> = {
     tooth_id: r.toothId,
-    changes: r.changes.map(toSnakeChange),
+    events: r.events.map(toSnakeEvent),
   };
   if (r.lastUpdated !== undefined) out.last_updated = r.lastUpdated;
-  if (r.statusHistory?.length) out.status_history = r.statusHistory.map(toSnakeStatusHistory);
   return out;
 }
 
+/**
+ * Reads a tooth record from Firestore.
+ * Supports both the new `events` format and the legacy `changes` + `status_history` format,
+ * merging old data into a unified events list on the fly.
+ */
 function fromSnakeTooth(raw: any): ToothRecord {
+  const toothId: ToothId = raw.tooth_id ?? raw.toothId;
+
+  // New format
+  if (Array.isArray(raw.events)) {
+    return {
+      toothId,
+      lastUpdated: raw.last_updated ?? raw.lastUpdated,
+      events: raw.events.map(fromSnakeEvent),
+    };
+  }
+
+  // Legacy migration: merge status_history + changes → events
+  const events: ToothEvent[] = [];
+
+  const statusHistory: any[] = raw.status_history ?? raw.statusHistory ?? [];
+  for (const s of statusHistory) {
+    events.push({
+      id: s.id,
+      date: s.date,
+      statusAfter: s.status,
+      changedBy: s.changed_by ?? s.changedBy,
+      changedByEmail: s.changed_by_email ?? s.changedByEmail ?? "",
+    });
+  }
+
+  const changes: any[] = raw.changes ?? [];
+  for (const c of changes) {
+    events.push({
+      id: c.id,
+      date: c.date,
+      title: c.title,
+      notes: c.notes,
+      imageUri: c.image_uri ?? c.imageUri,
+      category: c.status, // old field name was "status", now "category"
+    });
+  }
+
+  events.sort((a, b) => b.date.localeCompare(a.date));
+
   return {
-    toothId: raw.tooth_id ?? raw.toothId,
+    toothId,
     lastUpdated: raw.last_updated ?? raw.lastUpdated,
-    changes: (raw.changes ?? []).map(fromSnakeChange),
-    statusHistory: (raw.status_history ?? raw.statusHistory ?? []).map(fromSnakeStatusHistory),
+    events,
   };
 }
 
@@ -138,22 +161,24 @@ function fromSnakeAppData(raw: any): AppData {
 
   ALL_TOOTH_IDS.forEach((id) => {
     if (!teeth[id]) teeth[id] = defaultToothRecord(id);
-    if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
+    if (!Array.isArray(teeth[id].events)) teeth[id].events = [];
   });
 
   return {
     teeth,
     globalProcedures: raw.global_procedures ?? raw.globalProcedures ?? [],
     customStatuses: raw.custom_statuses ?? raw.customStatuses ?? [],
-    customToothCategories: raw.custom_tooth_categories ?? raw.customToothCategories ?? [],
-    customGlobalCategories: raw.custom_global_categories ?? raw.customGlobalCategories ?? [],
+    customToothCategories:
+      raw.custom_tooth_categories ?? raw.customToothCategories ?? [],
+    customGlobalCategories:
+      raw.custom_global_categories ?? raw.customGlobalCategories ?? [],
   };
 }
 
 // --------------- Helpers ---------------
 
 function defaultToothRecord(toothId: ToothId): ToothRecord {
-  return { toothId, changes: [] };
+  return { toothId, events: [] };
 }
 
 function getDefaultData(): AppData {
@@ -161,7 +186,13 @@ function getDefaultData(): AppData {
   ALL_TOOTH_IDS.forEach((id) => {
     teeth[id] = defaultToothRecord(id);
   });
-  return { teeth, globalProcedures: [], customStatuses: [], customToothCategories: [], customGlobalCategories: [] };
+  return {
+    teeth,
+    globalProcedures: [],
+    customStatuses: [],
+    customToothCategories: [],
+    customGlobalCategories: [],
+  };
 }
 
 // --------------- Users ---------------
@@ -310,14 +341,11 @@ export function subscribeToProfileData(
   profileId: string,
   callback: (data: AppData) => void,
 ): Unsubscribe {
-  return onSnapshot(
-    doc(db, "profiles", profileId, "data", "main"),
-    (snap) => {
-      if (snap.exists()) {
-        callback(fromSnakeAppData(snap.data()));
-      }
-    },
-  );
+  return onSnapshot(doc(db, "profiles", profileId, "data", "main"), (snap) => {
+    if (snap.exists()) {
+      callback(fromSnakeAppData(snap.data()));
+    }
+  });
 }
 
 export function subscribeToProfileAccess(

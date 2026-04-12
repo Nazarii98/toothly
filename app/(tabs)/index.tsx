@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { View, Text, StyleSheet, PanResponder, Pressable } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "../../src/theme";
 import { StatusPickerModal } from "../../src/components/StatusPickerModal";
@@ -32,6 +33,7 @@ import { Host, Button, HStack, Spacer } from "@expo/ui/swift-ui";
 import { useTranslation } from "react-i18next";
 
 const THUMB_SIZE = 22;
+const HINT_DISMISSED_KEY = "@teeth_manager_chart_hint_dismissed";
 
 function HistorySlider({
   index,
@@ -168,10 +170,22 @@ export default function ChartScreen() {
   const [profileName, setProfileName] = useState("");
   const [role, setRole] = useState<string>("owner");
   const [sliderIndex, setSliderIndex] = useState(-1);
+  const [showHint, setShowHint] = useState(false);
 
   const { dataRevision } = useDataSync();
   const { user } = useAuth();
   const canEdit = role !== "viewer";
+
+  useEffect(() => {
+    AsyncStorage.getItem(HINT_DISMISSED_KEY).then((val) => {
+      if (val !== "true") setShowHint(true);
+    });
+  }, []);
+
+  const dismissHint = useCallback(() => {
+    setShowHint(false);
+    AsyncStorage.setItem(HINT_DISMISSED_KEY, "true");
+  }, []);
 
   const refresh = useCallback(async () => {
     const [data, profiles, currentId, r] = await Promise.all([
@@ -182,9 +196,9 @@ export default function ChartScreen() {
     ]);
     const map: Record<ToothId, ToothStatus | undefined> = {};
     Object.values(data.teeth).forEach((rec) => {
-      const status = (rec.statusHistory ?? []).sort((a, b) =>
-        b.date.localeCompare(a.date),
-      )[0]?.status;
+      const status = rec.events
+        .filter((e) => !!e.statusAfter)
+        .sort((a, b) => b.date.localeCompare(a.date))[0]?.statusAfter;
       if (status) map[rec.toothId] = status;
     });
     setTeethStatuses(map);
@@ -201,10 +215,9 @@ export default function ChartScreen() {
     setRole(r);
     const dates: number[] = [];
     Object.values(data.teeth).forEach((rec) => {
-      (rec.statusHistory ?? []).forEach((e) => {
-        const ms = new Date(e.date).getTime();
-        dates.push(ms);
-      });
+      rec.events
+        .filter((e) => !!e.statusAfter)
+        .forEach((e) => dates.push(new Date(e.date).getTime()));
     });
     dates.sort((a, b) => a - b);
     const unique = [...new Set(dates)];
@@ -264,10 +277,11 @@ export default function ChartScreen() {
     if (selectedDateMs === null) return teethStatuses;
     const result: Record<ToothId, ToothStatus | undefined> = {};
     Object.entries(teethData).forEach(([id, record]) => {
-      const entry = (record.statusHistory ?? []).find(
-        (e) => new Date(e.date).getTime() <= selectedDateMs,
-      );
-      result[id as ToothId] = entry?.status as ToothStatus | undefined;
+      const entry = record.events
+        .filter((e) => !!e.statusAfter)
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .find((e) => new Date(e.date).getTime() <= selectedDateMs);
+      result[id as ToothId] = entry?.statusAfter as ToothStatus | undefined;
     });
     return result;
   }, [selectedDateMs, teethData, teethStatuses]);
@@ -336,6 +350,33 @@ export default function ChartScreen() {
             label={sliderLabel}
             colors={colors}
           />
+        </View>
+      )}
+
+      {showHint && canEdit && (
+        <View
+          style={[
+            styles.hintCard,
+            { backgroundColor: colors.card, shadowColor: colors.shadow },
+          ]}
+        >
+          <View style={styles.hintRows}>
+            <View style={styles.hintRow}>
+              <Ionicons name="hand-left-outline" size={15} color={colors.accent} />
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+                {t("chart.hintTap")}
+              </Text>
+            </View>
+            <View style={styles.hintRow}>
+              <Ionicons name="finger-print-outline" size={15} color={colors.accent} />
+              <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+                {t("chart.hintLongPress")}
+              </Text>
+            </View>
+          </View>
+          <Pressable onPress={dismissHint} hitSlop={10} style={styles.hintClose}>
+            <Ionicons name="close" size={16} color={colors.textTertiary} />
+          </Pressable>
         </View>
       )}
 
@@ -470,5 +511,36 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
+  },
+  hintCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
+    gap: 8,
+  },
+  hintRows: {
+    flex: 1,
+    gap: 6,
+  },
+  hintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  hintText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  hintClose: {
+    padding: 2,
   },
 });

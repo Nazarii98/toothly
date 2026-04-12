@@ -23,8 +23,8 @@ import {
   loadData,
   getToothRecord,
   setToothStatus,
-  deleteStatusHistoryEntry,
-  updateStatusHistoryEntry,
+  deleteToothEvent,
+  updateToothEvent,
 } from "../../src/store/teethStore";
 import { getCurrentProfileRole } from "../../src/store/profileStore";
 import {
@@ -35,11 +35,10 @@ import {
 } from "../../src/types";
 import type {
   ToothId,
-  ToothChange,
+  ToothEvent,
   ToothStatus,
   ToothRecord,
   StatusMaps,
-  StatusHistoryEntry,
 } from "../../src/types";
 import { useAuth } from "../../src/AuthProvider";
 import { useTranslation } from "react-i18next";
@@ -59,10 +58,8 @@ export default function ToothDetailScreen() {
     buildToothCategoryMaps(),
   );
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [statusEditEntry, setStatusEditEntry] =
-    useState<StatusHistoryEntry | null>(null);
-  const [androidDateEntry, setAndroidDateEntry] =
-    useState<StatusHistoryEntry | null>(null);
+  const [statusEditEvent, setStatusEditEvent] = useState<ToothEvent | null>(null);
+  const [androidDateEvent, setAndroidDateEvent] = useState<ToothEvent | null>(null);
   const [role, setRole] = useState<string>("owner");
   const { dataRevision } = useDataSync();
   const { user } = useAuth();
@@ -94,23 +91,10 @@ export default function ToothDetailScreen() {
     setRole(r);
   }, [toothId, t]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh]),
-  );
-
-  useEffect(() => {
-    if (dataRevision > 0) refresh();
-  }, [dataRevision]);
-
-  useEffect(() => {
-    refresh();
-  }, [i18n.language]);
+  useEffect(() => { refresh(); }, [refresh]);
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+  useEffect(() => { if (dataRevision > 0) refresh(); }, [dataRevision]);
+  useEffect(() => { refresh(); }, [i18n.language]);
 
   const handleStatusChange = async (status: ToothStatus) => {
     setPickerVisible(false);
@@ -118,36 +102,34 @@ export default function ToothDetailScreen() {
     refresh();
   };
 
-  const handleUpdateEntryDate = async (
-    entry: StatusHistoryEntry,
-    date: Date,
-  ) => {
-    await updateStatusHistoryEntry(toothId, entry.id, {
-      date: date.toISOString(),
-    });
+  const handleUpdateEventDate = async (event: ToothEvent, date: Date) => {
+    await updateToothEvent(toothId, event.id, { date: date.toISOString() });
     refresh();
   };
 
-  const handleUpdateEntryStatus = async (status: string) => {
-    if (!statusEditEntry) return;
-    await updateStatusHistoryEntry(toothId, statusEditEntry.id, { status });
-    setStatusEditEntry(null);
+  const handleUpdateEventStatus = async (status: string) => {
+    if (!statusEditEvent) return;
+    await updateToothEvent(toothId, statusEditEvent.id, { statusAfter: status });
+    setStatusEditEvent(null);
     refresh();
   };
 
-  const handleDeleteHistoryEntry = (entry: StatusHistoryEntry) => {
+  const handleDeleteEvent = (event: ToothEvent) => {
+    const label = event.title
+      ? event.title
+      : event.statusAfter
+        ? (statusMaps.labels[event.statusAfter] ?? event.statusAfter)
+        : "";
     Alert.alert(
       t("tooth.deleteStatus"),
-      t("tooth.deleteStatusMessage", {
-        label: statusMaps.labels[entry.status] ?? entry.status,
-      }),
+      label,
       [
         { text: t("common.cancel"), style: "cancel" },
         {
           text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
-            await deleteStatusHistoryEntry(toothId, entry.id);
+            await deleteToothEvent(toothId, event.id);
             refresh();
           },
         },
@@ -155,27 +137,15 @@ export default function ToothDetailScreen() {
     );
   };
 
-  const openAdd = () => {
-    router.push(`/add-record?toothId=${toothId}`);
-  };
+  const openAdd = () => router.push(`/add-record?toothId=${toothId}`);
+  const openEdit = (event: ToothEvent) =>
+    router.push(`/edit-record?toothId=${toothId}&changeId=${event.id}`);
 
-  const openEdit = (change: ToothChange) => {
-    router.push(`/edit-record?toothId=${toothId}&changeId=${change.id}`);
-  };
-
-  const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleDateString("uk-UA", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const currentStatus = (record?.statusHistory ?? []).sort((a, b) =>
+  const events = (record?.events ?? []).slice().sort((a, b) =>
     b.date.localeCompare(a.date),
-  )[0]?.status;
+  );
+
+  const currentStatus = events.find((e) => e.statusAfter)?.statusAfter;
   const currentStatusLabel = currentStatus
     ? (statusMaps.labels[currentStatus] ?? currentStatus)
     : t("tooth.noStatus");
@@ -190,11 +160,7 @@ export default function ToothDetailScreen() {
           title: t("tooth.title", { id: toothId }),
           headerRight: canEdit
             ? () => (
-                <Pressable
-                  onPress={openAdd}
-                  hitSlop={8}
-                  style={styles.headerAddBtn}
-                >
+                <Pressable onPress={openAdd} hitSlop={8} style={styles.headerAddBtn}>
                   <Ionicons name="add" size={26} color={colors.text} />
                 </Pressable>
               )
@@ -206,45 +172,32 @@ export default function ToothDetailScreen() {
           style={styles.container}
           contentContainerStyle={[
             styles.scrollContent,
-            {
-              paddingTop: headerHeight + 12,
-              paddingBottom: insets.bottom + 24,
-            },
+            { paddingTop: headerHeight + 12, paddingBottom: insets.bottom + 24 },
           ]}
           showsVerticalScrollIndicator={false}
         >
+          {/* ── Статус + таймлайн в одному блоці ── */}
           <View
             style={[
               styles.statusCard,
               { backgroundColor: colors.card, shadowColor: colors.shadow },
             ]}
           >
+            {/* Поточний статус */}
             <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
               {t("tooth.currentStatus")}
             </Text>
             <Pressable
-              style={[
-                styles.statusTrigger,
-                { backgroundColor: colors.inputBg },
-              ]}
+              style={[styles.statusTrigger, { backgroundColor: colors.inputBg }]}
               onPress={canEdit ? () => setPickerVisible(true) : undefined}
               disabled={!canEdit}
             >
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: currentStatusColor },
-                ]}
-              />
+              <View style={[styles.statusDot, { backgroundColor: currentStatusColor }]} />
               <Text style={[styles.statusTriggerText, { color: colors.text }]}>
                 {currentStatusLabel}
               </Text>
               {canEdit && (
-                <Ionicons
-                  name="chevron-forward"
-                  size={18}
-                  color={colors.chevron}
-                />
+                <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
               )}
             </Pressable>
             <StatusPickerModal
@@ -254,329 +207,301 @@ export default function ToothDetailScreen() {
               selected={currentStatus}
               maps={statusMaps}
               onSelect={handleStatusChange}
-              onManage={() => {
-                router.push("/statuses");
-                setPickerVisible(false);
-              }}
+              onManage={() => { router.push("/statuses"); setPickerVisible(false); }}
               manageLabel={t("tooth.manageStatuses")}
               showEmpty={false}
             />
 
-            {(record?.statusHistory?.length ?? 0) > 0 && (
+            {/* Таймлайн */}
+            {events.length > 0 && (
               <>
                 <View
                   style={[
-                    styles.statusSectionDivider,
+                    styles.divider,
                     { backgroundColor: colors.border },
                   ]}
                 />
-                <Text
-                  style={[
-                    styles.sectionLabel,
-                    { color: colors.textTertiary, marginBottom: 4 },
-                  ]}
-                >
-                  {t("tooth.statusHistory")}
+                <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
+                  {t("tooth.changesHistory")}
                 </Text>
-                {record!.statusHistory!.map((entry, index) => {
-                  const canDelete =
-                    role === "owner" || entry.changedBy === user?.uid;
-                  const isLast = index === record!.statusHistory!.length - 1;
+                {events.map((event, index) => {
+                  const isStatusOnly = !event.title && !!event.statusAfter;
+                  const canDelete = role === "owner" || event.changedBy === user?.uid;
+                  const isLast = index === events.length - 1;
+
                   return (
-                    <View key={entry.id}>
-                      <View style={styles.historyEntry}>
-                        {/* Left: dot + status + email */}
-                        <View style={styles.historyLeft}>
-                          <View style={styles.historyTopRow}>
+                    <View key={event.id}>
+                      <View style={styles.eventRow}>
+                        {/* Лівий стовпець: іконка або точка */}
+                        <View style={styles.eventIconCol}>
+                          {isStatusOnly ? (
                             <View
                               style={[
-                                styles.historyDot,
+                                styles.eventStatusDot,
                                 {
                                   backgroundColor:
-                                    statusMaps.borderColors[entry.status] ??
-                                    "#999",
+                                    statusMaps.borderColors[event.statusAfter!] ?? "#999",
+                                  borderColor: colors.card,
                                 },
                               ]}
                             />
-                            <Text
+                          ) : (
+                            <View
                               style={[
-                                styles.historyStatus,
-                                { color: colors.text },
+                                styles.eventRecordIcon,
+                                { backgroundColor: colors.inputBg },
                               ]}
                             >
-                              {statusMaps.labels[entry.status] ?? entry.status}
-                            </Text>
-                            {canDelete && (
-                              <Pressable
-                                onPress={() => setStatusEditEntry(entry)}
-                                hitSlop={8}
-                              >
-                                <Ionicons
-                                  name="pencil-outline"
-                                  size={14}
-                                  color={colors.accent}
-                                />
-                              </Pressable>
-                            )}
-                          </View>
-                          {entry.changedByEmail &&
-                            entry.changedByEmail !== user?.email && (
-                              <Text
-                                style={[
-                                  styles.historyMeta,
-                                  { color: colors.textTertiary },
-                                ]}
-                                numberOfLines={1}
-                              >
-                                {entry.changedByEmail}
-                              </Text>
-                            )}
-                        </View>
-                        {/* Right: date picker + edit + delete */}
-                        <View style={styles.historyRight}>
-                          {canDelete && Platform.OS === "ios" ? (
-                            <DateTimePicker
-                              value={new Date(entry.date)}
-                              mode="date"
-                              display="compact"
-                              maximumDate={new Date()}
-                              onChange={(_: DateTimePickerEvent, d?: Date) => {
-                                if (d) handleUpdateEntryDate(entry, d);
-                              }}
-                              locale={i18n.language}
-                              accentColor={colors.accent}
-                              textColor={colors.text}
-                              themeVariant={colors.isDark ? "dark" : "light"}
-                            />
-                          ) : (
-                            <Pressable
-                              onPress={
-                                canDelete
-                                  ? () => setAndroidDateEntry(entry)
-                                  : undefined
-                              }
-                              hitSlop={4}
-                            >
-                              <Text
-                                style={[
-                                  styles.historyMeta,
-                                  { color: colors.textTertiary },
-                                ]}
-                              >
-                                {new Date(entry.date).toLocaleDateString(
-                                  "uk-UA",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  },
-                                )}
-                              </Text>
-                            </Pressable>
-                          )}
-                          {canDelete && (
-                            <Pressable
-                              onPress={() => handleDeleteHistoryEntry(entry)}
-                              hitSlop={8}
-                            >
                               <Ionicons
-                                name="trash-outline"
-                                size={16}
-                                color={colors.destructive}
+                                name="document-text-outline"
+                                size={13}
+                                color={colors.textTertiary}
                               />
-                            </Pressable>
+                            </View>
+                          )}
+                          {!isLast && (
+                            <View
+                              style={[
+                                styles.eventLine,
+                                { backgroundColor: colors.border },
+                              ]}
+                            />
+                          )}
+                        </View>
+
+                        {/* Правий стовпець: вміст */}
+                        <View style={styles.eventContent}>
+                          {/* Рядок 1: заголовок або статус + кнопки */}
+                          <View style={styles.eventTopRow}>
+                            <View style={styles.eventTitleBlock}>
+                              {isStatusOnly ? (
+                                <View style={styles.eventStatusRow}>
+                                  <Text
+                                    style={[styles.eventStatusLabel, { color: colors.text }]}
+                                  >
+                                    {statusMaps.labels[event.statusAfter!] ?? event.statusAfter}
+                                  </Text>
+                                  {canDelete && (
+                                    <Pressable
+                                      onPress={() => setStatusEditEvent(event)}
+                                      hitSlop={8}
+                                    >
+                                      <Ionicons
+                                        name="pencil-outline"
+                                        size={13}
+                                        color={colors.accent}
+                                      />
+                                    </Pressable>
+                                  )}
+                                </View>
+                              ) : (
+                                <Pressable
+                                  onPress={canEdit ? () => openEdit(event) : undefined}
+                                  disabled={!canEdit}
+                                >
+                                  <View style={styles.eventTitleRow}>
+                                    <Text
+                                      style={[styles.eventTitle, { color: colors.text }]}
+                                      numberOfLines={2}
+                                    >
+                                      {event.title}
+                                    </Text>
+                                    {/* Бейдж статусу якщо є */}
+                                    {event.statusAfter && (
+                                      <View
+                                        style={[
+                                          styles.eventStatusBadge,
+                                          {
+                                            backgroundColor:
+                                              (statusMaps.borderColors[event.statusAfter] ?? "#999") + "20",
+                                          },
+                                        ]}
+                                      >
+                                        <View
+                                          style={[
+                                            styles.eventStatusBadgeDot,
+                                            {
+                                              backgroundColor:
+                                                statusMaps.borderColors[event.statusAfter] ?? "#999",
+                                            },
+                                          ]}
+                                        />
+                                        <Text
+                                          style={[
+                                            styles.eventStatusBadgeText,
+                                            {
+                                              color:
+                                                statusMaps.borderColors[event.statusAfter] ?? "#999",
+                                            },
+                                          ]}
+                                        >
+                                          {statusMaps.labels[event.statusAfter] ?? event.statusAfter}
+                                        </Text>
+                                      </View>
+                                    )}
+                                    {/* Категорія запису */}
+                                    {event.category && (
+                                      <View
+                                        style={[
+                                          styles.eventStatusBadge,
+                                          {
+                                            backgroundColor:
+                                              (categoryMaps.borderColors[event.category] ?? "#999") + "20",
+                                          },
+                                        ]}
+                                      >
+                                        <View
+                                          style={[
+                                            styles.eventStatusBadgeDot,
+                                            {
+                                              backgroundColor:
+                                                categoryMaps.borderColors[event.category] ?? "#999",
+                                            },
+                                          ]}
+                                        />
+                                        <Text
+                                          style={[
+                                            styles.eventStatusBadgeText,
+                                            {
+                                              color:
+                                                categoryMaps.borderColors[event.category] ?? "#999",
+                                            },
+                                          ]}
+                                        >
+                                          {categoryMaps.labels[event.category] ?? event.category}
+                                        </Text>
+                                      </View>
+                                    )}
+                                  </View>
+                                </Pressable>
+                              )}
+                            </View>
+
+                            {/* Дата + видалення */}
+                            <View style={styles.eventActions}>
+                              {canDelete && Platform.OS === "ios" ? (
+                                <DateTimePicker
+                                  value={new Date(event.date)}
+                                  mode="date"
+                                  display="compact"
+                                  maximumDate={new Date()}
+                                  onChange={(_: DateTimePickerEvent, d?: Date) => {
+                                    if (d) handleUpdateEventDate(event, d);
+                                  }}
+                                  locale={i18n.language}
+                                  accentColor={colors.accent}
+                                  textColor={colors.text}
+                                  themeVariant={colors.isDark ? "dark" : "light"}
+                                />
+                              ) : (
+                                <Pressable
+                                  onPress={canDelete ? () => setAndroidDateEvent(event) : undefined}
+                                  hitSlop={4}
+                                >
+                                  <Text style={[styles.eventDate, { color: colors.textTertiary }]}>
+                                    {new Date(event.date).toLocaleDateString("uk-UA", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "2-digit",
+                                    })}
+                                  </Text>
+                                </Pressable>
+                              )}
+                              {canDelete && (
+                                <Pressable onPress={() => handleDeleteEvent(event)} hitSlop={8}>
+                                  <Ionicons
+                                    name="trash-outline"
+                                    size={15}
+                                    color={colors.destructive}
+                                  />
+                                </Pressable>
+                              )}
+                            </View>
+                          </View>
+
+                          {/* Нотатки */}
+                          {event.notes ? (
+                            <Text
+                              style={[styles.eventNotes, { color: colors.textSecondary }]}
+                              numberOfLines={2}
+                            >
+                              {event.notes}
+                            </Text>
+                          ) : null}
+
+                          {/* Email автора (для спільних профілів) */}
+                          {event.changedByEmail && event.changedByEmail !== user?.email && (
+                            <Text
+                              style={[styles.eventAuthor, { color: colors.textTertiary }]}
+                              numberOfLines={1}
+                            >
+                              {event.changedByEmail}
+                            </Text>
                           )}
                         </View>
                       </View>
-                      {!isLast && (
-                        <View style={styles.historyConnector}>
-                          <View
-                            style={[
-                              styles.historyLine,
-                              { backgroundColor: colors.border },
-                            ]}
-                          />
-                          <Ionicons
-                            name="chevron-up"
-                            size={14}
-                            color={colors.textTertiary}
-                          />
-                          <View
-                            style={[
-                              styles.historyLine,
-                              { backgroundColor: colors.border },
-                            ]}
-                          />
-                        </View>
-                      )}
                     </View>
                   );
                 })}
               </>
             )}
-          </View>
 
-          <View style={styles.historySection}>
-            <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>
-              {t("tooth.changesHistory")}
-            </Text>
-            {record && record.changes.length === 0 ? (
-              <View
-                style={[
-                  styles.emptyState,
-                  {
-                    backgroundColor: colors.cardSecondary,
-                    shadowColor: colors.shadow,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="document-text-outline"
-                  size={40}
-                  color={colors.textTertiary}
-                />
-                <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  {t("tooth.noRecords")}
-                </Text>
-                <Text
-                  style={[styles.emptyHint, { color: colors.textSecondary }]}
+            {events.length === 0 && (
+              <>
+                <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                <View
+                  style={[
+                    styles.emptyState,
+                    { backgroundColor: colors.inputBg },
+                  ]}
                 >
-                  {t("tooth.noRecordsHint")}
-                </Text>
-                {canEdit && (
-                  <Pressable
-                    style={[
-                      styles.emptyCta,
-                      { backgroundColor: colors.accent },
-                    ]}
-                    onPress={openAdd}
-                  >
-                    <Ionicons name="add" size={20} color={colors.white} />
-                    <Text
-                      style={[styles.emptyCtaText, { color: colors.white }]}
+                  <Ionicons name="document-text-outline" size={36} color={colors.textTertiary} />
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                    {t("tooth.noRecords")}
+                  </Text>
+                  <Text style={[styles.emptyHint, { color: colors.textSecondary }]}>
+                    {t("tooth.noRecordsHint")}
+                  </Text>
+                  {canEdit && (
+                    <Pressable
+                      style={[styles.emptyCta, { backgroundColor: colors.accent }]}
+                      onPress={openAdd}
                     >
-                      {t("tooth.addRecord")}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            ) : (
-              <View style={styles.recordList}>
-                {record?.changes.map((c) => (
-                  <Pressable
-                    key={c.id}
-                    style={[
-                      styles.recordCard,
-                      {
-                        backgroundColor: colors.card,
-                        shadowColor: colors.shadow,
-                      },
-                    ]}
-                    onPress={canEdit ? () => openEdit(c) : undefined}
-                    disabled={!canEdit}
-                  >
-                    <View style={styles.recordCardTop}>
-                      <Text
-                        style={[styles.recordTitle, { color: colors.text }]}
-                        numberOfLines={2}
-                      >
-                        {c.title}
+                      <Ionicons name="add" size={20} color={colors.white} />
+                      <Text style={[styles.emptyCtaText, { color: colors.white }]}>
+                        {t("tooth.addRecord")}
                       </Text>
-                      <View style={styles.recordMeta}>
-                        {c.status && (
-                          <View
-                            style={[
-                              styles.recordStatusBadge,
-                              {
-                                backgroundColor:
-                                  (categoryMaps.borderColors[c.status] ??
-                                    statusMaps.borderColors[c.status] ??
-                                    "#999") + "18",
-                              },
-                            ]}
-                          >
-                            <View
-                              style={[
-                                styles.recordStatusDot,
-                                {
-                                  backgroundColor:
-                                    categoryMaps.borderColors[c.status] ??
-                                    statusMaps.borderColors[c.status] ??
-                                    "#999",
-                                },
-                              ]}
-                            />
-                            <Text
-                              style={[
-                                styles.recordStatusText,
-                                {
-                                  color:
-                                    categoryMaps.borderColors[c.status] ??
-                                    statusMaps.borderColors[c.status] ??
-                                    colors.textSecondary,
-                                },
-                              ]}
-                            >
-                              {categoryMaps.labels[c.status] ??
-                                statusMaps.labels[c.status] ??
-                                c.status}
-                            </Text>
-                          </View>
-                        )}
-                        <Text
-                          style={[
-                            styles.recordDate,
-                            { color: colors.textTertiary },
-                          ]}
-                        >
-                          {formatDate(c.date)}
-                        </Text>
-                      </View>
-                    </View>
-                    {c.notes ? (
-                      <Text
-                        style={[
-                          styles.recordNotes,
-                          { color: colors.textSecondary },
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {c.notes}
-                      </Text>
-                    ) : null}
-                  </Pressable>
-                ))}
-              </View>
+                    </Pressable>
+                  )}
+                </View>
+              </>
             )}
           </View>
         </ScrollView>
       </View>
 
       <StatusPickerModal
-        visible={statusEditEntry !== null}
-        onClose={() => setStatusEditEntry(null)}
+        visible={statusEditEvent !== null}
+        onClose={() => setStatusEditEvent(null)}
         title={t("tooth.pickStatus")}
-        selected={statusEditEntry?.status}
+        selected={statusEditEvent?.statusAfter}
         maps={statusMaps}
-        onSelect={handleUpdateEntryStatus}
-        onManage={() => {
-          router.push("/statuses");
-          setStatusEditEntry(null);
-        }}
+        onSelect={handleUpdateEventStatus}
+        onManage={() => { router.push("/statuses"); setStatusEditEvent(null); }}
         manageLabel={t("tooth.manageStatuses")}
         showEmpty={false}
       />
 
-      {androidDateEntry !== null && (
+      {androidDateEvent !== null && (
         <DateTimePicker
-          value={new Date(androidDateEntry.date)}
+          value={new Date(androidDateEvent.date)}
           mode="date"
           display="default"
           maximumDate={new Date()}
           onChange={(_: DateTimePickerEvent, d?: Date) => {
-            const entry = androidDateEntry;
-            setAndroidDateEntry(null);
-            if (d) handleUpdateEntryDate(entry, d);
+            const event = androidDateEvent;
+            setAndroidDateEvent(null);
+            if (d) handleUpdateEventDate(event, d);
           }}
         />
       )}
@@ -587,15 +512,13 @@ export default function ToothDetailScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20 },
+  scrollContent: { paddingHorizontal: 16 },
   headerAddBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    flexGrow: 0,
-    flexShrink: 0,
   },
   statusCard: {
     borderRadius: 20,
@@ -631,166 +554,134 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  modalCard: {
-    borderRadius: 20,
-    width: "100%",
-    maxWidth: 360,
-    overflow: "hidden",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  statusSectionDivider: {
+  divider: {
     height: StyleSheet.hairlineWidth,
     marginVertical: 16,
   },
-  historySection: {},
-  emptyState: {
-    borderRadius: 20,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+  // Timeline
+  eventRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingBottom: 4,
+  },
+  eventIconCol: {
+    width: 24,
     alignItems: "center",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+    paddingTop: 2,
+  },
+  eventStatusDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+  },
+  eventRecordIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  eventLine: {
+    width: 1.5,
+    flex: 1,
+    marginTop: 4,
+    marginBottom: 0,
+    minHeight: 16,
+  },
+  eventContent: {
+    flex: 1,
+    paddingBottom: 14,
+  },
+  eventTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  eventTitleBlock: {
+    flex: 1,
+  },
+  eventStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  eventStatusLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  eventTitleRow: {
+    gap: 5,
+  },
+  eventTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 20,
+  },
+  eventStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  eventStatusBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  eventStatusBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  eventActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexShrink: 0,
+  },
+  eventDate: {
+    fontSize: 12,
+  },
+  eventNotes: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  eventAuthor: {
+    fontSize: 11,
+    marginTop: 3,
+  },
+  emptyState: {
+    borderRadius: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    gap: 4,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
-    marginTop: 12,
+    marginTop: 8,
   },
   emptyHint: {
-    fontSize: 14,
-    marginTop: 4,
+    fontSize: 13,
     textAlign: "center",
+    lineHeight: 18,
   },
   emptyCta: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 20,
-    paddingVertical: 12,
+    marginTop: 16,
+    paddingVertical: 11,
     paddingHorizontal: 20,
-    borderRadius: 18,
+    borderRadius: 16,
   },
   emptyCtaText: {
     fontSize: 15,
     fontWeight: "600",
-  },
-  historyEntry: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 8,
-  },
-  historyLeft: {
-    flex: 1,
-    gap: 2,
-  },
-  historyTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  historyDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    flexShrink: 0,
-  },
-  historyStatus: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  historyRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flexShrink: 0,
-  },
-  historyMeta: {
-    fontSize: 12,
-    flexShrink: 1,
-  },
-  historyConnector: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingLeft: 4,
-    paddingVertical: 2,
-    gap: 4,
-  },
-  historyLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-  },
-  recordList: { gap: 12 },
-  recordCard: {
-    borderRadius: 20,
-    padding: 18,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  recordCardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  recordTitle: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "700",
-    lineHeight: 22,
-  },
-  recordMeta: {
-    alignItems: "flex-end",
-    gap: 6,
-  },
-  recordStatusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  recordStatusDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  recordStatusText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  recordDate: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  recordNotes: {
-    fontSize: 14,
-    marginTop: 8,
-    lineHeight: 20,
-  },
-  recordActions: {
-    flexDirection: "row",
-    marginTop: 12,
-    gap: 6,
-    alignItems: "center",
-  },
-  recordActionHint: {
-    flex: 1,
-    fontSize: 12,
   },
 });

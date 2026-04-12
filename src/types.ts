@@ -1,30 +1,35 @@
 // FDI World Dental Federation: перша цифра — квадрант (1–4), друга — зуб у квадранті (1–8)
 export type ToothId = string; // "11" | "12" | ... | "48"
 
-export interface ToothChange {
-  id: string;
-  toothId: ToothId;
-  date: string; // ISO
-  title: string;
-  notes?: string;
-  imageUri?: string;
-  status?: string; // tooth record category id
-}
-
 export type ToothStatus = string;
 
-export interface StatusHistoryEntry {
+/**
+ * Єдина подія у хронологічному списку зуба.
+ * Може бути: зміна статусу, запис процедури, або обидва разом.
+ *
+ * - Тільки statusAfter → швидка зміна статусу з головного екрану
+ * - Тільки title      → запис без зміни статусу
+ * - statusAfter + title → запис, який одночасно змінює статус
+ */
+export interface ToothEvent {
   id: string;
-  status: string;
   date: string; // ISO
-  changedBy: string; // user UID
-  changedByEmail: string;
+
+  // Поля зміни статусу (необов'язково)
+  statusAfter?: ToothStatus;
+  changedBy?: string;    // UID користувача
+  changedByEmail?: string;
+
+  // Поля запису процедури (необов'язково)
+  title?: string;
+  notes?: string;
+  imageUri?: string;
+  category?: string; // id категорії запису (tooth category id)
 }
 
 export interface ToothRecord {
   toothId: ToothId;
-  statusHistory?: StatusHistoryEntry[];
-  changes: ToothChange[];
+  events: ToothEvent[];
   lastUpdated?: string;
 }
 
@@ -101,7 +106,7 @@ export function buildStatusMaps(
   };
 }
 
-/** Tooth record category maps (for ToothChange.status) */
+/** Tooth record category maps (for ToothEvent.category) */
 export function buildToothCategoryMaps(
   custom: CustomCategory[] = [],
   localizedLabels?: Record<string, string>,
@@ -193,7 +198,7 @@ export const STATUS_BORDER_COLORS: Record<string, string> = {
   other: "#9E9E9E",
 };
 
-// ── Tooth record categories (ToothChange.status) ─────────────────────────────
+// ── Tooth record categories (ToothEvent.category) ────────────────────────────
 
 export const TOOTH_CATEGORY_LABELS: Record<string, string> = {
   checkup: "Огляд",

@@ -9,11 +9,11 @@ import { useAppTheme } from "../../src/theme";
 import { useDataSync } from "../../src/DataSyncProvider";
 import { loadData } from "../../src/store/teethStore";
 import { buildStatusMaps } from "../../src/types";
-import type { ToothChange, GlobalProcedure, StatusMaps } from "../../src/types";
+import type { ToothEvent, GlobalProcedure, StatusMaps } from "../../src/types";
 import { useTranslation } from "react-i18next";
 
 type HistoryItem =
-  | { type: "tooth"; data: ToothChange }
+  | { type: "tooth"; data: ToothEvent; toothId: string }
   | { type: "global"; data: GlobalProcedure };
 
 type ViewMode = "month" | "year";
@@ -78,7 +78,9 @@ export default function HistoryScreen() {
     setStatusMaps(buildStatusMaps(appData.customStatuses));
     const items: HistoryItem[] = [];
     Object.values(appData.teeth).forEach((r) => {
-      r.changes.forEach((c) => items.push({ type: "tooth", data: c }));
+      r.events
+        .filter((e) => !!e.title)
+        .forEach((e) => items.push({ type: "tooth", data: e, toothId: r.toothId }));
     });
     appData.globalProcedures.forEach((p) =>
       items.push({ type: "global", data: p }),
@@ -440,11 +442,11 @@ export default function HistoryScreen() {
               day: "numeric",
               month: "short",
             });
-            const badge = isGlobal ? "GP" : (data as ToothChange).toothId;
+            const badge = isGlobal ? "GP" : (item as { type: "tooth"; toothId: string }).toothId;
             const badgeBg = isGlobal ? colors.textSecondary : colors.accent;
             const onPress = isGlobal
               ? () => router.push(`/edit-global?id=${data.id}`)
-              : () => router.push(`/edit-record?toothId=${(data as ToothChange).toothId}&changeId=${data.id}`);
+              : () => router.push(`/edit-record?toothId=${(item as { type: "tooth"; toothId: string }).toothId}&changeId=${data.id}`);
             return (
               <Pressable
                 key={data.id}

@@ -21,8 +21,8 @@ import { StatusPickerModal } from "../src/components/StatusPickerModal";
 import {
   loadData,
   getToothRecord,
-  updateToothChange,
-  deleteToothChange,
+  updateToothEvent,
+  deleteToothEvent,
 } from "../src/store/teethStore";
 import { TOOTH_CATEGORY_LABELS, buildToothCategoryMaps } from "../src/types";
 import type { ToothId, StatusMaps } from "../src/types";
@@ -71,17 +71,17 @@ export default function EditRecordScreen() {
         ),
       );
       const record = getToothRecord(data, toothId);
-      const change = record.changes.find((c) => c.id === changeId);
-      if (change) {
-        setTitle(change.title);
-        setNotes(change.notes ?? "");
-        setStatus(change.status ?? "checkup");
-        setDate(new Date(change.date));
+      const event = record.events.find((e) => e.id === changeId);
+      if (event) {
+        setTitle(event.title ?? "");
+        setNotes(event.notes ?? "");
+        setStatus(event.category ?? "checkup");
+        setDate(new Date(event.date));
         setInitialVals({
-          title: change.title,
-          notes: change.notes ?? "",
-          status: change.status ?? "checkup",
-          dateDay: change.date.slice(0, 10),
+          title: event.title ?? "",
+          notes: event.notes ?? "",
+          status: event.category ?? "checkup",
+          dateDay: event.date.slice(0, 10),
         });
         setLoaded(true);
       }
@@ -99,10 +99,10 @@ export default function EditRecordScreen() {
       Alert.alert(t("common.error"), t("common.enterTitle"));
       return false;
     }
-    updateToothChange(toothId, changeId, {
+    updateToothEvent(toothId, changeId, {
       title: titleStr,
       notes: notes.trim() || undefined,
-      status,
+      category: status,
       date: date.toISOString(),
     }).catch(() => {});
     setSaved(true);
@@ -143,7 +143,7 @@ export default function EditRecordScreen() {
         text: t("common.delete"),
         style: "destructive",
         onPress: () => {
-          deleteToothChange(toothId, changeId).catch(() => {});
+          deleteToothEvent(toothId, changeId).catch(() => {});
           router.back();
         },
       },

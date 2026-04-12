@@ -29,7 +29,7 @@ function normalizeAppData(raw: any): AppData {
   const teeth = { ...defaults, ...(raw?.teeth ?? {}) };
   ALL_TOOTH_IDS.forEach((id) => {
     if (!teeth[id]) teeth[id] = defaultToothRecord(id);
-    if (!Array.isArray(teeth[id].changes)) teeth[id].changes = [];
+    if (!Array.isArray(teeth[id].events)) teeth[id].events = [];
   });
   return {
     teeth,

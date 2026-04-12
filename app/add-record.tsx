@@ -23,7 +23,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import {
   loadData,
-  addToothChange,
+  addToothEvent,
   addGlobalProcedure,
 } from "../src/store/teethStore";
 import {
@@ -33,7 +33,7 @@ import {
   buildToothCategoryMaps,
   buildGlobalCategoryMaps,
 } from "../src/types";
-import type { ToothChange, ToothId, StatusMaps } from "../src/types";
+import type { ToothId, StatusMaps } from "../src/types";
 const GENERAL_KEY = "__general__";
 
 const QUADRANTS = ["1", "2", "3", "4"] as const;
@@ -140,11 +140,11 @@ export default function AddRecordModal() {
         Alert.alert(t("common.error"), t("common.enterTitle"));
         return false;
       }
-      addToothChange(target as ToothId, {
+      addToothEvent(target as ToothId, {
         date: dateISO,
         title: titleStr,
         notes: notes.trim() || undefined,
-        status: category as ToothChange["status"],
+        category,
       }).catch(() => {});
     }
     setSaved(true);
