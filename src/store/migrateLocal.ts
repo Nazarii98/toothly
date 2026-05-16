@@ -18,7 +18,7 @@ interface OldProfile {
 }
 
 function defaultToothRecord(toothId: ToothId): ToothRecord {
-  return { toothId, changes: [] };
+  return { toothId, events: [] };
 }
 
 function normalizeAppData(raw: any): AppData {

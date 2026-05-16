@@ -32,6 +32,53 @@
     "hintTap": "Tap a tooth to quickly change its status",
     "hintLongPress": "Long press a tooth to open its details and records"
   },
+  "onboarding": {
+    "progress": "Onboarding progress",
+    "skip": "Skip",
+    "continue": "Continue",
+    "profile": {
+      "title": "Your dental space",
+      "subtitle": "Set up Toothly for yourself or for the whole family.",
+      "self": "Self",
+      "selfHint": "Track your own dental history and visits.",
+      "family": "Family",
+      "familyHint": "Keep profiles for family members in one place.",
+      "previewMeta": "Profile setup",
+      "selfProfileName": "My profile",
+      "familyProfileName": "Family"
+    },
+    "chart": {
+      "title": "Interactive dental chart",
+      "subtitle": "Tap any tooth to update its condition and track treatments visually.",
+      "upperArch": "Upper Arch",
+      "tapToUpdate": "Tap to update"
+    },
+    "history": {
+      "title": "Your full treatment history",
+      "subtitle": "All visits, procedures, and notes stored in one place.",
+      "month": "October 2023",
+      "cleaning": "Routine Cleaning",
+      "cleaningMeta": "Dr. Sarah Jenkins · 45 mins",
+      "checkup": "Cavity Check",
+      "checkupMeta": "Follow-up note · 20 mins"
+    },
+    "theme": {
+      "title": "Make it yours",
+      "subtitle": "Choose a theme and personalize your experience."
+    },
+    "trial": {
+      "title": "Start with full access",
+      "subtitle": "Try the complete Toothly experience. Billing can be connected later.",
+      "fullAccess": "Full Access",
+      "priceMeta": "per year",
+      "featureChart": "Interactive dental chart",
+      "featureHistory": "Treatment history and notes",
+      "featureProfiles": "Multiple profiles",
+      "featureExport": "Export and backup tools",
+      "cancel": "7 days free. Cancel anytime.",
+      "cta": "Start free trial"
+    }
+  },
   "tooth": {
     "title": "Tooth {{id}}",
     "currentStatus": "Current status",
