@@ -9,6 +9,10 @@ import { DataSyncProvider } from "../src/DataSyncProvider";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import i18n, { initI18n } from "../src/i18n";
 import { useEffect, useState } from "react";
+import {
+  getOnboardingCompleted,
+  subscribeToOnboardingCompletion,
+} from "../src/store/onboardingStore";
 
 function hexToRgb(hex: string): string {
   const h = hex.replace("#", "");
@@ -63,6 +67,8 @@ function RootStack() {
   const { colors } = useAppTheme();
   const { user, loading } = useAuth();
   const { t } = useTranslation();
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const [onboardingReady, setOnboardingReady] = useState(false);
   const headerOptions = {
     headerTransparent: true,
     headerTintColor: colors.text,
@@ -73,7 +79,24 @@ function RootStack() {
     ),
   };
 
-  if (loading) {
+  useEffect(() => {
+    let mounted = true;
+    getOnboardingCompleted().then((completed) => {
+      if (!mounted) return;
+      setOnboardingCompleted(completed);
+      setOnboardingReady(true);
+    });
+    const unsubscribe = subscribeToOnboardingCompletion((completed) => {
+      setOnboardingCompleted(completed);
+      setOnboardingReady(true);
+    });
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
+
+  if (loading || !onboardingReady) {
     return (
       <View
         style={{
@@ -129,14 +152,19 @@ function RootStack() {
           redirect={!user}
         />
         <Stack.Screen
+          name="onboarding"
+          options={{ headerShown: false }}
+          redirect={!!user || onboardingCompleted}
+        />
+        <Stack.Screen
           name="login"
           options={{ headerShown: false }}
-          redirect={!!user}
+          redirect={!!user || !onboardingCompleted}
         />
         <Stack.Screen
           name="register"
           options={{ headerShown: false }}
-          redirect={!!user}
+          redirect={!!user || !onboardingCompleted}
         />
         <Stack.Screen
           name="add-record"

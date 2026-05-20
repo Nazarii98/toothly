@@ -18,9 +18,17 @@ import {
   onAuthChange,
 } from "./store/authStore";
 import { createUserDoc, deleteAllUserData } from "./store/firestoreService";
-import { invalidateProfileCache } from "./store/profileStore";
+import {
+  addProfile,
+  getProfiles,
+  invalidateProfileCache,
+} from "./store/profileStore";
 import { clearDataCache } from "./store/teethStore";
 import { migrateLocalDataToFirestore } from "./store/migrateLocal";
+import {
+  clearPendingProfileName,
+  getPendingProfileName,
+} from "./store/onboardingStore";
 
 interface AuthContextValue {
   user: User | null;
@@ -44,6 +52,17 @@ const AuthContext = createContext<AuthContextValue>({
   deleteAccount: async () => {},
 });
 
+async function applyPendingOnboardingProfile(): Promise<void> {
+  const pendingName = await getPendingProfileName();
+  if (!pendingName) return;
+
+  const profiles = await getProfiles();
+  if (profiles.length === 0) {
+    await addProfile(pendingName);
+  }
+  await clearPendingProfileName();
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u) {
         await createUserDoc(u.uid, u.email ?? "");
         await migrateLocalDataToFirestore(u.uid);
+        await applyPendingOnboardingProfile();
       } else {
         invalidateProfileCache();
         clearDataCache();

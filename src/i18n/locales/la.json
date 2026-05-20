@@ -32,6 +32,53 @@
     "hintTap": "Tange dentem ad statum mutandum",
     "hintLongPress": "Tange diu dentem ad detalia et acta aperienda"
   },
+  "onboarding": {
+    "progress": "Progressus introductionis",
+    "skip": "Praeterire",
+    "continue": "Pergere",
+    "profile": {
+      "title": "Spatium dentale tuum",
+      "subtitle": "Toothly para tibi vel familiae.",
+      "self": "Mihi",
+      "selfHint": "Historiam dentalem tuam et visitationes conserva.",
+      "family": "Familia",
+      "familyHint": "Personas familiae uno loco serva.",
+      "previewMeta": "Praeparatio personae",
+      "selfProfileName": "Persona mea",
+      "familyProfileName": "Familia"
+    },
+    "chart": {
+      "title": "Schema dentium activum",
+      "subtitle": "Tange dentem ad statum mutandum et curationes visu sequi.",
+      "upperArch": "Arcus superior",
+      "tapToUpdate": "Tange ad renovandum"
+    },
+    "history": {
+      "title": "Historia curationum plena",
+      "subtitle": "Visitationes, procedurae et annotationes uno loco servantur.",
+      "month": "October 2023",
+      "cleaning": "Detersio ordinaria",
+      "cleaningMeta": "Dr. Sarah Jenkins · 45 min",
+      "checkup": "Inspectio cariei",
+      "checkupMeta": "Nota sequens · 20 min"
+    },
+    "theme": {
+      "title": "Fac tuum",
+      "subtitle": "Elige aspectum et experientiam tuam adapta."
+    },
+    "trial": {
+      "title": "Incipe cum pleno accessu",
+      "subtitle": "Totam experientiam Toothly tenta. Solutio postea conecti potest.",
+      "fullAccess": "Accessus plenus",
+      "priceMeta": "per annum",
+      "featureChart": "Schema dentium activum",
+      "featureHistory": "Historia curationum et annotationes",
+      "featureProfiles": "Personae multiplices",
+      "featureExport": "Exportum et instrumenta subsidiaria",
+      "cancel": "VII dies gratis. Quandoque cancellare potes.",
+      "cta": "Incipere probationem"
+    }
+  },
   "tooth": {
     "title": "Dens {{id}}",
     "currentStatus": "Status praesens",
